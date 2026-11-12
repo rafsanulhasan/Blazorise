@@ -1,0 +1,89 @@
+@mixin ant-alert-variant($name, $color, $background, $border) {
+    &-#{$name} {
+        color: #{$color};
+        background-color: #{$background};
+        border-color: #{$border};
+
+        .ant-alert-icon {
+            color: #{$color};
+        }
+    }
+}
+
+.ant-alert {
+    margin-bottom: 1rem;
+
+    &.ant-alert-dismissible {
+        padding-inline-end: calc(12px + var(--ant-font-size-icon) + var(--ant-margin-sm));
+
+        .ant-alert-close-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            position: absolute;
+            inset-inline-end: 12px;
+            top: 50%;
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+    }
+
+    &.ant-alert-with-description {
+        .ant-alert-title,
+        .ant-alert-description {
+            color: currentColor;
+        }
+
+        &.ant-alert-dismissible .ant-alert-close-icon {
+            top: var(--ant-padding-md);
+            transform: none;
+        }
+    }
+
+    .ant-alert-close-icon {
+        color: currentColor;
+    }
+
+    .alert-link {
+        color: var(--ant-color-link);
+    }
+
+    @each $name, $colors in $alert-variants {
+        @include ant-alert-variant($name, nth($colors, 1), nth($colors, 2), nth($colors, 3));
+    }
+}
+
+.ant-alert[data-animation-duration] {
+    @include component-animation-duration(var(--ant-alert-animation-duration));
+}
+
+.ant-alert {
+    @include visibility-transition(opacity var(--ant-motion-duration-slow) var(--ant-motion-ease-in-out));
+}
+
+.ant-alert.ant-alert-custom {
+    background-color: color-mix(in srgb, var(--ant-alert-bg) 15%, var(--ant-color-bg-container));
+    border-color: color-mix(in srgb, var(--ant-alert-bg) 35%, var(--ant-color-bg-container));
+    color: color-mix(in srgb, var(--ant-alert-bg) 40%, var(--ant-color-text));
+
+    @supports (color: contrast-color(white)) {
+        color: color-mix(in srgb, var(--ant-alert-bg) 30%, contrast-color(color-mix(in srgb, var(--ant-alert-bg) 15%, var(--ant-color-bg-container))));
+    }
+
+    .alert-link,
+    .ant-alert-title,
+    .ant-alert-description,
+    .ant-alert-icon {
+        color: inherit;
+    }
+
+    .ant-alert-close-icon {
+        color: inherit;
+
+        &:hover,
+        &:focus {
+            color: inherit;
+        }
+    }
+}

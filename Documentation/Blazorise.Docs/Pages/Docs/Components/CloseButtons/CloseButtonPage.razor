@@ -1,10 +1,14 @@
-﻿@page "/docs/components/close-button"
+@page "/docs/components/close-button"
 
-<Seo Canonical="/docs/components/close-button" Title="Blazorise CloseButton component" Description="The CloseButton is a simple button that highlights to the user that a part of the current UI can be dismissed" />
+<Seo Canonical="/docs/components/close-button" Title="Blazorise CloseButton component" Description="Learn to use and work with the Blazorise CloseButton component, a simple button that highlights to the user that a part of the current UI can be dismissed." />
 
-<DocsPageTitle>
-    CloseButton
+<DocsPageTitle Path="Components/Close Button">
+    Blazorise CloseButton component
 </DocsPageTitle>
+
+<DocsPageLead>
+    A generic close button for dismissing content like modals and alerts.
+</DocsPageLead>
 
 <DocsPageParagraph>
     The <Code Tag>CloseButton</Code> is a simple button that highlights to the user that a part of the current UI can be dismissed such as an <Code>Alert</Code> or a <Code>Modal</Code>.
@@ -15,42 +19,54 @@
     <Code>Clicked</Code> EventCallback must be set for it to be useful.
 </DocsPageParagraph>
 
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
 <DocsPageSection>
     <DocsPageSectionHeader Title="Manual close">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="ManualCloseExample" Outlined>
         <ManualCloseExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ManualCloseExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Auto close">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="AutoCloseExample" Outlined>
         <AutoCloseExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="AutoCloseExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="With other components">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="WithOtherComponentsExample" Outlined>
         <WithOtherComponentsExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="WithOtherComponentsExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes>
-    <DocsAttributesItem Name="Clicked" Type="EventCallback">
-        Occurs when the Button is clicked.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="AutoClose" Type="bool" Default="true">
-        If true, the parent Alert or Modal with be automatically closed.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Dismissal Only
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    A close button should dismiss a nearby surface such as an alert, modal, or panel. Use a labeled <Code Tag>Button</Code> for delete or cancel actions. Place the close control consistently in the expected corner and preserve a comfortable pointer and touch target around the icon.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Manage Focus
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Give the button an accessible name that identifies what it closes whenever the surrounding context is not obvious. After closing an overlay, restore focus to the control that opened it so keyboard users can continue from a predictable location.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/close-button/api" Name="<CloseButton />" />
+</DocsPageApi>

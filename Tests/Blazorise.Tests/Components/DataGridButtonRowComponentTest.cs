@@ -1,92 +1,88 @@
-﻿#region Using directives
-using System.Linq;
-using BasicTestApp.Client;
+#region Using directives
+using System.Threading.Tasks;
 using Blazorise.DataGrid;
-using Blazorise.Tests.Helpers;
 using Bunit;
 using Xunit;
 #endregion
 
-namespace Blazorise.Tests.Components
+namespace Blazorise.Tests.Components;
+
+public class DataGridButtonRowComponentTest : BunitContext
 {
-    public class DataGridButtonRowComponentTest : TestContext
+    public DataGridButtonRowComponentTest()
     {
-        public DataGridButtonRowComponentTest()
-        {
-            BlazoriseConfig.AddBootstrapProviders( Services );
-            BlazoriseConfig.JSInterop.AddDataGrid( this.JSInterop );
-        }
+        Services.AddBlazoriseTests().AddBootstrapProviders().AddEmptyIconProvider().AddTestData();
+        JSInterop.AddBlazoriseDataGrid();
+    }
 
-        [Theory]
-        [InlineData( DataGridEditMode.Form )]
-        [InlineData( DataGridEditMode.Inline )]
-        [InlineData( DataGridEditMode.Popup )]
-        public void New_Should_AddNewItem( DataGridEditMode editMode )
-        {
-            // setup
-            var comp = RenderComponent<DataGridButtonRowComponent>( parameters =>
-                parameters.Add( x => x.DataGridEditMode, editMode ) );
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task New_Should_AddNewItem( DataGridEditMode editMode )
+    {
+        // setup
+        var comp = Render<DataGridButtonRowComponent>( parameters =>
+            parameters.Add( x => x.DataGridEditMode, editMode ) );
 
-            var startingDataCount = comp.Instance.InMemoryData.Count;
+        var startingDataCount = comp.Instance.InMemoryData.Count;
 
-            // test
-            comp.Find( "#btnNew" ).Click();
-            comp.Find( "#btnSave" ).Click();
+        // test
+        await comp.Click( "#btnNew" );
+        await comp.Click( "#btnSave" );
 
+        var currentDataCount = comp.Instance.InMemoryData.Count;
 
-            var currentDataCount = comp.Instance.InMemoryData.Count;
+        // validate
+        var expectedResult = startingDataCount + 1;
+        comp.WaitForAssertion( () => Assert.Equal( expectedResult, comp.Instance.InMemoryData.Count ), System.TimeSpan.FromSeconds( 3 ) );
+    }
 
-            // validate
-            Assert.Equal( startingDataCount + 1, currentDataCount );
-        }
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task Edit_Should_UpdateItem( DataGridEditMode editMode )
+    {
+        // setup
+        var updatedName = "RaulFromEdit";
+        var comp = Render<DataGridButtonRowComponent>( parameters =>
+            parameters.Add( x => x.DataGridEditMode, editMode ) );
 
-        [Theory]
-        [InlineData( DataGridEditMode.Form )]
-        [InlineData( DataGridEditMode.Inline )]
-        [InlineData( DataGridEditMode.Popup )]
-        public void Edit_Should_UpdateItem( DataGridEditMode editMode )
-        {
-            // setup
-            var updatedName = "RaulFromEdit";
-            var comp = RenderComponent<DataGridButtonRowComponent>( parameters =>
-                parameters.Add( x => x.DataGridEditMode, editMode ) );
+        // test
+        await comp.Click( "tr.table-row-selectable" );
+        await comp.Click( "#btnEdit" );
 
-            // test
-            comp.Find( "tr.table-row-selectable" ).Click();
-            comp.Find( "#btnEdit" ).Click();
+        await comp.Input( "input", updatedName,
+            ( firstInput ) => firstInput.SetAttribute( "value", updatedName ) );
 
+        await comp.Click( "#btnSave" );
 
-            var firstInput = comp.Find( "input" );
-            firstInput.SetAttribute( "value", updatedName );
-            firstInput.Input( updatedName );
+        var currentName = comp.Instance.InMemoryData[0].Name;
 
-            comp.Find( "#btnSave" ).Click();
+        // validate
+        comp.WaitForAssertion( () => Assert.Contains( comp.Instance.InMemoryData, x => x.Name == updatedName ), System.TimeSpan.FromSeconds( 3 ) );
+    }
 
-            var currentName = comp.Instance.InMemoryData[0].Name;
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task Delete_Should_DeleteItem( DataGridEditMode editMode )
+    {
+        // setup
+        var comp = Render<DataGridButtonRowComponent>( parameters =>
+            parameters.Add( x => x.DataGridEditMode, editMode ) );
+        var startingDataCount = comp.Instance.InMemoryData.Count;
 
-            // validate
-            Assert.Contains( comp.Instance.InMemoryData, x => x.Name == updatedName );
-        }
+        // test
+        await comp.Click( "tr.table-row-selectable" );
+        await comp.Click( "#btnDelete" );
 
-        [Theory]
-        [InlineData( DataGridEditMode.Form )]
-        [InlineData( DataGridEditMode.Inline )]
-        [InlineData( DataGridEditMode.Popup )]
-        public void Delete_Should_DeleteItem( DataGridEditMode editMode )
-        {
-            // setup
-            var comp = RenderComponent<DataGridButtonRowComponent>( parameters =>
-                parameters.Add( x => x.DataGridEditMode, editMode ) );
-            var startingDataCount = comp.Instance.InMemoryData.Count;
+        var currentDataCount = comp.Instance.InMemoryData.Count;
 
-            // test
-            comp.Find( "tr.table-row-selectable" ).Click();
-            comp.Find( "#btnDelete" ).Click();
-
-            var currentDataCount = comp.Instance.InMemoryData.Count;
-
-            // validate
-            Assert.Equal( startingDataCount - 1, currentDataCount );
-        }
+        // validate
+        var expectedResult = startingDataCount - 1;
+        comp.WaitForAssertion( () => Assert.Equal( expectedResult, currentDataCount ), System.TimeSpan.FromSeconds( 3 ) );
     }
 }

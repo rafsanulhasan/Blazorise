@@ -1,5 +1,5 @@
-﻿import Inputmask from "./vendors/inputmask.js?v=1.0.2.0";
-import { getRequiredElement } from "./utilities.js?v=1.0.2.0";
+import Inputmask from "./vendors/inputmask.js?v=__BLAZORISE_VERSION__";
+import { createEvent, getRequiredElement } from "./utilities.js?v=__BLAZORISE_VERSION__";
 
 let _instances = [];
 
@@ -9,11 +9,35 @@ export function initialize(dotnetAdapter, element, elementId, options) {
     if (!element)
         return;
 
+    let initializing = true;
+
     const maskOptions = options.mask ? { mask: options.mask } : {};
     const regexOptions = options.mask ? { regex: options.regex } : {};
     const aliasOptions = options.alias ? { alias: options.alias, inputFormat: options.inputFormat, outputFormat: options.outputFormat } : {};
+    const eventOptions = dotnetAdapter
+        ? {
+            oncomplete: function (e) {
+                dotnetAdapter.invokeMethodAsync('NotifyCompleted', e.target.value);
+            },
+            onincomplete: function (e) {
+                dotnetAdapter.invokeMethodAsync('NotifyIncompleted', e.target.value);
+            },
+            oncleared: function () {
+                dotnetAdapter.invokeMethodAsync('NotifyCleared');
+            }
+        }
+        : options.dispatchChangeOnComplete
+            ? {
+                oncomplete: function (e) {
+                    if (!initializing) {
+                        e.target.dispatchEvent(createEvent("change"));
+                    }
+                }
+            }
+            : {};
+
     const otherOptions = {
-        placeholder: options.placeholder || "_",
+        placeholder: options.maskPlaceholder || "_",
         showMaskOnFocus: options.showMaskOnFocus,
         showMaskOnHover: options.showMaskOnHover,
         numericInput: options.numericInput || false,
@@ -24,25 +48,18 @@ export function initialize(dotnetAdapter, element, elementId, options) {
         positionCaretOnClick: options.positionCaretOnClick || "lvp",
         clearMaskOnLostFocus: options.clearMaskOnLostFocus || true,
         clearIncomplete: options.clearIncomplete || false,
-        autoUnmask: options.autoUnmask || false,
-        oncomplete: function (e) {
-            dotnetAdapter.invokeMethodAsync('NotifyCompleted', e.target.value);
-        },
-        onincomplete: function (e) {
-            dotnetAdapter.invokeMethodAsync('NotifyIncompleted', e.target.value);
-        },
-        oncleared: function () {
-            dotnetAdapter.invokeMethodAsync('NotifyCleared');
-        }
+        autoUnmask: options.autoUnmask || false
     };
 
     const finalOptions = options.alias
-        ? Object.assign({}, aliasOptions, otherOptions)
-        : Object.assign({}, maskOptions, regexOptions, otherOptions);
+        ? Object.assign({}, aliasOptions, eventOptions, otherOptions)
+        : Object.assign({}, maskOptions, regexOptions, eventOptions, otherOptions);
 
-    var inputMask = new Inputmask(finalOptions);
+    let inputMask = new Inputmask(finalOptions);
 
     inputMask.mask(element);
+
+    setTimeout(() => initializing = false, 0);
 
     _instances[elementId] = {
         dotnetAdapter: dotnetAdapter,
@@ -50,10 +67,30 @@ export function initialize(dotnetAdapter, element, elementId, options) {
         elementId: elementId,
         inputMask: inputMask
     };
+
+    return inputMask;
 }
 
 export function destroy(element, elementId) {
-    var instances = _instances || {};
+    let instances = _instances || {};
+    const instance = instances[elementId];
+
+    if (instance) {
+        try {
+            if (instance.element && instance.element.inputmask && typeof instance.element.inputmask.remove === "function") {
+                instance.element.inputmask.remove();
+            }
+            else if (instance.inputMask && typeof instance.inputMask.remove === "function") {
+                instance.inputMask.remove();
+            }
+        }
+        catch (error) {
+            console.error(error);
+        }
+
+        instance.inputMask = null;
+    }
+
     delete instances[elementId];
 }
 

@@ -7,9 +7,9 @@
           Responsive
           ShowPager>
     <DataGridCommandColumn />
-    <DataGridColumn Field="@nameof( Employee.Salary )" Caption="Salary" Editable DisplayFormat="{0:C}" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo("fr-FR")">
+    <DataGridColumn Field="@nameof( Employee.Salary )" Caption="Salary" Editable DisplayFormat="C" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo("fr-FR")">
         <EditTemplate>
-            <NumericEdit TValue="decimal"
+            <NumericInput TValue="decimal"
                          Value="@((decimal)context.CellValue)"
                          ValueChanged="@( v => {
                             context.CellValue = v;
@@ -17,9 +17,9 @@
                          })" />
         </EditTemplate>
     </DataGridColumn>
-    <DataGridColumn Field="@nameof( Employee.Tax )" Caption="Tax" Editable DisplayFormat="{0:C}" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo("fr-FR")">
+    <DataGridColumn Field="@nameof( Employee.Tax )" Caption="Tax" Editable DisplayFormat="C" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo("fr-FR")">
         <EditTemplate>
-            <NumericEdit TValue="decimal"
+            <NumericInput TValue="decimal"
                          Value="@((decimal)context.CellValue)"
                          Disabled />
         </EditTemplate>
@@ -27,8 +27,7 @@
 </DataGrid>
 
 @code {
-    [Inject]
-    public EmployeeData EmployeeData { get; set; }
+    [Inject] EmployeeData EmployeeData { get; set; }
     private List<Employee> employeeList;
 
     protected override async Task OnInitializedAsync()

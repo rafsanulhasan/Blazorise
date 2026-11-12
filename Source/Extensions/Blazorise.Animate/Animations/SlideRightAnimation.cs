@@ -1,7 +1,8 @@
-﻿namespace Blazorise.Animate
+﻿namespace Blazorise.Animate;
+
+/// <inheritdoc cref="Animations.SlideRight"/>
+public class SlideRightAnimation : IAnimation
 {
-    public class SlideRightAnimation : IAnimation
-    {
-        public string Name => "slide-right";
-    }
+    /// <inheritdoc />
+    public string Name => "slide-right";
 }

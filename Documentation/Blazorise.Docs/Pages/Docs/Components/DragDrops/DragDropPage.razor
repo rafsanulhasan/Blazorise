@@ -1,32 +1,36 @@
-﻿@page "/docs/components/dragdrop"
+@page "/docs/components/drag-drop"
 
-<Seo Canonical="/docs/components/dropzone" Title="Blazorise DropZone system" Description="The DropZone component allows you to easily drag and drop any component or HTML element." />
+<Seo Canonical="/docs/components/drag-drop" Title="Blazorise DropZone system" Description="Learn to use and work with the Blazorise DropZone component which allows you to easily drag and drop any component or HTML element." />
 
-<DocsPageTitle>
-    Drag & Drop
+<DocsPageTitle Path="Components/Drop Zone" AddedVersion="1.0" AddedDate="2022-02-27">
+    Blazorise Drag &amp; Drop component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Let users move and reorder items by dragging them between drop zones.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    The Drag & Drop is comprised of <Code>DropContainer</Code> and <Code>DropZone</Code> components. The <Code>DropContainer</Code> is used as a container for all items that are being dragged,
-    along with the <Code>DropZone</Code>'s that are basically an areas to drag the items.
+    Use drag and drop for task boards, sortable lists, or interfaces where moving items directly is easier than choosing an action from a menu.
 </DocsPageParagraph>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>DropContainer</Code>
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>DropZone</Code>
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
 
+<DocsPageParagraph>
+    A <Code>DropContainer</Code> manages the items being dragged and the <Code>DropZone</Code> components that receive them.
+</DocsPageParagraph>
 
+<DocsAnatomy Label="Drag and drop component anatomy">
+    <DocsAnatomyRegion Label="DropContainer" Description="Coordinates the items and drag operations.">
+        <DocsAnatomyRegion Label="DropZone" Description="An area where items can be dropped." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic">
@@ -40,84 +44,98 @@
             The callback <Code>ItemDropped</Code> is used to update the data item, when a drag operation has finished.
         </Paragraph>
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicDragDropExample" Outlined FullWidth>
         <BasicDragDropExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicDragDropExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Reorder items">
+        <Paragraph>
+            Items can be reordered inside each dropzone with the <Code>AllowReorder</Code> bool set to true on the dropzone.
+            The dragged item leaves a slot that moves with the insertion point, with or without animation.
+            The <Code>Reordered</Code> function triggers each time the order changes or items are added or removed from the dropzone, providing the current order in a dictionary.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DragDropReorderingExample" Outlined FullWidth>
+        <DragDropReorderingExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes Title="DropContainer">
-    <DocsAttributesItem Name="TItem" Type="generic">
-        <Code>Items</Code> data type.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Items" Type="IEnumerable<TItem>">
-        Items that are used for the drag&amp;drop withing the container.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ItemsFilter" Type="Func<TItem, string, bool>">
-        The method used to determine if the item belongs to the dropzone.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ItemTemplate" Type="RenderFragment<TItem>">
-        The render method that is used to render the items withing the dropzone.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ItemDropped" Type="EventCallback<DraggableDroppedEventArgs<TItem>>">
-        Callback that indicates that an item has been dropped on a drop zone. Should be used to update the "status" of the data item.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DropAllowed" Type="Func<TItem, string, bool>" Default="null">
-        Determines if the item is allowed to be dropped to the specified zone.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DropAllowedClass" Type="string" Default="null">
-        Classname that is applied if dropping to the current zone is allowed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DropNotAllowedClass" Type="string" Default="null">
-        Classname that is applied if dropping to the current zone is not allowed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ItemDisabled" Type="Func<TItem, bool>" Default="null">
-        Determines if the item is disabled for dragging and dropping.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DisabledClass" Type="string" Default="null">
-        Classname that is applied to the dropzone if the result of <Code>ItemDisabled</Code> is false.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DraggingClass" Type="string" Default="null">
-        Classname that is applied to the dropzone when the drag operation has started.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ItemDraggingClass" Type="string" Default="null">
-        Classname that is applied to the drag item when it is being dragged.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Animated reordering">
+        <Paragraph>
+            Animated movement helps users follow where items will land as they reorder a list. Enable <Code>Animated</Code> together with <Code>AllowReorder</Code> on a <Code>DropZone</Code> to animate neighboring items around the insertion placeholder.
+        </Paragraph>
+        <Paragraph>
+            Set <Code>AnimationDuration</Code> to control the movement duration in milliseconds. The default is <Code>200</Code>. Animations are disabled by default, and a duration of zero or less disables them. The user's reduced motion preference is respected automatically.
+        </Paragraph>
+        <Paragraph>
+            Set <Code>ShowPlaceholder="true"</Code> to show a dashed outline or your <Code>PlaceholderTemplate</Code> inside the moving slot. Set it to <Code>false</Code> to hide the outline and content while retaining the slot's space.
+            The default, <Code>null</Code>, shows the placeholder for non-animated reordering or when a custom template is supplied; otherwise, it leaves an empty slot. Use the controls below to compare visibility and animation independently.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DragDropAnimationExample" Outlined FullWidth>
+        <DragDropAnimationExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes Title="DropZone">
-    <DocsAttributesItem Name="Name" Type="string" Default="null">
-        Gets or sets the unique name of the dropzone.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ItemsFilter" Type="Func<TItem, bool>">
-        The method used to determine if the item belongs to the dropzone.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ItemTemplate" Type="RenderFragment<TItem>">
-        The render method that is used to render the items withing the dropzone.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DropAllowed" Type="Func<TItem, string, bool>" Default="null">
-        Determines if the item is allowed to be dropped to the specified zone.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DropAllowedClass" Type="string" Default="null">
-        Classname that is applied if dropping to the current zone is allowed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DropNotAllowedClass" Type="string" Default="null">
-        Classname that is applied if dropping to the current zone is not allowed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ItemDisabled" Type="Func<TItem, bool>" Default="null">
-        Determines if the item is disabled for dragging and dropping.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DisabledClass" Type="string" Default="null">
-        Classname that is applied to the dropzone if the result of <Code>ItemDisabled</Code> is false.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DraggingClass" Type="string" Default="null">
-        Classname that is applied to the dropzone when the drag operation has started.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ItemDraggingClass" Type="string" Default="null">
-        Classname that is applied to the drag item when it is being dragged.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom placeholder">
+        <Paragraph>
+            Use <Code>PlaceholderTemplate</Code> to replace the default reorder indicator with custom content. The template receives the item being dragged and can be defined on the <Code>DropContainer</Code> or overridden by an individual <Code>DropZone</Code>.
+        </Paragraph>
+        <Paragraph>
+            This example places the zones in equal responsive columns so that longer placeholder content and changes in item count do not resize the zones during dragging.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DragDropCustomPlaceholderExample" Outlined FullWidth>
+        <DragDropCustomPlaceholderExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Drag handles" AddedVersion="2.5" AddedDate="2026-10-26">
+        <Paragraph>
+            Give users a clear place to grab an item while keeping its text, inputs, and buttons easy to use. Handles are useful for editable task cards and lists where dragging the whole item could interfere with everyday interactions. In this example, users can edit a task's name, move it with a button, or drag its grip to reorder it or change its group.
+        </Paragraph>
+        <Paragraph>
+            Place a <Code>DragHandle</Code> inside the item template. Items with handles can only be dragged from an enabled handle; items without handles remain draggable as a whole. Multiple handles are supported. A disabled handle still restricts whole-item dragging, and disabling the item disables all its handles.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DragDropHandleExample" Outlined FullWidth>
+        <DragDropHandleExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Drag Alternative
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Every operation available through dragging should also have a keyboard-accessible method, such as move buttons. Make draggable items and valid drop zones visually clear, and show immediate feedback for both allowed and rejected drops.
+</DocsPageParagraph>
+
+<DocsPageSection>
+    <DocsPageSectionContent Code="DragDropAccessibleBestPracticeExample" Outlined FullWidth>
+        <DragDropAccessibleBestPracticeExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Validate Every Move
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Use stable item identifiers and update the source collection through one state owner after a successful drop. When ordering, permissions, or destination rules affect persisted data, validate the move again in application code before saving it.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/drag-drop/api" Name="<DropContainer />" />
+    <DocsPageApiItem Url="docs/components/drag-drop/api" Name="<DropZone />" />
+    <DocsPageApiItem Url="docs/components/drag-drop/api" Name="<DragHandle />" />
+</DocsPageApi>

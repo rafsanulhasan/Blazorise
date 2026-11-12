@@ -3,65 +3,47 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Blazorise.Localization;
-using Blazorise.Modules;
 using Microsoft.AspNetCore.Components;
 using Moq;
 
-namespace Blazorise.Tests.Mocks
+namespace Blazorise.Tests.Mocks;
+
+internal class MockDatePicker<T> : DatePicker<T>
 {
-    internal class MockDatePicker<T> : DatePicker<T>
+    public MockDatePicker( Validation validation = null, Expression<Func<T>> dateExpression = null )
     {
-        public MockDatePicker( Validation validation = null, Expression<Func<T>> dateExpression = null )
-        {
-            var mockModuleRunner = new Mock<IJSDatePickerModule>();
+        var mockLocalizerService = new Mock<ITextLocalizerService>();
+        LocalizerService = mockLocalizerService.Object;
 
-            mockModuleRunner
-                .Setup( r => r.Activate( It.IsAny<ElementReference>(), It.IsAny<string>(), It.IsAny<object>() ) )
-                .Callback( ( ElementReference reference, string id, object o ) => this.OnActivateDatePicker( reference, id, o ) );
+        var mockLocalizer = new Mock<ITextLocalizer<DatePicker<T>>>();
+        Localizer = mockLocalizer.Object;
 
-            JSModule = mockModuleRunner.Object;
+        var mockIdGenerator = new Mock<IIdGenerator>();
 
-            var mockLocalizerService = new Mock<ITextLocalizerService>();
-            LocalizerService = mockLocalizerService.Object;
+        mockIdGenerator
+            .Setup( r => r.Generate )
+            .Returns( Guid.NewGuid().ToString() );
 
-            var mockLocalizer = new Mock<ITextLocalizer<DatePicker<T>>>();
-            Localizer = mockLocalizer.Object;
+        base.IdGenerator = mockIdGenerator.Object;
 
-            var mockIdGenerator = new Mock<IIdGenerator>();
+        base.ParentValidation = validation;
+        base.ValueExpression = dateExpression;
 
-            mockIdGenerator
-                .Setup( r => r.Generate )
-                .Returns( Guid.NewGuid().ToString() );
+        this.OnInitialized();
+    }
 
-            base.IdGenerator = mockIdGenerator.Object;
+    public string TextValue
+    {
+        get { return base.CurrentValueAsString; }
+    }
 
-            base.ParentValidation = validation;
-            base.DateExpression = dateExpression;
+    public async Task<ParseValue<T>> ParseValueAsync( string value )
+    {
+        return await base.ParseValueFromStringAsync( value );
+    }
 
-            this.OnInitialized();
-        }
-
-        public string TextValue
-        {
-            get { return base.CurrentValueAsString; }
-        }
-
-        public string ClickedId { get; private set; }
-
-        public async Task<ParseValue<IReadOnlyList<T>>> ParseValueAsync( string value )
-        {
-            return await base.ParseValueFromStringAsync( value );
-        }
-
-        public void OnChange( ChangeEventArgs e )
-        {
-            base.OnChangeHandler( e );
-        }
-
-        private bool OnActivateDatePicker( ElementReference elementRef, string elementId, object options )
-        {
-            this.ClickedId = elementId;
-            return true;
-        }
+    public void OnChange( ChangeEventArgs e )
+    {
+        base.OnChangeHandler( e );
     }
 }

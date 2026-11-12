@@ -1,201 +1,300 @@
-﻿#region Using directives
-using System;
+#region Using directives
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Blazorise.Extensions;
+using Blazorise.Licensing;
+using Blazorise.Modules;
 using Blazorise.Utilities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 #endregion
 
-namespace Blazorise
+namespace Blazorise;
+
+/// <summary>
+/// Base class for all DOM based components.
+/// </summary>
+public abstract class BaseComponent : BaseStyledComponent
 {
+    #region Members
+
+    private UtilityTarget utilityTarget = UtilityTarget.Self;
+
+    private ClassBuilder utilityClassBuilder;
+
+    private ClassBuilder wrapperUtilityClassBuilder;
+
+    private StyleBuilder utilityStyleBuilder;
+
+    private StyleBuilder wrapperUtilityStyleBuilder;
+
+    private Float @float = Float.Default;
+
+    private bool clearfix;
+
+    private Visibility visibility = Visibility.Default;
+
+    private IFluentSizing width;
+
+    private IFluentSizing height;
+
+    private IFluentSpacing margin;
+
+    private IFluentSpacing padding;
+
+    private IFluentGap gap;
+
+    private IFluentDisplay display;
+
+    private IFluentBorder border;
+
+    private IFluentFlex flex;
+
+    private IFluentPosition position;
+
+    private IFluentOverflow overflow;
+
+    private CharacterCasing characterCasing = CharacterCasing.Normal;
+
+    private TextColor textColor = TextColor.Default;
+
+    private TextAlignment textAlignment = TextAlignment.Default;
+
+    private TextTransform textTransform = TextTransform.Default;
+
+    private TextDecoration textDecoration = TextDecoration.Default;
+
+    private TextWeight textWeight = TextWeight.Default;
+
+    private TextOverflow textOverflow = TextOverflow.Default;
+
+    private IFluentTextSize textSize;
+
+    private IFluentObjectFit objectFit;
+
+    private VerticalAlignment verticalAlignment = VerticalAlignment.Default;
+
+    private Background background = Background.Default;
+
+    private Shadow shadow = Shadow.None;
+
+    private ZIndex zIndex = Blazorise.ZIndex.Default;
+
+    #endregion
+
+    #region Constructors
+
     /// <summary>
-    /// Base class for all DOM based components.
+    /// Default constructor for <see cref="BaseComponent"/>.
     /// </summary>
-    public abstract class BaseComponent : BaseAfterRenderComponent
+    public BaseComponent()
     {
-        #region Members
+    }
 
-        private string customClass;
+    #endregion
 
-        private string customStyle;
+    #region Methods
 
-        private Float @float = Float.Default;
+    /// <inheritdoc/>
+    public override Task SetParametersAsync( ParameterView parameters )
+    {
+        object heightAttribute = null;
 
-        private bool clearfix;
-
-        private Visibility visibility = Visibility.Default;
-
-        private IFluentSizing width;
-
-        private IFluentSizing height;
-
-        private IFluentSpacing margin;
-
-        private IFluentSpacing padding;
-
-        private IFluentDisplay display;
-
-        private IFluentBorder border;
-
-        private IFluentFlex flex;
-
-        private IFluentPosition position;
-
-        private IFluentOverflow overflow;
-
-        private CharacterCasing characterCasing = CharacterCasing.Normal;
-
-        private TextColor textColor = TextColor.Default;
-
-        private TextAlignment textAlignment = TextAlignment.Default;
-
-        private TextTransform textTransform = TextTransform.Default;
-
-        private TextWeight textWeight = TextWeight.Default;
-
-        private TextOverflow textOverflow = TextOverflow.Default;
-
-        private VerticalAlignment verticalAlignment = VerticalAlignment.Default;
-
-        private Background background = Background.Default;
-
-        private Shadow shadow = Shadow.None;
-
-        #endregion
-
-        #region Constructors
-
-        /// <summary>
-        /// Default constructor for <see cref="BaseComponent"/>.
-        /// </summary>
-        public BaseComponent()
+        // WORKAROUND for: https://github.com/dotnet/aspnetcore/issues/32252
+        // HTML native width/height attributes are recognized as Width/Height parameters
+        // and Blazor tries to convert them resulting in error. This workaround tries to fix it by removing
+        // width/height from parameter list and moving them to Attributes(as unmatched values).
+        //
+        // This behavior is really an edge-case and shouldn't affect performance too much.
+        // Only in some rare cases when width/height are used will the parameters be rebuilt.
+        if ( parameters.TryGetValue( "width", out object widthAttribute )
+             || parameters.TryGetValue( "height", out heightAttribute ) )
         {
-            ClassBuilder = new( BuildClasses );
-            StyleBuilder = new( BuildStyles );
-        }
+            var parametersDictionary = (Dictionary<string, object>)parameters.ToDictionary();
 
-        #endregion
+            Attributes ??= [];
 
-        #region Methods
-
-        /// <inheritdoc/>
-        public override Task SetParametersAsync( ParameterView parameters )
-        {
-            object heightAttribute = null;
-
-            // WORKAROUND for: https://github.com/dotnet/aspnetcore/issues/32252
-            // HTML native width/height attributes are recognized as Width/Height parameters
-            // and Blazor tries to convert them resulting in error. This workaround tries to fix it by removing
-            // width/height from parameter list and moving them to Attributes(as unmatched values).
-            //
-            // This behavior is really an edge-case and shouldn't affect performance too much.
-            // Only in some rare cases when width/height are used will the parameters be rebuilt.
-            if ( parameters.TryGetValue( "width", out object widthAttribute )
-                || parameters.TryGetValue( "height", out heightAttribute ) )
+            if ( widthAttribute is not null && parametersDictionary.Remove( "width" ) )
             {
-                var parametersDictionary = (Dictionary<string, object>)parameters.ToDictionary();
-
-                Attributes ??= new();
-
-                if ( widthAttribute != null && parametersDictionary.Remove( "width" ) )
-                {
-                    Attributes.Add( "width", widthAttribute );
-                }
-
-                if ( heightAttribute != null && parametersDictionary.Remove( "height" ) )
-                {
-                    Attributes.Add( "height", heightAttribute );
-                }
-
-                return base.SetParametersAsync( ParameterView.FromDictionary( parametersDictionary ) );
+                Attributes.Add( "width", widthAttribute );
             }
 
-            return base.SetParametersAsync( parameters );
-        }
-
-        /// <inheritdoc/>
-        protected override void OnInitialized()
-        {
-            if ( ShouldAutoGenerateId && ElementId == null )
+            if ( heightAttribute is not null && parametersDictionary.Remove( "height" ) )
             {
-                ElementId = IdGenerator.Generate;
+                Attributes.Add( "height", heightAttribute );
             }
 
-            base.OnInitialized();
+            return base.SetParametersAsync( ParameterView.FromDictionary( parametersDictionary ) );
         }
 
-        /// <inheritdoc/>
-        protected override async Task OnAfterRenderAsync( bool firstRender )
+        return base.SetParametersAsync( parameters );
+    }
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        if ( ShouldAutoGenerateId && ElementId is null )
         {
-            if ( firstRender )
+            ElementId = IdGenerator.Generate;
+        }
+
+        base.OnInitialized();
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync( bool firstRender )
+    {
+        if ( firstRender )
+        {
+            if ( LicenseChecker.ShouldPrint() )
             {
-                await OnFirstAfterRenderAsync();
+                await JSUtilitiesModule.Log( LicenseChecker.ShowBanner(), LicenseChecker.ShowCompactBanner(), $"%c{LicenseChecker.GetPrintMessage()}", "color: #3B82F6; padding: 0;" );
             }
-
-            await base.OnAfterRenderAsync( firstRender );
         }
 
-        /// <summary>
-        /// Method is called only once when component is first rendered.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        protected virtual Task OnFirstAfterRenderAsync()
-            => Task.CompletedTask;
+        await base.OnAfterRenderAsync( firstRender );
+    }
 
-        /// <inheritdoc/>
-        protected override void Dispose( bool disposing )
+    /// <inheritdoc/>
+    protected override void Dispose( bool disposing )
+    {
+        if ( disposing )
         {
-            if ( disposing )
-            { 
-                ClassBuilder = null;
-                StyleBuilder = null;
-            }
-
-            base.Dispose( disposing );
+            utilityClassBuilder = null;
+            utilityStyleBuilder = null;
+            wrapperUtilityClassBuilder = null;
+            wrapperUtilityStyleBuilder = null;
         }
 
-        /// <inheritdoc/>
-        protected override ValueTask DisposeAsync( bool disposing )
-        {
-            if ( disposing )
-            {
-                ClassBuilder = null;
-                StyleBuilder = null;
-            }
+        base.Dispose( disposing );
+    }
 
-            return base.DisposeAsync( disposing );
+    /// <inheritdoc/>
+    protected override ValueTask DisposeAsync( bool disposing )
+    {
+        if ( disposing )
+        {
+            utilityClassBuilder = null;
+            utilityStyleBuilder = null;
+            wrapperUtilityClassBuilder = null;
+            wrapperUtilityStyleBuilder = null;
         }
 
-        /// <summary>
-        /// Builds a list of classnames for this component.
-        /// </summary>
-        /// <param name="builder">Class builder used to append the classnames.</param>
-        protected virtual void BuildClasses( ClassBuilder builder )
+        return base.DisposeAsync( disposing );
+    }
+
+    /// <summary>
+    /// Builds a list of classnames for this component.
+    /// </summary>
+    /// <param name="builder">Class builder used to append the classnames.</param>
+    protected override void BuildClasses( ClassBuilder builder )
+    {
+        base.BuildClasses( builder );
+
+        builder.Append( UtilityClassBuilder.Class );
+    }
+
+    /// <summary>
+    /// Builds utility classes that apply to the current element using the specified class builder.
+    /// </summary>
+    /// <param name="builder">The class builder used to construct and collect utility classes for the current element. Cannot be null.</param>
+    private void BuildSelfUtilityClasses( ClassBuilder builder )
+    {
+        BuildUtilityClasses( builder, UtilityTarget.Self );
+    }
+
+    /// <summary>
+    /// Builds utility classes that are specific to wrapper functionality and adds them to the provided class builder.
+    /// </summary>
+    /// <param name="builder">The class builder to which the wrapper utility classes will be added. Cannot be null.</param>
+    private void BuildWrapperUtilityClasses( ClassBuilder builder )
+    {
+        BuildUtilityClasses( builder, UtilityTarget.Wrapper );
+    }
+
+    /// <summary>
+    /// Determines whether the specified utility should be applied to the given target.
+    /// </summary>
+    /// <param name="utility">The utility object to evaluate. Can be null.</param>
+    /// <param name="target">The target to which the utility may be applied.</param>
+    /// <returns>true if the utility is not null and its resolved target matches the specified target; otherwise, false.</returns>
+    private bool ShouldApplyUtility( object utility, UtilityTarget target )
+    {
+        if ( utility is null )
+            return false;
+
+        return ResolveUtilityTarget( utility ) == target;
+    }
+
+    /// <summary>
+    /// Determines the effective utility target for the specified utility object.
+    /// </summary>
+    /// <param name="utility">The utility object for which to resolve the target. If the object implements <see cref="IUtilityTargeted"/> and
+    /// specifies a target, that target is used.</param>
+    /// <returns>The resolved <see cref="UtilityTarget"/> for the specified utility object. If the object does not specify a
+    /// target, the default utility target is returned.</returns>
+    private UtilityTarget ResolveUtilityTarget( object utility )
+    {
+        if ( utility is IUtilityTargeted targeted && targeted.UtilityTarget.HasValue )
+            return targeted.UtilityTarget.Value;
+
+        return UtilityTarget;
+    }
+
+    /// <summary>
+    /// Builds a list of utility classnames for this component.
+    /// </summary>
+    /// <param name="builder">Class builder used to append the classnames.</param>
+    /// <param name="target">The target where the utility classes should be applied.</param>
+    protected virtual void BuildUtilityClasses( ClassBuilder builder, UtilityTarget target )
+    {
+        var currentTarget = target;
+
+        if ( ShouldApplyUtility( Display, currentTarget ) )
+            builder.Append( Display.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( Flex, currentTarget ) )
+            builder.Append( Flex.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( Position, currentTarget ) )
+            builder.Append( Position.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( Margin, currentTarget ) )
+            builder.Append( Margin.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( Padding, currentTarget ) )
+            builder.Append( Padding.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( Width, currentTarget ) )
+            builder.Append( Width.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( Height, currentTarget ) )
+            builder.Append( Height.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( Gap, currentTarget ) )
+            builder.Append( Gap.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( Overflow, currentTarget ) )
+            builder.Append( Overflow.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( Border, currentTarget ) )
+            builder.Append( Border.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( ObjectFit, currentTarget ) )
+            builder.Append( ObjectFit.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( TextSize, currentTarget ) )
+            builder.Append( TextSize.Class( ClassProvider ) );
+
+        if ( ShouldApplyUtility( TextColor, currentTarget ) && TextColor.IsNotNullOrDefault() && !TextColor.IsCssValue )
+            builder.Append( ClassProvider.TextColor( TextColor ) );
+
+        if ( ShouldApplyUtility( Background, currentTarget ) && Background.IsNotNullOrDefault() && !Background.IsCssValue )
+            builder.Append( ClassProvider.BackgroundColor( Background ) );
+
+        if ( UtilityTarget == currentTarget )
         {
-            if ( Class != null )
-                builder.Append( Class );
-
-            if ( Margin != null )
-                builder.Append( Margin.Class( ClassProvider ) );
-
-            if ( Padding != null )
-                builder.Append( Padding.Class( ClassProvider ) );
-
-            if ( Display != null )
-                builder.Append( Display.Class( ClassProvider ) );
-
-            if ( Border != null )
-                builder.Append( Border.Class( ClassProvider ) );
-
-            if ( Flex != null )
-                builder.Append( Flex.Class( ClassProvider ) );
-
-            if ( Position != null )
-                builder.Append( Position.Class( ClassProvider ) );
-
-            if ( Overflow != null )
-                builder.Append( Overflow.Class( ClassProvider ) );
+            builder.Append( ClassProvider.ZIndex( ZIndex ) );
 
             if ( Float != Float.Default )
                 builder.Append( ClassProvider.Float( Float ) );
@@ -209,17 +308,8 @@ namespace Blazorise
             if ( VerticalAlignment != VerticalAlignment.Default )
                 builder.Append( ClassProvider.VerticalAlignment( VerticalAlignment ) );
 
-            if ( Width != null )
-                builder.Append( Width.Class( ClassProvider ) );
-
-            if ( Height != null )
-                builder.Append( Height.Class( ClassProvider ) );
-
             if ( Casing != CharacterCasing.Normal )
                 builder.Append( ClassProvider.Casing( Casing ) );
-
-            if ( TextColor != TextColor.Default )
-                builder.Append( ClassProvider.TextColor( TextColor ) );
 
             if ( TextAlignment != TextAlignment.Default )
                 builder.Append( ClassProvider.TextAlignment( TextAlignment ) );
@@ -227,480 +317,830 @@ namespace Blazorise
             if ( TextTransform != TextTransform.Default )
                 builder.Append( ClassProvider.TextTransform( TextTransform ) );
 
+            if ( TextDecoration != TextDecoration.Default )
+                builder.Append( ClassProvider.TextDecoration( TextDecoration ) );
+
             if ( TextWeight != TextWeight.Default )
                 builder.Append( ClassProvider.TextWeight( TextWeight ) );
 
             if ( TextOverflow != TextOverflow.Default )
                 builder.Append( ClassProvider.TextOverflow( TextOverflow ) );
 
-            if ( Background != Background.Default )
-                builder.Append( ClassProvider.BackgroundColor( Background ) );
-
             if ( Shadow != Shadow.None )
                 builder.Append( ClassProvider.Shadow( Shadow ) );
         }
-
-        /// <summary>
-        /// Builds a list of styles for this component.
-        /// </summary>
-        /// <param name="builder">Style builder used to append the styles.</param>
-        protected virtual void BuildStyles( StyleBuilder builder )
-        {
-            if ( Style != null )
-                builder.Append( Style );
-        }
-
-        /// <summary>
-        /// Clears the class-names and mark them to be regenerated.
-        /// </summary>
-        internal protected virtual void DirtyClasses()
-        {
-            ClassBuilder?.Dirty();
-        }
-
-        /// <summary>
-        /// Clears the styles-names and mark them to be regenerated.
-        /// </summary>
-        protected virtual void DirtyStyles()
-        {
-            StyleBuilder?.Dirty();
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DotNetObjectReference{T}"/>.
-        /// </summary>
-        /// <typeparam name="T">Type of the object.</typeparam>
-        /// <param name="value">The reference of the tracked object.</param>
-        /// <returns>An instance of <see cref="DotNetObjectReference{T}"/>.</returns>
-        protected DotNetObjectReference<T> CreateDotNetObjectRef<T>( T value ) where T : class
-        {
-            return DotNetObjectReference.Create( value );
-        }
-
-        /// <summary>
-        /// Destroys the instance of <see cref="DotNetObjectReference{T}"/>.
-        /// </summary>
-        /// <typeparam name="T">Type of the object.</typeparam>
-        /// <param name="value">The reference of the tracked object.</param>
-        protected void DisposeDotNetObjectRef<T>( DotNetObjectReference<T> value ) where T : class
-        {
-            value?.Dispose();
-        }
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Gets or sets the reference to the rendered element.
-        /// </summary>
-        public ElementReference ElementRef { get; set; }
-
-        /// <summary>
-        /// Gets or sets the unique id of the element.
-        /// </summary>
-        /// <remarks>
-        /// Note that this ID is not defined for the component but instead for the underlined element that it represents.
-        /// eg: for the TextEdit the ID will be set on the input element.
-        /// </remarks>
-        [Parameter] public string ElementId { get; set; }
-
-        /// <summary>
-        /// If true, <see cref="ElementId"/> will be auto-generated on component initialize.
-        /// </summary>
-        /// <remarks>
-        /// Override this in components that need to have an id defined before calling JSInterop.
-        /// </remarks>
-        protected virtual bool ShouldAutoGenerateId => false;
-
-        /// <summary>
-        /// Gets the class builder.
-        /// </summary>
-        protected ClassBuilder ClassBuilder { get; private set; }
-
-        /// <summary>
-        /// Gets the built class-names based on all the rules set by the component parameters.
-        /// </summary>
-        public string ClassNames => ClassBuilder.Class;
-
-        /// <summary>
-        /// Gets the style mapper.
-        /// </summary>
-        protected StyleBuilder StyleBuilder { get; private set; }
-
-        /// <summary>
-        /// Gets the built styles based on all the rules set by the component parameters.
-        /// </summary>
-        public string StyleNames => StyleBuilder.Styles;
-
-        /// <summary>
-        /// Gets or set the javascript runner.
-        /// </summary>
-        [Inject] protected IIdGenerator IdGenerator { get; set; }
-
-        /// <summary>
-        /// Gets or sets the classname provider.
-        /// </summary>
-        [Inject]
-        protected IClassProvider ClassProvider { get; set; }
-
-        /// <summary>
-        /// Gets or sets the style provider.
-        /// </summary>
-        [Inject]
-        protected IStyleProvider StyleProvider { get; set; }
-
-        /// <summary>
-        /// Custom css classname.
-        /// </summary>
-        [Parameter]
-        public string Class
-        {
-            get => customClass;
-            set
-            {
-                customClass = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Custom html style.
-        /// </summary>
-        [Parameter]
-        public string Style
-        {
-            get => customStyle;
-            set
-            {
-                customStyle = value;
-
-                DirtyStyles();
-            }
-        }
-
-        /// <summary>
-        /// Floats an element to the defined side.
-        /// </summary>
-        [Parameter]
-        public Float Float
-        {
-            get => @float;
-            set
-            {
-                @float = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Fixes an element's floating children.
-        /// </summary>
-        [Parameter]
-        public bool Clearfix
-        {
-            get => clearfix;
-            set
-            {
-                clearfix = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Controls the visibility, without modifying the display, of elements with visibility utilities.
-        /// </summary>
-        [Parameter]
-        public Visibility Visibility
-        {
-            get => visibility;
-            set
-            {
-                visibility = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Defined the sizing for the element width attribute(s).
-        /// </summary>
-        [Parameter]
-        public IFluentSizing Width
-        {
-            get => width;
-            set
-            {
-                width = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Defined the sizing for the element height attribute(s).
-        /// </summary>
-        [Parameter]
-        public IFluentSizing Height
-        {
-            get => height;
-            set
-            {
-                height = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Defines the element margin spacing.
-        /// </summary>
-        [Parameter]
-        public IFluentSpacing Margin
-        {
-            get => margin;
-            set
-            {
-                margin = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Defines the element padding spacing.
-        /// </summary>
-        [Parameter]
-        public IFluentSpacing Padding
-        {
-            get => padding;
-            set
-            {
-                padding = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Specifies the display behavior of an element.
-        /// </summary>
-        [Parameter]
-        public IFluentDisplay Display
-        {
-            get => display;
-            set
-            {
-                display = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Specifies the border of an element.
-        /// </summary>
-        [Parameter]
-        public IFluentBorder Border
-        {
-            get => border;
-            set
-            {
-                border = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Specifies flexbox properties of an element.
-        /// </summary>
-        [Parameter]
-        public IFluentFlex Flex
-        {
-            get => flex;
-            set
-            {
-                flex = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// The position property specifies the type of positioning method used for an element (static, relative, fixed, absolute or sticky).
-        /// </summary>
-        [Parameter]
-        public IFluentPosition Position
-        {
-            get => position;
-            set
-            {
-                position = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// The overflow property controls what happens to content that is too big to fit into an area.
-        /// </summary>
-        [Parameter]
-        public IFluentOverflow Overflow
-        {
-            get => overflow;
-            set
-            {
-                overflow = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Changes the character casing of a element.
-        /// </summary>
-        [Parameter]
-        public CharacterCasing Casing
-        {
-            get => characterCasing;
-            set
-            {
-                characterCasing = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the text color.
-        /// </summary>
-        [Parameter]
-        public TextColor TextColor
-        {
-            get => textColor;
-            set
-            {
-                textColor = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the text alignment.
-        /// </summary>
-        [Parameter]
-        public TextAlignment TextAlignment
-        {
-            get => textAlignment;
-            set
-            {
-                textAlignment = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the text transformation.
-        /// </summary>
-        [Parameter]
-        public TextTransform TextTransform
-        {
-            get => textTransform;
-            set
-            {
-                textTransform = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the text weight.
-        /// </summary>
-        [Parameter]
-        public TextWeight TextWeight
-        {
-            get => textWeight;
-            set
-            {
-                textWeight = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Determines how the text will behave when it is larger than a parent container.
-        /// </summary>
-        [Parameter]
-        public TextOverflow TextOverflow
-        {
-            get => textOverflow;
-            set
-            {
-                textOverflow = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Changes the vertical alignment of inline, inline-block, inline-table, and table cell elements.
-        /// </summary>
-        [Parameter]
-        public VerticalAlignment VerticalAlignment
-        {
-            get => verticalAlignment;
-            set
-            {
-                verticalAlignment = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the component background color.
-        /// </summary>
-        [Parameter]
-        public Background Background
-        {
-            get => background;
-            set
-            {
-                background = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the component shadow box.
-        /// </summary>
-        [Parameter]
-        public Shadow Shadow
-        {
-            get => shadow;
-            set
-            {
-                shadow = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Captures all the custom attribute that are not part of Blazorise component.
-        /// </summary>
-        [Parameter( CaptureUnmatchedValues = true )]
-        public Dictionary<string, object> Attributes { get; set; }
-
-        #endregion
     }
+
+    /// <summary>
+    /// Builds a list of styles for this component.
+    /// </summary>
+    /// <param name="builder">Style builder used to append the styles.</param>
+    protected override void BuildStyles( StyleBuilder builder )
+    {
+        base.BuildStyles( builder );
+
+        builder.Append( UtilityStyleBuilder.Styles );
+    }
+
+    /// <summary>
+    /// Builds utility styles that apply specifically to the current element.
+    /// </summary>
+    /// <param name="builder">The <see cref="StyleBuilder"/> instance used to construct and register the utility styles.</param>
+    private void BuildSelfUtilityStyles( StyleBuilder builder )
+    {
+        BuildUtilityStyles( builder, UtilityTarget.Self );
+    }
+
+    /// <summary>
+    /// Builds and applies utility styles specific to the wrapper element using the provided style builder.
+    /// </summary>
+    /// <param name="builder">The style builder used to construct and apply utility styles for the wrapper element. Cannot be null.</param>
+    private void BuildWrapperUtilityStyles( StyleBuilder builder )
+    {
+        BuildUtilityStyles( builder, UtilityTarget.Wrapper );
+    }
+
+    /// <summary>
+    /// Builds a list of utility styles for this component.
+    /// </summary>
+    /// <param name="builder">Style builder used to append the styles.</param>
+    /// <param name="target">The target where the utility styles should be applied.</param>
+    protected virtual void BuildUtilityStyles( StyleBuilder builder, UtilityTarget target )
+    {
+        var currentTarget = target;
+
+        if ( UtilityTarget == currentTarget )
+        {
+            builder.Append( StyleProvider.ZIndex( ZIndex?.Value ) );
+        }
+
+        if ( ShouldApplyUtility( Width, currentTarget ) )
+            builder.Append( GetSizingStyles( Width, SizingType.Width ) );
+
+        if ( ShouldApplyUtility( Height, currentTarget ) )
+            builder.Append( GetSizingStyles( Height, SizingType.Height ) );
+
+        if ( ShouldApplyUtility( Gap, currentTarget ) && Gap is FluentCssValue gapValue )
+            builder.Append( gapValue.Style( "gap" ) );
+
+        if ( ShouldApplyUtility( TextSize, currentTarget ) && TextSize is FluentCssValue textSizeValue )
+            builder.Append( textSizeValue.Style( "font-size" ) );
+
+        if ( ShouldApplyUtility( TextColor, currentTarget ) && TextColor.IsNotNullOrDefault() && TextColor.IsCssValue )
+            builder.Append( $"color:{TextColor.Name} !important" );
+
+        if ( ShouldApplyUtility( Background, currentTarget ) && Background.IsNotNullOrDefault() && Background.IsCssValue )
+            builder.Append( $"background-color:{Background.Name} !important" );
+
+        if ( ShouldApplyUtility( Border, currentTarget ) && Border is IFluentBorderStyle borderStyle )
+            builder.Append( borderStyle.Style() );
+    }
+
+    /// <summary>
+    /// Gets the sizing styles using the component parameter as context when supported.
+    /// </summary>
+    /// <param name="sizing">Fluent sizing rules.</param>
+    /// <param name="sizingType">Sizing type represented by the component parameter.</param>
+    /// <returns>Built sizing styles.</returns>
+    private string GetSizingStyles( IFluentSizing sizing, SizingType sizingType )
+    {
+        if ( sizing is FluentCssValue cssValue )
+        {
+            string propertyName = sizingType == SizingType.Width
+                ? "width"
+                : "height";
+
+            return cssValue.Style( propertyName, true );
+        }
+
+        return sizing.Style( StyleProvider );
+    }
+
+    /// <inheritdoc/>
+    protected internal override void DirtyClasses()
+    {
+        base.DirtyClasses();
+        utilityClassBuilder?.Dirty();
+        wrapperUtilityClassBuilder?.Dirty();
+    }
+
+    /// <inheritdoc/>
+    protected internal override void DirtyStyles()
+    {
+        base.DirtyStyles();
+        utilityStyleBuilder?.Dirty();
+        wrapperUtilityStyleBuilder?.Dirty();
+    }
+
+    /// <summary>
+    /// Appends utility class names that target wrapper elements.
+    /// </summary>
+    /// <param name="builder">Class builder used to append the classnames.</param>
+    protected void AppendWrapperUtilities( ClassBuilder builder )
+    {
+        builder.Append( WrapperUtilityClassBuilder.Class );
+    }
+
+    /// <summary>
+    /// Appends utility styles that target wrapper elements.
+    /// </summary>
+    /// <param name="builder">Style builder used to append the styles.</param>
+    protected void AppendWrapperUtilities( StyleBuilder builder )
+    {
+        builder.Append( WrapperUtilityStyleBuilder.Styles );
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="DotNetObjectReference{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the object.</typeparam>
+    /// <param name="value">The reference of the tracked object.</param>
+    /// <returns>An instance of <see cref="DotNetObjectReference{T}"/>.</returns>
+    protected static DotNetObjectReference<T> CreateDotNetObjectRef<T>( T value ) where T : class
+    {
+        return DotNetObjectReference.Create( value );
+    }
+
+    /// <summary>
+    /// Destroys the instance of <see cref="DotNetObjectReference{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">Type of the object.</typeparam>
+    /// <param name="value">The reference of the tracked object.</param>
+    protected static void DisposeDotNetObjectRef<T>( DotNetObjectReference<T> value ) where T : class
+    {
+        value?.Dispose();
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Gets or sets the reference to the rendered element.
+    /// </summary>
+    public ElementReference ElementRef { get; set; }
+
+    /// <summary>
+    /// Specifies the unique id of the element.
+    /// </summary>
+    /// <remarks>
+    /// Note that this ID is not defined for the component but instead for the underlined element that it represents.
+    /// eg: for the TextInput the ID will be set on the input element.
+    /// </remarks>
+    [Parameter] public string ElementId { get; set; }
+
+    /// <summary>
+    /// If true, <see cref="ElementId"/> will be auto-generated on component initialize.
+    /// </summary>
+    /// <remarks>
+    /// Override this in components that need to have an id defined before calling JSInterop.
+    /// </remarks>
+    protected virtual bool ShouldAutoGenerateId => false;
+
+    /// <summary>
+    /// Gets the utility class builder.
+    /// </summary>
+    protected ClassBuilder UtilityClassBuilder
+    {
+        get
+        {
+            utilityClassBuilder ??= new( BuildSelfUtilityClasses );
+            return utilityClassBuilder;
+        }
+    }
+
+    /// <summary>
+    /// Gets the utility class builder for wrapper elements.
+    /// </summary>
+    protected ClassBuilder WrapperUtilityClassBuilder
+    {
+        get
+        {
+            wrapperUtilityClassBuilder ??= new( BuildWrapperUtilityClasses );
+            return wrapperUtilityClassBuilder;
+        }
+    }
+
+    /// <summary>
+    /// Gets the utility style builder.
+    /// </summary>
+    protected StyleBuilder UtilityStyleBuilder
+    {
+        get
+        {
+            utilityStyleBuilder ??= new( BuildSelfUtilityStyles );
+            return utilityStyleBuilder;
+        }
+    }
+
+    /// <summary>
+    /// Gets the utility style builder for wrapper elements.
+    /// </summary>
+    protected StyleBuilder WrapperUtilityStyleBuilder
+    {
+        get
+        {
+            wrapperUtilityStyleBuilder ??= new( BuildWrapperUtilityStyles );
+            return wrapperUtilityStyleBuilder;
+        }
+    }
+
+    /// <summary>
+    /// Gets or set the javascript runner.
+    /// </summary>
+    [Inject] protected IIdGenerator IdGenerator { get; set; }
+
+    /// <summary>
+    /// Specifies the IJSUtilitiesModule reference.
+    /// </summary>
+    [Inject] private IJSUtilitiesModule JSUtilitiesModule { get; set; }
+
+    /// <summary>
+    /// Specifies the license checker for the user session.
+    /// </summary>
+    [Inject] internal BlazoriseLicenseChecker LicenseChecker { get; set; }
+
+    /// <summary>
+    /// Specifies how an element should float within its containing block.
+    /// </summary>
+    [Parameter]
+    public Float Float
+    {
+        get => @float;
+        set
+        {
+            if ( @float == value )
+                return;
+
+            @float = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Determines whether to apply clearfix to manage floating children.
+    /// </summary>
+    [Parameter]
+    public bool Clearfix
+    {
+        get => clearfix;
+        set
+        {
+            if ( clearfix == value )
+                return;
+
+            clearfix = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Controls the visibility of an element without altering its layout.
+    /// </summary>
+    [Parameter]
+    public Visibility Visibility
+    {
+        get => visibility;
+        set
+        {
+            if ( visibility == value )
+                return;
+
+            visibility = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the width of the component using responsive sizing utilities.
+    /// </summary>
+    [Parameter]
+    public IFluentSizing Width
+    {
+        get => width;
+        set
+        {
+            if ( width == value )
+                return;
+
+            width = value;
+
+            DirtyClasses();
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the height of the component using responsive sizing utilities.
+    /// </summary>
+    [Parameter]
+    public IFluentSizing Height
+    {
+        get => height;
+        set
+        {
+            if ( height == value )
+                return;
+
+            height = value;
+
+            DirtyClasses();
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Configures the margin spacing for the component.
+    /// </summary>
+    [Parameter]
+    public IFluentSpacing Margin
+    {
+        get => margin;
+        set
+        {
+            if ( margin == value )
+                return;
+
+            margin = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Configures the padding spacing for the component.
+    /// </summary>
+    [Parameter]
+    public IFluentSpacing Padding
+    {
+        get => padding;
+        set
+        {
+            if ( padding == value )
+                return;
+
+            padding = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Configures the gap spacing between child elements of the component.
+    /// </summary>
+    [Parameter]
+    public IFluentGap Gap
+    {
+        get => gap;
+        set
+        {
+            if ( gap == value )
+                return;
+
+            gap = value;
+
+            DirtyClasses();
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the display behavior (e.g., block, inline, flex) of the component.
+    /// </summary>
+    [Parameter]
+    public IFluentDisplay Display
+    {
+        get => display;
+        set
+        {
+            if ( display == value )
+                return;
+
+            display = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Configures the border properties of the component.
+    /// </summary>
+    [Parameter]
+    public IFluentBorder Border
+    {
+        get => border;
+        set
+        {
+            if ( border == value )
+                return;
+
+            border = value;
+
+            DirtyClasses();
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Configures the flexbox properties of the component.
+    /// </summary>
+    [Parameter]
+    public IFluentFlex Flex
+    {
+        get => flex;
+        set
+        {
+            if ( flex == value )
+                return;
+
+            flex = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the positioning method for the component (static, relative, absolute, etc.).
+    /// </summary>
+    [Parameter]
+    public IFluentPosition Position
+    {
+        get => position;
+        set
+        {
+            if ( position == value )
+                return;
+
+            position = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Configures the overflow behavior when content exceeds the component's bounds.
+    /// </summary>
+    [Parameter]
+    public IFluentOverflow Overflow
+    {
+        get => overflow;
+        set
+        {
+            if ( overflow == value )
+                return;
+
+            overflow = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the text casing transformation (e.g., uppercase, lowercase).
+    /// </summary>
+    [Parameter]
+    public CharacterCasing Casing
+    {
+        get => characterCasing;
+        set
+        {
+            if ( characterCasing == value )
+                return;
+
+            characterCasing = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the text color of the component.
+    /// </summary>
+    [Parameter]
+    public TextColor TextColor
+    {
+        get => textColor;
+        set
+        {
+            if ( textColor == value )
+                return;
+
+            textColor = value;
+
+            DirtyClasses();
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Configures the horizontal alignment of text within the component.
+    /// </summary>
+    [Parameter]
+    public TextAlignment TextAlignment
+    {
+        get => textAlignment;
+        set
+        {
+            if ( textAlignment == value )
+                return;
+
+            textAlignment = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Configures the text transformation (e.g., capitalize, none) of the component.
+    /// </summary>
+    [Parameter]
+    public TextTransform TextTransform
+    {
+        get => textTransform;
+        set
+        {
+            if ( textTransform == value )
+                return;
+
+            textTransform = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the text decoration style (e.g., underline, none) for the component.
+    /// </summary>
+    [Parameter]
+    public TextDecoration TextDecoration
+    {
+        get => textDecoration;
+        set
+        {
+            if ( textDecoration == value )
+                return;
+
+            textDecoration = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the font weight of text in the component (e.g., bold, normal).
+    /// </summary>
+    [Parameter]
+    public TextWeight TextWeight
+    {
+        get => textWeight;
+        set
+        {
+            if ( textWeight == value )
+                return;
+
+            textWeight = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Configures how text behaves when it overflows its container.
+    /// </summary>
+    [Parameter]
+    public TextOverflow TextOverflow
+    {
+        get => textOverflow;
+        set
+        {
+            if ( textOverflow == value )
+                return;
+
+            textOverflow = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Sets the font size of the text in the component.
+    /// </summary>
+    [Parameter]
+    public IFluentTextSize TextSize
+    {
+        get => textSize;
+        set
+        {
+            if ( textSize == value )
+                return;
+
+            textSize = value;
+
+            DirtyClasses();
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Configures the object-fit property, which determines how content is resized within its container.
+    /// </summary>
+    [Parameter]
+    public IFluentObjectFit ObjectFit
+    {
+        get => objectFit;
+        set
+        {
+            if ( objectFit == value )
+                return;
+
+            objectFit = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the vertical alignment of inline or table-cell elements.
+    /// </summary>
+    [Parameter]
+    public VerticalAlignment VerticalAlignment
+    {
+        get => verticalAlignment;
+        set
+        {
+            if ( verticalAlignment == value )
+                return;
+
+            verticalAlignment = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Sets the background color of the component.
+    /// </summary>
+    [Parameter]
+    public Background Background
+    {
+        get => background;
+        set
+        {
+            if ( background == value )
+                return;
+
+            background = value;
+
+            DirtyClasses();
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Configures the shadow effect of the component.
+    /// </summary>
+    [Parameter]
+    public Shadow Shadow
+    {
+        get => shadow;
+        set
+        {
+            if ( shadow == value )
+                return;
+
+            shadow = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies a provider-defined stacking layer or an explicit numeric z-index.
+    /// Default and null retain the component's existing stacking behavior.
+    /// This parameter does not change positioning or escape ancestor stacking contexts.
+    /// </summary>
+    [Parameter]
+    public ZIndex ZIndex
+    {
+        get => zIndex;
+        set
+        {
+            if ( zIndex == value )
+            {
+                return;
+            }
+
+            zIndex = value;
+
+            DirtyClasses();
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the default target where utility classes and styles are applied when no per-utility target is set.
+    /// </summary>
+    [Parameter]
+    public UtilityTarget UtilityTarget
+    {
+        get => utilityTarget;
+        set
+        {
+            if ( utilityTarget == value )
+                return;
+
+            utilityTarget = value;
+
+            DirtyClasses();
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Captures unmatched HTML attributes for customization.
+    /// </summary>
+    /// <remarks>
+    /// These attributes are applied directly to the component's root HTML element.
+    /// </remarks>
+    [Parameter( CaptureUnmatchedValues = true )]
+    public Dictionary<string, object> Attributes { get; set; }
+
+    #endregion
+}
+
+/// <summary>
+/// Base class for components that expose typed class and style customization.
+/// </summary>
+/// <typeparam name="TClasses">Component-specific classes type.</typeparam>
+/// <typeparam name="TStyles">Component-specific styles type.</typeparam>
+public abstract class BaseComponent<TClasses, TStyles> : BaseComponent
+    where TClasses : ComponentClasses
+    where TStyles : ComponentStyles
+{
+    #region Members
+
+    private TClasses classes;
+
+    private TStyles styles;
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc/>
+    protected override void BuildCustomClasses( ClassBuilder builder )
+    {
+        builder.Append( Classes?.Self );
+    }
+
+    /// <inheritdoc/>
+    protected override void BuildCustomStyles( StyleBuilder builder )
+    {
+        builder.Append( Styles?.Self );
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Custom CSS class names for component elements.
+    /// </summary>
+    [Parameter]
+    public TClasses Classes
+    {
+        get => classes;
+        set
+        {
+            if ( classes.IsEqual( value ) )
+                return;
+
+            classes = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Custom inline styles for component elements.
+    /// </summary>
+    [Parameter]
+    public TStyles Styles
+    {
+        get => styles;
+        set
+        {
+            if ( styles.IsEqual( value ) )
+                return;
+
+            styles = value;
+
+            DirtyStyles();
+        }
+    }
+
+    #endregion
 }

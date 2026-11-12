@@ -1,95 +1,159 @@
-﻿#region Using directives
+#region Using directives
+using System;
+using System.Collections.Generic;
 using Blazorise.Utilities;
 using Microsoft.AspNetCore.Components;
 #endregion
 
-namespace Blazorise
+namespace Blazorise;
+
+/// <summary>
+/// Container for multiple <see cref="Field"/> component that needs to be placed in a flexbox grid row.
+/// </summary>
+public partial class Fields : BaseColumnComponent
 {
+    #region Members
+
+    private bool group;
+
+    private string label;
+
+    private string help;
+
+    private IFluentGutter gutter;
+
+    private FieldsLabel fieldsLabel;
+
     /// <summary>
-    /// Container for multiple <see cref="Field"/> component that needs to be placed in a flexbox grid row.
+    /// Raises when the fields label reference changes.
     /// </summary>
-    public partial class Fields : BaseComponent
+    internal event Action LabelElementChanged;
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc/>
+    protected override void BuildClasses( ClassBuilder builder )
     {
-        #region Members
+        builder.Append( ClassProvider.Fields() );
 
-        private string label;
-
-        private string help;
-
-        private IFluentColumn columnSize;
-
-        #endregion
-
-        #region Methods
-
-        /// <inheritdoc/>
-        protected override void BuildClasses( ClassBuilder builder )
+        if ( ColumnSize is not null )
         {
-            builder.Append( ClassProvider.Fields() );
-
-            if ( ColumnSize != null )
-            {
-                builder.Append( ClassProvider.FieldsColumn() );
-                builder.Append( ColumnSize.Class( ClassProvider ) );
-            }
-
-            base.BuildClasses( builder );
+            builder.Append( ClassProvider.FieldsColumn() );
         }
 
-        #endregion
+        if ( gutter is not null )
+            builder.Append( Gutter.Class( ClassProvider ) );
 
-        #region Properties
-
-        /// <summary>
-        /// Sets the field label.
-        /// </summary>
-        [Parameter]
-        public string Label
-        {
-            get => label;
-            set
-            {
-                label = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Sets the field help-text positioned bellow the field.
-        /// </summary>
-        [Parameter]
-        public string Help
-        {
-            get => help;
-            set
-            {
-                help = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Determines how much space will be used by the field inside of the grid row.
-        /// </summary>
-        [Parameter]
-        public IFluentColumn ColumnSize
-        {
-            get => columnSize;
-            set
-            {
-                columnSize = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the reference to the parent <see cref="Fields"/> component.
-        /// </summary>
-        [Parameter] public RenderFragment ChildContent { get; set; }
-
-        #endregion
+        base.BuildClasses( builder );
     }
+
+    /// <summary>
+    /// Registers the fields label component inside this container.
+    /// </summary>
+    /// <param name="fieldsLabel">Fields label component.</param>
+    internal void NotifyFieldsLabelInitialized( FieldsLabel fieldsLabel )
+    {
+        if ( fieldsLabel is null )
+            return;
+
+        if ( ReferenceEquals( this.fieldsLabel, fieldsLabel ) )
+            return;
+
+        this.fieldsLabel = fieldsLabel;
+        LabelElementChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Removes the fields label component inside this container.
+    /// </summary>
+    /// <param name="fieldsLabel">Fields label component.</param>
+    internal void NotifyFieldsLabelRemoved( FieldsLabel fieldsLabel )
+    {
+        if ( !ReferenceEquals( this.fieldsLabel, fieldsLabel ) )
+            return;
+
+        this.fieldsLabel = null;
+        LabelElementChanged?.Invoke();
+    }
+
+    #endregion
+
+    #region Properties   
+
+    /// <summary>
+    /// Gets the tag name rendered by this component.
+    /// </summary>
+    protected string ContainerTagName => Group ? "fieldset" : "div";
+
+    /// <summary>
+    /// Gets the element id of the fields label.
+    /// </summary>
+    internal string LabelElementId => fieldsLabel?.ElementId;
+
+    /// <summary>
+    /// Determines whether the fields container should render as a semantic group container.
+    /// </summary>
+    [Parameter]
+    public bool Group
+    {
+        get => group;
+        set
+        {
+            group = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Sets the field label.
+    /// </summary>
+    [Parameter]
+    public string Label
+    {
+        get => label;
+        set
+        {
+            label = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Sets the field help-text positioned bellow the field.
+    /// </summary>
+    [Parameter]
+    public string Help
+    {
+        get => help;
+        set
+        {
+            help = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the padding between your columns, used to responsively space and align content in the Blazorise grid system.
+    /// </summary>
+    [Parameter]
+    public IFluentGutter Gutter
+    {
+        get => gutter;
+        set
+        {
+            if ( gutter == value )
+                return;
+
+            gutter = value;
+
+            DirtyClasses();
+        }
+    }
+
+    #endregion
 }

@@ -1,48 +1,43 @@
 ﻿@page "/docs/components/modal"
 
-<Seo Canonical="/docs/components/modal" Title="Blazorise Modal system" Description="The modal component provides a solid foundation for creating dialogs, popovers, lightboxes, or whatever else." />
+<Seo Canonical="/docs/components/modal" Title="Blazorise Modal component" Description="Learn to use and work with the Blazorise Modal component, which provides a solid foundation for creating dialogs, popovers, lightboxes, or whatever else." />
 
-<DocsPageTitle>
-    Modal component
+<DocsPageTitle Path="Components/Modal">
+    Blazorise Modal component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Bring a focused task or important message into a dialog above the page.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    The modal component provides a solid foundation for creating dialogs, popovers, lightboxes, or whatever else.
+    Use the <Code>Modal</Code> component for confirmations, short forms, or details that users need without leaving their current page.
 </DocsPageParagraph>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>Modal</Code> the main container
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>ModalContent</Code> a horizontally and vertically centered container, in which you can include any content
-                <UnorderedList>
-                    <UnorderedListItem>
-                        <Code Tag>ModalHeader</Code> top part of the modal, usually contains a title and close button
-                        <UnorderedList>
-                            <UnorderedListItem>
-                                <Code Tag>ModalTitle</Code> a modal title
-                            </UnorderedListItem>
-                            <UnorderedListItem>
-                                <Code Tag>CloseButton</Code> a simple close button located in the top right corner
-                            </UnorderedListItem>
-                        </UnorderedList>
-                    </UnorderedListItem>
-                    <UnorderedListItem>
-                        <Code Tag>ModalBody</Code> main part of the modal, holds the input fields, images, etc.
-                    </UnorderedListItem>
-                    <UnorderedListItem>
-                        <Code Tag>ModalFooter</Code> bottom part of the modal, usually contains the action buttons
-                    </UnorderedListItem>
-                </UnorderedList>
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
 
-<DocsPageSubtitle>
+<DocsPageParagraph>
+    A <Code>Modal</Code> contains a <Code>ModalContent</Code> surface with a header, body, and optional footer.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Modal component anatomy">
+    <DocsAnatomyRegion Label="Modal" Description="Controls the dialog overlay and visibility.">
+        <DocsAnatomyRegion Label="ModalContent" Description="Contains the dialog surface.">
+            <DocsAnatomyRegion Label="ModalHeader" Description="The heading area.">
+                <DocsAnatomyRegion Label="ModalTitle" Description="The dialog title." />
+                <DocsAnatomyRegion Label="CloseButton" Description="An optional control for dismissing the dialog." />
+            </DocsAnatomyRegion>
+            <DocsAnatomyRegion Label="ModalBody" Description="The main dialog content." />
+            <DocsAnatomyRegion Label="ModalFooter" Description="An optional area for actions." />
+        </DocsAnatomyRegion>
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic">
@@ -51,45 +46,108 @@
         <br />
         To work with the modal you must use the reference to the Modal component.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicModalExample" Outlined FullWidth>
         <BasicModalExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicModalExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Two-way binding">
         You can also control the <Code>Modal</Code> visibility by declaring the <Code>Visible</Code> state.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="ModalBindingExample" Outlined FullWidth>
         <ModalBindingExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ModalBindingExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Closing">
         If you want to prevent modal from closing you can use <Code>Closing</Code> event.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="ModalClosingExample" Outlined FullWidth>
         <ModalClosingExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ModalClosingExample" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Backdrop styling">
+        <Paragraph>
+            Use <Code>Styles</Code> to tint the backdrop element rendered behind the modal.
+        </Paragraph>
+        <Paragraph>
+            For advanced styling of the modal backdrop and inner elements, see the <Anchor To="docs/helpers/utilities/styling">Styling</Anchor> guide.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ModalBackdropStylingExample" Outlined FullWidth>
+        <ModalBackdropStylingExample />
+    </DocsPageSectionContent>
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Fullscreen">
         If the built-in sizes are not enough you can show the modal in fullscreen.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="ModalFullscreenExample" Outlined FullWidth>
         <ModalFullscreenExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ModalFullscreenExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Use Sparingly
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Modal dialogs are disruptive by nature and should be used sparingly. Do not use them to communicate nonessential information, such as success messages like "Logged in", "Copied", etc. Instead, use <Anchor To="docs/services/notification-provider">Notifications</Anchor> when appropriate.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Fullscreen Mode
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    When using the Fullscreen mode for the Modal component, it's crucial to be aware of how you structure your layout within the <Strong>ModalBody</Strong>.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    If the <Strong>ModalBody</Strong> is wrapped within a container that has the CSS property <Code>'display'</Code> set to <Code>'block'</Code>, this can cause issues with the overflow behavior in the Fullscreen mode. Specifically, the <Code>'display: block'</Code> CSS property can interfere with the automatic adjustments that are applied to the <Strong>Modal</Strong> in Fullscreen mode.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle Title="Impact:" Size="HeadingSize.Is4" />
+
+<DocsPageParagraph>
+    This interference could lead to the loss of smooth scrolling, content being cut off, or the display not fitting correctly within the viewport dimensions.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle Title="Solution:" Size="HeadingSize.Is4" />
+
+<DocsPageParagraph>
+    To avoid such problems
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    <OrderedList>
+        <OrderedListItem>
+            Refrain from using <Code>'display: block'</Code> style with containers within <Strong>ModalBody</Strong> when working in Fullscreen mode.
+        </OrderedListItem>
+        <OrderedListItem>
+            <Paragraph>
+                As an alternative, consider using a container with the CSS property <Code>'display'</Code> set to <Code>'contents'</Code>, eg. <Code>'display: contents;'</Code>. This property value allows the container to behave as though it's replaced by its children. This way, you can ensure the structure and style of your content are compatible with the Fullscreen modal settings.
+            </Paragraph>
+        </OrderedListItem>
+    </OrderedList>
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Please take this warning into consideration when implementing your Modals to ensure an optimal user experience and accurate content display.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
     Functions
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <Table>
     <TableHeader ThemeContrast="ThemeContrast.Light">
@@ -110,69 +168,9 @@
     </TableBody>
 </Table>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
-
-<DocsAttributes Title="Modal">
-    <DocsAttributesItem Name="Visible" Type="boolean" Default="false">
-        Handles the visibility of modal dialog.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="VisibleChanged" Type="EventCallback<bool>">
-        Occurs when the modal visibility state changes.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Opening" Type="Func<ModalOpeningEventArgs, Task>">
-        Occurs before the modal is opened and can be used to prevent the modal from opening.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Closing" Type="Func<ModalClosingEventArgs, Task>">
-        Occurs before the modal is closed and can be used to prevent the modal from closing.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Opened" Type="EventCallback">
-        Occurs after the modal has opened.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Closed" Type="EventCallback">
-        Occurs after the modal has closed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ScrollToTop" Type="boolean" Default="true">
-        If true modal will scroll to top when opened.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ShowBackdrop" Type="boolean" Default="true">
-        If true the the backdrop will be rendered.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Animated" Type="boolean" Default="true">
-        Gets or sets whether the component has any animations.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="AnimationDuration" Type="int" Default="150">
-        Gets or sets the animation duration.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="RenderMode" Type="ModalRenderMode" Default="Default">
-        Defines how the modal content will be rendered.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="FocusTrap" Type="bool?" Default="true">
-        Defines if the modal should keep the input focus at all times.
-    </DocsAttributesItem>
-</DocsAttributes>
-
-<DocsAttributes Title="ModalContent">
-    <DocsAttributesItem Name="Centered" Type="boolean" Default="false">
-        Centers the modal vertically.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Scrollable" Type="boolean" Default="false">
-        Scrolls the modal content independent of the page itself.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Size" Type="ModalSize" Default="Default">
-        Changes the size of the modal.
-    </DocsAttributesItem>
-</DocsAttributes>
-
-<DocsAttributes Title="ModalBody">
-    <DocsAttributesItem Name="MaxHeight" Type="int?" Default="null">
-        Sets the maximum height of the modal body (in viewport size unit).
-    </DocsAttributesItem>
-</DocsAttributes>
-
-<DocsAttributes Title="ModalTitle">
-    <DocsAttributesItem Name="Size" Type="HeadingSize" Default="Is4">
-        Sets the title size and tag name.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/modal/api" Name="<Modal />" />
+    <DocsPageApiItem Url="docs/components/modal/api" Name="<ModalContent />" />
+    <DocsPageApiItem Url="docs/components/modal/api" Name="<ModalBody />" />
+    <DocsPageApiItem Url="docs/components/modal/api" Name="<ModalTitle />" />
+</DocsPageApi>

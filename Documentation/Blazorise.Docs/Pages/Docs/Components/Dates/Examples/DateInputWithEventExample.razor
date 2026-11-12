@@ -1,0 +1,14 @@
+﻿@namespace Blazorise.Docs.Docs.Examples
+
+<Field>
+    <DateInput TValue="DateTime?" Value="@selectedDate" ValueChanged="@OnDateChanged" />
+</Field>
+
+@code{
+    DateTime? selectedDate;
+
+    void OnDateChanged( DateTime? date )
+    {
+        selectedDate = date;
+    }
+}

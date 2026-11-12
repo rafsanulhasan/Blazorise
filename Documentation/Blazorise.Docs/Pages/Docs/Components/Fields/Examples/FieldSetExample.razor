@@ -1,0 +1,34 @@
+@namespace Blazorise.Docs.Docs.Examples
+
+<Field Group>
+    <FieldLabel RequiredIndicator>Preferred contact method</FieldLabel>
+    <FieldBody>
+        <RadioGroup TValue="string" Name="contact-method" @bind-Value="@contactMethod">
+            <Radio Value="@("email")">Email</Radio>
+            <Radio Value="@("phone")">Phone</Radio>
+            <Radio Value="@("sms")">SMS</Radio>
+        </RadioGroup>
+    </FieldBody>
+</Field>
+
+<Div Margin="Margin.Is4.FromTop">
+    <Fields Group>
+        <FieldsLabel>Shipping address</FieldsLabel>
+        <Field>
+            <FieldLabel>Street</FieldLabel>
+            <FieldBody>
+                <TextInput Placeholder="1234 Main St" />
+            </FieldBody>
+        </Field>
+        <Field>
+            <FieldLabel>City</FieldLabel>
+            <FieldBody>
+                <TextInput Placeholder="Zagreb" />
+            </FieldBody>
+        </Field>
+    </Fields>
+</Div>
+
+@code {
+    string contactMethod = "email";
+}

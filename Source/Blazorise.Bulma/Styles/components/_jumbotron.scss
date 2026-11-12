@@ -1,0 +1,10 @@
+﻿.hero {
+    @each $name, $color in $theme-colors {
+        $color-invert: color-yiq($color);
+
+        &.is-#{$name} {
+            background-color: $color;
+            color: $color-invert;
+        }
+    }
+}

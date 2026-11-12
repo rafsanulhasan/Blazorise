@@ -1,39 +1,54 @@
-﻿@page "/docs/components/list-group"
+@page "/docs/components/list-group"
 
-<Seo Canonical="/docs/components/list-group" Title="Blazorise ListGroup system" Description="List groups are a flexible and powerful component for displaying a series of content." />
+<Seo Canonical="/docs/components/list-group" Title="Blazorise ListGroup system" Description="Learn to use and work with the Blazorise ListGroup components, a flexible and powerful component for displaying a series of content." />
 
-<DocsPageTitle>
-    List Group component
+<DocsPageTitle Path="Components/List Group">
+    Blazorise ListGroup component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Present related items in a clear, consistent list.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    List groups are a flexible and powerful component for displaying a series of content.
-    Modify and extend them to support just about any content within.
+    Use the <Code>ListGroup</Code> component for navigation choices, selectable records, or a series of related content items.
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A <Code>ListGroup</Code> contains <Code>ListGroupItem</Code> components, each representing one entry.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="ListGroup component anatomy">
+    <DocsAnatomyRegion Label="ListGroup" Description="Groups related items.">
+        <DocsAnatomyRegion Label="ListGroupItem" Description="Contains one entry; can support selection." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic">
         The most basic list group is an unordered list with list items and the proper classes.
         Build upon it with the options that follow, or with your own CSS as needed.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicListGroupExample" Outlined FullWidth>
         <BasicListGroupExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicListGroupExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Selectable items">
         Add <Code>SelectedItem</Code> to indicate the current active selection.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="ListGroupSelectableExample" Outlined FullWidth>
         <ListGroupSelectableExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ListGroupSelectableExample" />
 </DocsPageSection>
 
 <DocsPageSection>
@@ -41,82 +56,77 @@
         Add <Code>Flush</Code> to remove some borders and rounded corners to render list group items edge-to-edge
         in a parent container (e.g., cards).
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="ListGroupFlushExample" Outlined FullWidth>
         <ListGroupFlushExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ListGroupFlushExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Contextual colors">
         Use contextual utilities to style list items with a stateful background and color.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="ListGroupContextualExample" Outlined FullWidth>
         <ListGroupContextualExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ListGroupContextualExample" />
 
     <DocsPageSectionHeader>
         Contextual classes also work with <Code>Selectable</Code> items. Note the addition of the hover styles
         here not present in the previous example. Also supported is the active state; apply it to indicate an
         <Code>active</Code> selection on a contextual list group item.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="ListGroupContextualSelectableExample" Outlined FullWidth>
         <ListGroupContextualSelectableExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ListGroupContextualSelectableExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="With badges">
         Add badges to any list group item to show unread counts, activity, and more with the help of some utilities.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="ListGroupBadgesExample" Outlined FullWidth>
         <ListGroupBadgesExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ListGroupBadgesExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Custom content">
         Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="ListGroupCustomContentExample" Outlined FullWidth>
         <ListGroupCustomContentExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ListGroupCustomContentExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom colors" AddedVersion="2.3" AddedDate="2026-09-24">
+        Use custom CSS colors for list items, including selected and disabled states.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CustomColorsListGroupExample" Outlined FullWidth>
+        <CustomColorsListGroupExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes Title="ListGroup">
-    <DocsAttributesItem Name="Flush" Type="bool" Default="false">
-        Remove some borders and rounded corners to render list group items edge-to-edge in a parent container (e.g., cards).
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="SelectedItem" Type="string" Default="null">
-        Gets or sets currently selected item name.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="SelectedItemChanged" Type="EventCallback<string>">
-        Gets or sets currently selected item name.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Mode" Type="ListGroupMode" Default="Static">
-        Defines the list-group behavior mode.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes Title="ListGroupItem">
-    <DocsAttributesItem Name="Name" Type="string">
-        Defines the item name.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Disabled" Type="bool" Default="false">
-        Makes the item to make it appear disabled.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Clicked" Type="EventCallback">
-        Occurs when the item is clicked.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Color" Type="Color" Default="Default">
-        Gets or sets the list-group-item color.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Keep Items Consistent
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Items within a list group should use a consistent structure so users can scan and compare them quickly. Render navigation as links and actions as buttons instead of making a non-interactive container appear clickable. If items are selectable, communicate the selected state with more than color and synchronize it with application state.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Component Choice
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    A list group is effective for relatively simple, stacked content. Use a <Anchor To="docs/components/table">Table</Anchor> or DataGrid when users must compare several aligned fields, sort data, or work efficiently with a large collection.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/list-group/api" Name="<ListGroup />" />
+    <DocsPageApiItem Url="docs/components/list-group/api" Name="<ListGroupItem />" />
+</DocsPageApi>

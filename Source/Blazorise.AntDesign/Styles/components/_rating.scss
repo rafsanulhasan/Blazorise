@@ -1,0 +1,40 @@
+.ant-rate {
+    font-size: var(--ant-rate-star-size);
+    line-height: 1;
+
+    > .ant-tooltip-host-inline {
+        display: inline-block;
+
+        &:not(:last-child) {
+            margin-inline-end: var(--ant-margin-xs);
+        }
+    }
+
+    &:not(.ant-rate-disabled):not(.ant-rate-readonly):hover {
+        .ant-rate-star {
+            cursor: pointer;
+        }
+    }
+
+    &.ant-rate-disabled {
+        opacity: .65;
+    }
+
+    .ant-rate-star {
+        cursor: default;
+
+        @each $name, $color in $rating-colors {
+            &.ant-rate-star-#{$name} {
+                color: $color;
+            }
+        }
+
+        &.ant-rate-star-focused {
+            opacity: 0.7;
+        }
+    }
+}
+
+.ant-rate .ant-rate-star.ant-rate-star-custom {
+    color: var(--ant-rate-star-color);
+}

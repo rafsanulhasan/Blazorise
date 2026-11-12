@@ -1,0 +1,154 @@
+﻿.list-group {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
+    margin-bottom: 0;
+    @include border-radius($list-group-border-radius);
+
+    > .list-group-item {
+        @each $name, $color in $theme-colors {
+            $background: theme-color-level($color, -9);
+
+            &.is-#{$name} {
+                color: $color;
+                background-color: $background;
+
+                &.list-group-item-action {
+                    @include hover-focus() {
+                        color: $color;
+                        background-color: darken($background, 5%);
+                    }
+
+                    &.is-active {
+                        color: $white;
+                        background-color: $color;
+                        border-color: $color;
+                    }
+                }
+            }
+        }
+    }
+
+    &-flush {
+        @include border-radius(0);
+
+        > .list-group-item {
+            border-width: 0 0 $list-group-border-width;
+
+            &:last-child {
+                border-bottom-width: 0;
+            }
+        }
+    }
+
+    &-item {
+        position: relative;
+        display: block;
+        padding: $list-group-item-padding-y $list-group-item-padding-x;
+        color: $list-group-color;
+        background-color: $list-group-bg;
+        border: $list-group-border-width solid $list-group-border-color;
+
+        &:first-child {
+            @include border-top-radius(inherit);
+        }
+
+        &:last-child {
+            @include border-bottom-radius(inherit);
+        }
+
+        &.disabled,
+        &:disabled {
+            color: $list-group-disabled-color;
+            pointer-events: none;
+            background-color: $list-group-disabled-bg;
+        }
+
+        &.is-active {
+            z-index: 2;
+            color: $list-group-active-color;
+            background-color: $list-group-active-bg;
+            border-color: $list-group-active-border-color;
+        }
+
+        & + & {
+            border-top-width: 0;
+
+            &.is-active {
+                margin-top: -$list-group-border-width;
+                border-top-width: $list-group-border-width;
+            }
+        }
+    }
+
+    &-item-action {
+        width: 100%;
+        color: $list-group-action-color;
+        text-align: inherit;
+
+        @include hover-focus() {
+            z-index: 1;
+            color: $list-group-action-hover-color;
+            text-decoration: none;
+            background-color: $list-group-hover-bg;
+        }
+
+        &:active {
+            color: $list-group-action-active-color;
+            background-color: $list-group-action-active-bg;
+        }
+    }
+
+    &-scrollable {
+        overflow-y: scroll;
+    }
+}
+
+li.list-group-item-action {
+    cursor: pointer;
+}
+
+.list-group .list-group-item.is-custom {
+    background-image: none;
+    background-color: color-mix(in srgb, var(--bulma-list-group-item-background-color) 15%, var(--bulma-scheme-main));
+    border-color: color-mix(in srgb, var(--bulma-list-group-item-background-color) 35%, var(--bulma-scheme-main));
+    color: color-mix(in srgb, var(--bulma-list-group-item-background-color) 40%, var(--bulma-text));
+
+    @supports (color: contrast-color(white)) {
+        color: color-mix(in srgb, var(--bulma-list-group-item-background-color) 30%, contrast-color(color-mix(in srgb, var(--bulma-list-group-item-background-color) 15%, var(--bulma-scheme-main))));
+    }
+
+    &.list-group-item-action:not(.disabled):not(:disabled):not(.is-active) {
+        &:hover,
+        &:focus {
+            background-color: color-mix(in srgb, var(--bulma-list-group-item-background-color) 25%, var(--bulma-scheme-main));
+
+            @supports (color: contrast-color(white)) {
+                color: color-mix(in srgb, var(--bulma-list-group-item-background-color) 30%, contrast-color(color-mix(in srgb, var(--bulma-list-group-item-background-color) 25%, var(--bulma-scheme-main))));
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--bulma-list-group-item-background-color);
+            outline-offset: -2px;
+        }
+    }
+
+    &.is-active,
+    &.is-active:hover,
+    &.is-active:focus {
+        background-color: var(--bulma-list-group-item-background-color);
+        border-color: var(--bulma-list-group-item-background-color);
+        color: white;
+
+        @supports (color: contrast-color(white)) {
+            color: contrast-color(var(--bulma-list-group-item-background-color));
+        }
+    }
+
+    &.disabled,
+    &:disabled {
+        opacity: .5;
+        pointer-events: none;
+    }
+}

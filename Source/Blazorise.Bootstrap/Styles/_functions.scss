@@ -1,51 +1,15 @@
-﻿@function color-yiq($color, $dark: $yiq-text-dark, $light: $yiq-text-light) {
-    $r: red($color);
-    $g: green($color);
-    $b: blue($color);
-
-    $yiq: (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
-
-    @if ($yiq >= $yiq-contrasted-threshold) {
-        @return $dark;
-    }
-    @else {
-        @return $light;
-    }
+﻿@function opaque($background, $foreground) {
+    @return mix(rgba($foreground, 1), $background, opacity($foreground) * 100%);
 }
 
-@function add($value1, $value2, $return-calc: true) {
-    @if $value1 == null {
-        @return $value2;
-    }
-
-    @if $value2 == null {
-        @return $value1;
-    }
-
-    @if type-of($value1) == number and type-of($value2) == number and comparable($value1, $value2) {
-        @return $value1 + $value2;
-    }
-
-    @return if($return-calc == true, calc(#{$value1} + #{$value2}), $value1 + unquote(" + ") + $value2);
+@function tint-color($color, $weight) {
+    @return mix(white, $color, $weight);
 }
 
-@function subtract($value1, $value2, $return-calc: true) {
-    @if $value1 == null and $value2 == null {
-        @return null;
-    }
-
-    @if $value1 == null {
-        @return -$value2;
-    }
-
-    @if $value2 == null {
-        @return $value1;
-    }
-
-    @if type-of($value1) == number and type-of($value2) == number and comparable($value1, $value2) {
-        @return $value1 - $value2;
-    }
-
-    @return if($return-calc == true, calc(#{$value1} - #{$value2}), $value1 + unquote(" - ") + $value2);
+@function shade-color($color, $weight) {
+    @return mix(black, $color, $weight);
 }
 
+@function shift-color($color, $weight) {
+    @return if($weight > 0, shade-color($color, $weight), tint-color($color, -$weight));
+}

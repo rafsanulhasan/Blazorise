@@ -1,0 +1,8 @@
+@inherits DocsTocComponent
+
+<Heading ElementId="@HeadingElementId" Class="b-docs-heading" Size="HeadingSize.Is2" Border="Border.Is1.OnBottom" Padding="Padding.Is2.FromBottom">
+    @TocContent
+</Heading>
+@code {
+    protected override int TocLevel => 2;
+}

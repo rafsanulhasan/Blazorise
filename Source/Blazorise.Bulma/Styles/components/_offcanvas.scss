@@ -1,0 +1,122 @@
+.offcanvas {
+    --offcanvas-size: 20rem;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+
+    &.is-active {
+        transform: translateX(0);
+    }
+
+    &.is-showing,
+    &.is-active:not(.is-hiding) {
+        transform: none;
+    }
+
+    &.is-showing,
+    &.is-hiding {
+        visibility: visible;
+    }
+
+    &.is-start {
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: var(--offcanvas-size);
+        transform-origin: left;
+    }
+
+    &.is-end {
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: var(--offcanvas-size);
+        transform: translateX(100%);
+
+        &.is-active {
+            transform: none;
+        }
+    }
+
+    &.is-top,
+    &.is-bottom {
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: var(--offcanvas-size);
+
+        &.is-active {
+            transform: none;
+        }
+    }
+
+    &.is-top {
+        top: 0;
+        transform-origin: top;
+        transform: translateY(-100%);
+    }
+
+    &.is-bottom {
+        bottom: 0;
+        transform-origin: bottom;
+        transform: translateY(100%);
+    }
+
+    &-header,
+    &-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+    }
+
+    &-footer {
+        position: sticky;
+        bottom: 0;
+        top: auto;
+    }
+
+    &-body {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    &-backdrop {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        z-index: 1040;
+
+        &.is-active {
+            opacity: 1;
+        }
+    }
+
+    &.is-small {
+        --offcanvas-size: 16rem;
+    }
+
+    &.is-large {
+        --offcanvas-size: 24rem;
+    }
+
+    &.is-extra-large {
+        --offcanvas-size: 32rem;
+    }
+
+    &.is-fullscreen {
+        inset: 0;
+        width: auto;
+        height: auto;
+    }
+}

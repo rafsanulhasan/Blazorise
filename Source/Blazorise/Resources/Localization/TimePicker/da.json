@@ -1,0 +1,11 @@
+{
+  "culture": "da",
+  "translations": {
+    "AM": "AM",
+    "PM": "PM",
+    "Time": "Tid",
+    "Hour": "Time",
+    "Minute": "Minut",
+    "Second": "Sekund"
+  }
+}

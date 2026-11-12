@@ -1,0 +1,32 @@
+@page "/about"
+@inherits BasePage
+
+<Seo Canonical="/about" Title="About Blazorise" Description="Learn about Blazorise, the source-available Blazor UI component library built by Megabit, including mission, company details, and commercial contact information." />
+
+<Div Class="b-visual b-marketing b-expanded-page b-about-page">
+    <MarketingPageHeader Variant="BrandBackdropVariant.PetalFan" Counterpoint="BrandBackdropVariant.PetalFan" Centered>
+        <Title>The people behind<br /><Span>Blazorise.</Span></Title>
+        <Description>A source-available Blazor UI platform built and maintained by Megabit. We help .NET teams ship polished, maintainable applications without rebuilding the same UI foundation in every product.</Description>
+        <Actions><Anchor To="contact" Class="b-visual-button b-visual-button-primary">Contact us</Anchor><Anchor To="https://github.com/megabit" Class="b-visual-button b-visual-button-outline">GitHub</Anchor></Actions>
+    </MarketingPageHeader>
+
+    <section class="b-visual-section b-editorial-facts">
+        <AboutFactsSection />
+    </section>
+
+    <section class="b-visual-section b-company-details">
+        <AboutCompanySection />
+    </section>
+
+    <section class="b-visual-section b-marketing-tint">
+        <AboutPrinciplesSection />
+    </section>
+
+    <section class="b-visual-section b-company-details">
+        <AboutBankSection />
+    </section>
+
+    <section class="b-visual-section b-marketing-contact">
+        <AboutContactSection />
+    </section>
+</Div>

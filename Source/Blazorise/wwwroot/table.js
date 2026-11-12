@@ -1,4 +1,4 @@
-﻿import { getRequiredElement } from "./utilities.js?v=1.0.2.0";
+import { getRequiredElement } from "./utilities.js?v=__BLAZORISE_VERSION__";
 
 export function initializeTableFixedHeader(element, elementId) {
     element = getRequiredElement(element, elementId);
@@ -8,7 +8,7 @@ export function initializeTableFixedHeader(element, elementId) {
 
     let resizeTimeout = null
 
-    function resizeThottler() {
+    const resizeThottler = () => {
         if (!resizeTimeout) {
             resizeTimeout = setTimeout(function () {
                 resizeTimeout = null;
@@ -20,19 +20,23 @@ export function initializeTableFixedHeader(element, elementId) {
     function resizeHandler(element) {
         const thead = element.querySelector("thead:first-child");
         const tableRows = thead.querySelectorAll("tr");
-        if (tableRows !== null && tableRows.length > 1) {
-            let previousRowCellHeight = 0;
+        if (tableRows !== null && tableRows.length > 0) {
+            const elementStyle = window.getComputedStyle(element);
+            const tableBorderTopWidth = Number.parseFloat(elementStyle.borderTopWidth || "0") || 0;
+            let previousRowCellHeight = tableBorderTopWidth;
             for (let i = 0; i < tableRows.length; i++) {
                 let currentTh = tableRows[i].querySelectorAll("th");
                 currentTh.forEach(x => x.style.top = `${previousRowCellHeight}px`);
-                previousRowCellHeight += currentTh[0].offsetHeight;
+                previousRowCellHeight += tableRows[i].offsetHeight || currentTh[0]?.offsetHeight || 0;
             }
         }
     }
 
     resizeHandler(element);
 
-    window.addEventListener("resize", this.resizeThottler, false);
+    // Save reference so destroy can remove it
+    element._resizeThottler = resizeThottler;
+    window.addEventListener("resize", element._resizeThottler, false);
 }
 
 export function destroyTableFixedHeader(element, elementId) {
@@ -41,14 +45,14 @@ export function destroyTableFixedHeader(element, elementId) {
     if (!element)
         return;
 
-    if (typeof this.resizeThottler === "function") {
-        window.removeEventListener("resize", this.resizeThottler);
+    if (typeof element._resizeThottler === "function") {
+        window.removeEventListener("resize", element._resizeThottler);
     }
 
     const thead = element.querySelector("thead:first-child");
     const tableRows = thead.querySelectorAll("tr");
 
-    if (tableRows !== null && tableRows.length > 1) {
+    if (tableRows !== null && tableRows.length > 0) {
         for (let i = 0; i < tableRows.length; i++) {
             let currentTh = tableRows[i].querySelectorAll("th");
             currentTh.forEach(x => x.style.top = `${0}px`);
@@ -69,23 +73,37 @@ export function fixedHeaderScrollTableToPixels(element, elementId, pixels) {
 export function fixedHeaderScrollTableToRow(element, elementId, row) {
     element = getRequiredElement(element, elementId);
 
-    if (element) {
-        let rows = element.querySelectorAll("tr");
-        let rowsLength = rows.length;
+    if (!element || !element.parentElement)
+        return;
 
-        if (rowsLength > 0 && row >= 0 && row < rowsLength) {
-            rows[row].scrollIntoView({
-                behavior: "smooth",
-                block: "nearest"
-            });
-        }
+    const targetRow = element.querySelectorAll(":scope > tbody > tr")[row];
+
+    if (!targetRow)
+        return;
+
+    const container = element.parentElement;
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = targetRow.getBoundingClientRect();
+    const viewportTop = containerRect.top + container.clientTop;
+    const viewportBottom = viewportTop + container.clientHeight;
+    let visibleTop = viewportTop;
+
+    // Fixed header cells cover the top of the scrollable area.
+    element.querySelectorAll(":scope > thead > tr > th").forEach(cell => {
+        visibleTop = Math.max(visibleTop, cell.getBoundingClientRect().bottom);
+    });
+
+    if (rowRect.top < visibleTop) {
+        container.scrollBy({ top: rowRect.top - visibleTop, behavior: "smooth" });
+    } else if (rowRect.bottom > viewportBottom) {
+        container.scrollBy({ top: rowRect.bottom - viewportBottom, behavior: "smooth" });
     }
 }
 
 export function initializeResizable(element, elementId, mode) {
-    const resizerClass = "b-table-resizer";
-    const resizingClass = "b-table-resizing";
-    const resizerHeaderMode = 0;
+    const RESIZER_CLASS = "b-table-resizer";
+    const RESIZING_CLASS = "b-table-resizing";
+    const RESIZER_HEADER_MODE = 0;
     let cols = null;
 
     element = getRequiredElement(element, elementId);
@@ -113,7 +131,7 @@ export function initializeResizable(element, elementId, mode) {
         };
 
         const calculateModeHeight = () => {
-            return mode === resizerHeaderMode
+            return mode === RESIZER_HEADER_MODE
                 ? element !== null
                     ? element.querySelector('tr:first-child > th:first-child').offsetHeight
                     : 0
@@ -123,11 +141,17 @@ export function initializeResizable(element, elementId, mode) {
         let actualHeight = calculateModeHeight();
 
         const createResizableColumn = function (col) {
-            if (col.querySelector(`.${resizerClass}`) !== null)
+            if (col.querySelector(`.${RESIZER_CLASS}`) !== null)
                 return;
+
+            // if the column already has both min and max width set, then we don't need to resize it
+            if (((col.style.minWidth && col.style.maxWidth) || col.dataset.fixedPosition) && !col.dataset.resized) {
+                return;
+            }
+
             // Add a resizer element to the column
             const resizer = document.createElement('div');
-            resizer.classList.add(resizerClass);
+            resizer.classList.add(RESIZER_CLASS);
 
             // Set the height
             resizer.style.height = `${actualHeight}px`;
@@ -166,43 +190,47 @@ export function initializeResizable(element, elementId, mode) {
             col.appendChild(resizer);
 
             // Track the current position of mouse
-            let x = 0;
-            let w = 0;
+            let startX = 0;
+            let startWidth = 0;
 
             const mouseDownHandler = function (e) {
                 mouseDownDate = new Date();
 
                 // Get the current mouse position
-                x = e.clientX;
+                startX = e.clientX;
 
                 // Calculate the current width of column
                 const styles = window.getComputedStyle(col);
-                w = parseInt(styles.width, 10);
+                startWidth = parseInt(styles.width, 10);
 
                 // Attach listeners for document's events
                 document.addEventListener('pointermove', mouseMoveHandler);
                 document.addEventListener('pointerup', mouseUpHandler);
 
-                resizer.classList.add(resizingClass);
+                resizer.classList.add(RESIZING_CLASS);
             };
 
             const mouseMoveHandler = function (e) {
                 // Determine how far the mouse has been moved
-                const dx = e.clientX - x;
+                const dx = e.clientX - startX;
 
                 resizer.style.height = `${calculateTableActualHeight()}px`;
 
                 // Update the width of column
-                col.style.width = `${w + dx}px`;
+                const widthStyle = `${startWidth + dx}px`;
+                col.style.width = widthStyle;
+                col.style.minWidth = widthStyle;
+                col.style.maxWidth = widthStyle;
+                col.dataset.resized = true;
             };
 
             // When user releases the mouse, remove the existing event listeners
             const mouseUpHandler = function () {
                 mouseUpDate = new Date();
 
-                resizer.classList.remove(resizingClass);
+                resizer.classList.remove(RESIZING_CLASS);
 
-                element.querySelectorAll(`.${resizerClass}`).forEach(x => x.style.height = `${calculateModeHeight()}px`);
+                element.querySelectorAll(`.${RESIZER_CLASS}`).forEach(x => x.style.height = `${calculateModeHeight()}px`);
 
                 document.removeEventListener('pointermove', mouseMoveHandler);
                 document.removeEventListener('pointerup', mouseUpHandler);

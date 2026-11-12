@@ -1,10 +1,40 @@
-﻿@page "/docs/helpers/enums/text"
+@page "/docs/helpers/enums/text"
 
-<Seo Canonical="/docs/helpers/enums/text" Title="Enums: Text" Description="Learn about the Blazorise Text enums." />
+<Seo Canonical="/docs/helpers/enums/text" Title="Blazorise Text Enums - Alignment, Color, and Typography" Description="Text enums control alignment, color, size, weight, overflow, and input behavior. Learn the typography enums used across Blazorise text components." />
 
 <DocsPageTitle>
     Enums: Text
 </DocsPageTitle>
+
+<DocsPageLead>
+    Control text alignment, color, size, and input behavior with enums.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    Text enums provide a consistent way to style text, manage overflow, and choose input roles without custom CSS.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    How it works
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Apply the relevant enum to the component parameter you need, such as <Code>TextAlignment</Code> for layout, <Code>TextColor</Code> for color, and <Code>TextSize</Code> for scale.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<UnorderedList>
+    <UnorderedListItem><Code>TextAlignment.Center</Code> to center-align headings.</UnorderedListItem>
+    <UnorderedListItem><Code>TextColor.Success</Code> to highlight positive status messages.</UnorderedListItem>
+    <UnorderedListItem><Code>TextOverflow.Truncate</Code> to trim long labels with ellipses.</UnorderedListItem>
+</UnorderedList>
+
+<DocsPageSectionTitle>
+    Reference
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="TextAlignment">
@@ -25,7 +55,7 @@
     <DocsPageSectionHeader Title="TextColor">
         <Paragraph>Predefined set of contextual text colors.</Paragraph>
         <UnorderedList>
-            <UnorderedListItem><Code>TextColor.None</Code> No color will be applied to an element.</UnorderedListItem>
+            <UnorderedListItem><Code>TextColor.Default</Code> No color will be applied to an element.</UnorderedListItem>
             <UnorderedListItem><Code>TextColor.Primary</Code> Primary color.</UnorderedListItem>
             <UnorderedListItem><Code>TextColor.Secondary</Code> Secondary color.</UnorderedListItem>
             <UnorderedListItem><Code>TextColor.Success</Code> Success color.</UnorderedListItem>
@@ -110,12 +140,32 @@
 </DocsPageSection>
 
 <DocsPageSection>
+    <DocsPageSectionHeader Title="TextSize">
+        <Paragraph>Defines the font size.</Paragraph>
+        <UnorderedList>
+            <UnorderedListItem><Code>TextSize.Default</Code> No particular size rule will be applied, meaning a default size will be used.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.ExtraSmall</Code> Makes an element text extra small size.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.Small</Code> Makes an element text small size.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.Medium</Code> Makes an element text medium size.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.Large</Code> Makes an element text large.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.ExtraLarge</Code> Makes an element text extra large.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.Heading1</Code> Matches the element text size with the <Code>h1</Code> text size.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.Heading2</Code> Matches the element text size with the <Code>h2</Code> text size.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.Heading3</Code> Matches the element text size with the <Code>h3</Code> text size.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.Heading4</Code> Matches the element text size with the <Code>h4</Code> text size.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.Heading5</Code> Matches the element text size with the <Code>h5</Code> text size.</UnorderedListItem>
+            <UnorderedListItem><Code>TextSize.Heading6</Code> Matches the element text size with the <Code>h6</Code> text size.</UnorderedListItem>
+        </UnorderedList>
+    </DocsPageSectionHeader>
+</DocsPageSection>
+
+<DocsPageSection>
     <DocsPageSectionHeader Title="Screenreader">
         <Paragraph>Screen reader visibility.</Paragraph>
         <UnorderedList>
             <UnorderedListItem><Code>Screenreader.Always</Code> Default.</UnorderedListItem>
             <UnorderedListItem><Code>Screenreader.Only</Code> Hide an element to all devices except screen readers.</UnorderedListItem>
-            <UnorderedListItem><Code>Screenreader.OnlyFocusable</Code> Show the element again when it’s focused.</UnorderedListItem>
+            <UnorderedListItem><Code>Screenreader.OnlyFocusable</Code> Show the element again when it's focused.</UnorderedListItem>
         </UnorderedList>
     </DocsPageSectionHeader>
 </DocsPageSection>

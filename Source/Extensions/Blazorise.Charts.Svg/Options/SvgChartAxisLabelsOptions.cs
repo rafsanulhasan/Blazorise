@@ -1,0 +1,65 @@
+namespace Blazorise.Charts.Svg;
+
+/// <summary>
+/// Defines label options for a native SVG chart axis.
+/// </summary>
+public class SvgChartAxisLabelsOptions
+{
+    #region Properties
+
+    /// <summary>
+    /// Defines whether labels are visible. When null, the value is inherited from the parent options.
+    /// </summary>
+    public bool? Visible { get; set; }
+
+    /// <summary>
+    /// Defines the interval for visible labels.
+    /// </summary>
+    public int Step { get; set; } = 1;
+
+    /// <summary>
+    /// Defines whether labels are automatically skipped when there is not enough space to render every label.
+    /// </summary>
+    public bool AutoSkip { get; set; } = true;
+
+    /// <summary>
+    /// Defines the maximum number of labels to render when automatic skipping is enabled. Set to 0 to disable the maximum.
+    /// </summary>
+    public int MaxTicksLimit { get; set; } = 11;
+
+    /// <summary>
+    /// Defines the extra spacing between automatically skipped labels, in SVG units.
+    /// </summary>
+    public double AutoSkipPadding { get; set; } = 8;
+
+    /// <summary>
+    /// Defines whether horizontal labels can rotate before additional labels are skipped.
+    /// </summary>
+    public bool AutoRotate { get; set; } = true;
+
+    /// <summary>
+    /// Defines the maximum automatic label rotation in degrees.
+    /// </summary>
+    public double MaxRotation { get; set; } = 50;
+
+    /// <summary>
+    /// Defines the distance from the axis line to the label anchor, in SVG units.
+    /// </summary>
+    /// <remarks>
+    /// When null, inherits the parent setting or defaults to 24 for horizontal axes and 10 for vertical axes.
+    /// Horizontal labels use their text baseline as the anchor.
+    /// </remarks>
+    public double? Offset { get; set; }
+
+    /// <summary>
+    /// Defines the maximum label width in SVG units. Longer labels are shortened.
+    /// </summary>
+    public double? MaxWidth { get; set; }
+
+    /// <summary>
+    /// Defines font options for the axis labels. Unspecified values are inherited from the chart font options.
+    /// </summary>
+    public SvgChartFontOptions Font { get; set; }
+
+    #endregion
+}

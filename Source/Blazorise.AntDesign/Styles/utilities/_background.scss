@@ -1,0 +1,37 @@
+﻿@each $name, $color in $background-variants {
+    .bg-#{$name} {
+        background-color: $color !important;
+    }
+}
+
+@each $name, $color in $background-subtle-variants {
+    .bg-#{$name}-subtle {
+        background-color: $color !important;
+    }
+}
+
+.bg {
+    &-body {
+        background-color: var(--b-theme-background-body, var(--ant-color-bg-container)) !important;
+
+        &-subtle {
+            background-color: var(--b-theme-background-body-subtle, var(--ant-color-fill-quaternary)) !important;
+        }
+    }
+
+    &-white {
+        background-color: var(--b-theme-background-white, var(--ant-color-bg-container)) !important;
+
+        &-subtle {
+            background-color: var(--b-theme-background-white-subtle, var(--ant-color-bg-container)) !important;
+        }
+    }
+
+    &-transparent {
+        background-color: transparent !important;
+
+        &-subtle {
+            background-color: var(--ant-color-fill-quaternary) !important;
+        }
+    }
+}

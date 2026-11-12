@@ -1,0 +1,19 @@
+@each $name, $value in $position-types {
+    .is-position-#{$name} {
+        position: $value !important;
+    }
+}
+
+@each $side in $position-sides {
+    @each $name, $value in $position-values {
+        .is-#{$side}-#{$name} {
+            #{$side}: $value !important;
+        }
+    }
+}
+
+@each $name, $value in $translate-values {
+    .is-translate-#{$name} {
+        transform: $value !important;
+    }
+}

@@ -1,0 +1,258 @@
+﻿@keyframes antBadgeLoadingCircle {
+    0% {
+        transform-origin: 50% 50%;
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform-origin: 50% 50%;
+        transform: rotate(360deg);
+    }
+}
+
+@mixin ant-btn-shared-color-vars($color, $shadow) {
+    --ant-btn-color-base: #{$color};
+    --ant-btn-color-hover: color-mix(in srgb, #{$color} 85%, white);
+    --ant-btn-color-active: color-mix(in srgb, #{$color} 85%, black);
+    --ant-btn-color-light: color-mix(in srgb, #{$color} 15%, white);
+    --ant-btn-color-light-hover: color-mix(in srgb, #{$color} 10%, white);
+    --ant-btn-color-light-active: color-mix(in srgb, #{$color} 20%, white);
+    --ant-btn-shadow: #{$shadow};
+}
+
+@mixin ant-btn-solid-vars($color, $text-color, $shadow: unquote("0 2px 0 color-mix(in srgb, #{$color} 12%, transparent)")) {
+    @include ant-btn-shared-color-vars($color, $shadow);
+    --ant-btn-solid-bg-color: #{$color};
+    --ant-btn-solid-bg-color-hover: color-mix(in srgb, #{$color} 85%, white);
+    --ant-btn-solid-bg-color-active: color-mix(in srgb, #{$color} 85%, black);
+    --ant-btn-border-color: #{$color};
+    --ant-btn-border-color-hover: color-mix(in srgb, #{$color} 85%, white);
+    --ant-btn-border-color-active: color-mix(in srgb, #{$color} 85%, black);
+    --ant-btn-border-color-disabled: var(--ant-color-border);
+    --ant-btn-text-color: #{$text-color};
+    --ant-btn-text-color-hover: #{$text-color};
+    --ant-btn-text-color-active: #{$text-color};
+    --ant-btn-text-color-disabled: var(--ant-color-text-disabled);
+    --ant-btn-bg-color: #{$color};
+    --ant-btn-bg-color-hover: color-mix(in srgb, #{$color} 85%, white);
+    --ant-btn-bg-color-active: color-mix(in srgb, #{$color} 85%, black);
+    --ant-btn-bg-color-disabled: var(--ant-color-bg-container-disabled);
+    box-shadow: var(--ant-btn-shadow);
+}
+
+@mixin ant-btn-outline-vars($color) {
+    @include ant-btn-shared-color-vars($color, none);
+    --ant-btn-border-color: #{$color};
+    --ant-btn-border-color-hover: color-mix(in srgb, #{$color} 85%, white);
+    --ant-btn-border-color-active: color-mix(in srgb, #{$color} 85%, black);
+    --ant-btn-border-color-disabled: var(--ant-color-border);
+    --ant-btn-text-color: #{$color};
+    --ant-btn-text-color-hover: color-mix(in srgb, #{$color} 85%, white);
+    --ant-btn-text-color-active: color-mix(in srgb, #{$color} 85%, black);
+    --ant-btn-text-color-disabled: var(--ant-color-text-disabled);
+    --ant-btn-bg-color: transparent;
+    --ant-btn-bg-color-hover: transparent;
+    --ant-btn-bg-color-active: transparent;
+    --ant-btn-bg-color-disabled: transparent;
+    box-shadow: none;
+}
+
+@mixin ant-button-size($properties) {
+    padding: map-get($properties, button-padding);
+    font-size: map-get($properties, font-size);
+    height: map-get($properties, height);
+    border-radius: map-get($properties, border-radius);
+
+    &.ant-btn-icon-only {
+        width: map-get($properties, height);
+    }
+}
+
+.ant-btn {
+    vertical-align: middle;
+
+    .ant-btn-loading-icon {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .ant-btn-loading-icon .anticon-spin {
+        display: inline-flex;
+        align-items: center;
+        animation-name: antBadgeLoadingCircle;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+    }
+
+    @each $name, $colors in $button-solid-variants {
+        &-#{$name}.ant-btn-variant-solid {
+            @include ant-btn-solid-vars(nth($colors, 1), nth($colors, 2));
+
+            @if $name == secondary {
+                --ant-btn-border-color: transparent;
+                --ant-btn-border-color-hover: transparent;
+                --ant-btn-border-color-active: transparent;
+                --ant-btn-compact-connect-border-color: transparent;
+            }
+        }
+    }
+
+    @each $name, $color in $button-outline-variants {
+        &-outline-#{$name}.ant-btn-variant-outlined,
+        &-outline-#{$name}.ant-btn-variant-dashed {
+            @include ant-btn-outline-vars($color);
+
+            @if $name == light {
+                --ant-btn-border-color-hover: var(--b-theme-light, var(--ant-color-fill-quaternary));
+                --ant-btn-border-color-active: var(--b-theme-light, var(--ant-color-fill-secondary));
+                --ant-btn-text-color-hover: var(--ant-color-text);
+                --ant-btn-text-color-active: var(--ant-color-text);
+                --ant-btn-bg-color-hover: var(--b-theme-light, var(--ant-color-fill-quaternary));
+                --ant-btn-bg-color-active: var(--ant-color-fill-secondary);
+            }
+        }
+    }
+}
+
+.ant-btn-group,
+.ant-btn-group-vertical {
+    position: relative;
+    display: inline-flex;
+    vertical-align: middle;
+
+    > .ant-btn-secondary.ant-btn-variant-solid:not(:first-child),
+    > span:not(:first-child):has(> .ant-btn-secondary.ant-btn-variant-solid),
+    > .ant-dropdown-root:not(:first-child):has(> .ant-btn-secondary.ant-btn-variant-solid) {
+        margin-inline-start: 0;
+    }
+
+    > .ant-btn {
+        position: relative;
+        flex: 1 1 auto;
+
+        &:hover,
+        &:focus,
+        &:active,
+        &.active {
+            z-index: 1;
+        }
+    }
+}
+
+.ant-btn {
+    @each $name, $properties in $control-sizes {
+        &-#{$name} {
+            @include ant-button-size($properties);
+        }
+    }
+}
+
+@each $name, $properties in $control-sizes {
+    .ant-btn-group-#{$name} > .ant-btn,
+    .ant-btn-group-#{$name} > span > .ant-btn {
+        @include ant-button-size($properties);
+    }
+}
+
+.ant-btn-block + .ant-btn-block {
+    margin-top: var(--ant-margin-xs);
+}
+
+.ant-btn.disabled,
+.ant-btn.ant-btn-disabled,
+.ant-btn[disabled],
+.ant-btn:disabled {
+    box-shadow: none !important;
+}
+
+.ant-btn {
+    &-custom.ant-btn-variant-solid {
+        @include ant-btn-solid-vars(var(--ant-color-primary), var(--ant-color-text-light-solid));
+
+        @supports (color: contrast-color(white)) {
+            --ant-btn-text-color: contrast-color(var(--ant-btn-bg-color));
+            --ant-btn-text-color-hover: contrast-color(var(--ant-btn-bg-color-hover));
+            --ant-btn-text-color-active: contrast-color(var(--ant-btn-bg-color-active));
+        }
+    }
+
+    &-outline-custom.ant-btn-variant-outlined {
+        @include ant-btn-outline-vars(var(--ant-color-primary));
+    }
+
+    &-custom,
+    &-outline-custom {
+        --ant-color-primary-border: color-mix(in srgb, var(--ant-color-primary) 50%, transparent);
+    }
+}
+
+@mixin ant-btn-ghost-variant($color, $hover-color, $active-color, $hover-background, $active-background) {
+    --ant-btn-text-color: #{$color};
+    --ant-btn-text-color-hover: #{$hover-color};
+    --ant-btn-text-color-active: #{$active-color};
+    --ant-btn-bg-color-hover: #{$hover-background};
+    --ant-btn-bg-color-active: #{$active-background};
+}
+
+.ant-btn.ant-btn-ghost,
+.ant-dropdown-menu-submenu-title.ant-btn-ghost {
+    --ant-btn-border-color: transparent;
+    --ant-btn-border-color-hover: transparent;
+    --ant-btn-border-color-active: transparent;
+    --ant-btn-bg-color: transparent;
+    --ant-btn-bg-color-disabled: transparent;
+    --ant-btn-shadow: none;
+    color: var(--ant-btn-text-color);
+    background-color: var(--ant-btn-bg-color);
+    background-image: none;
+    border-color: transparent;
+    box-shadow: none;
+
+    @include ant-btn-ghost-variant(
+        var(--ant-button-text-text-color),
+        var(--ant-button-text-text-hover-color),
+        var(--ant-button-text-text-active-color),
+        var(--ant-button-text-hover-bg),
+        var(--ant-color-fill)
+    );
+
+    @each $name, $colors in $button-ghost-variants {
+        &.ant-btn-ghost-#{$name} {
+            @include ant-btn-ghost-variant(nth($colors, 1), nth($colors, 2), nth($colors, 3), nth($colors, 4), nth($colors, 5));
+        }
+    }
+
+    &:not(:disabled):not(.ant-btn-disabled):not([aria-disabled="true"]) {
+        color: var(--ant-btn-text-color);
+
+        &:hover {
+            color: var(--ant-btn-text-color-hover);
+            background-color: var(--ant-btn-bg-color-hover);
+            border-color: transparent;
+        }
+
+        &:active,
+        &.active,
+        &[aria-pressed="true"],
+        &[aria-expanded="true"] {
+            color: var(--ant-btn-text-color-active);
+            background-color: var(--ant-btn-bg-color-active);
+            border-color: transparent;
+        }
+
+        &:focus-visible {
+            outline: var(--ant-line-width-focus) solid var(--ant-color-primary-border);
+            outline-offset: 1px;
+        }
+    }
+
+    &:disabled,
+    &.ant-btn-disabled,
+    &[aria-disabled="true"] {
+        color: var(--ant-color-text-disabled);
+        background-color: transparent;
+        border-color: transparent;
+        box-shadow: none;
+    }
+}

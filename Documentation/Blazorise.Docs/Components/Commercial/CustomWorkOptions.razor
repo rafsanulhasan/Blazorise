@@ -1,0 +1,140 @@
+@if ( ShowHeader )
+{
+    <Container Padding="Padding.Is5.OnY" TextAlignment="TextAlignment.Center">
+        <Heading Size="HeadingSize.Is2" TextWeight="TextWeight.Bold">
+            Expert help for your next Blazor challenge
+        </Heading>
+        <Lead TextColor="TextColor.Muted">
+            Find the right service for a technical question, a company-specific implementation, or a new Blazorise feature.
+        </Lead>
+    </Container>
+}
+
+<Container ElementId="service-options" Padding="Padding.Is5.OnY">
+    <Div TextAlignment="TextAlignment.Center" Margin="Margin.Is4.FromBottom">
+        <Heading Size="HeadingSize.Is2" TextWeight="TextWeight.Bold">
+            What would you like to achieve?
+        </Heading>
+        <Lead TextColor="TextColor.Muted">
+            Start with the outcome you need. We will help confirm the scope and the right engagement.
+        </Lead>
+    </Div>
+
+    <Row>
+        @foreach ( var item in ServicePaths )
+        {
+            <Column @key="@item.Title" ColumnSize="ColumnSize.Is12.Is4.OnDesktop" Margin="Margin.Is4.FromBottom">
+                <Card Border="Border.Rounded" Shadow="Shadow.Small" Height="Height.Is100">
+                    <CardBody Padding="Padding.Is4" Display="Display.Flex" Flex="Flex.Column">
+                        <Icon Name="@item.Icon" IconSize="IconSize.x2" TextColor="@item.TextColor" Margin="Margin.Is3.FromBottom" />
+                        <Heading Size="HeadingSize.Is3" TextSize="TextSize.Heading4" TextWeight="TextWeight.SemiBold">@item.Title</Heading>
+                        <Paragraph TextColor="TextColor.Muted">@item.Description</Paragraph>
+                        <Div Margin="Margin.IsAuto.FromTop">
+                            <Anchor To="@item.To">@item.Action</Anchor>
+                        </Div>
+                    </CardBody>
+                </Card>
+            </Column>
+        }
+    </Row>
+
+    <Paragraph TextColor="TextColor.Muted" TextAlignment="TextAlignment.Center">
+        For standard product questions and bug reports, use the support channel included with your <Anchor To="commercial">commercial license</Anchor>. Hands-on sessions and development work are optional services.
+    </Paragraph>
+    <Div Flex="Flex.Column.Row.OnTablet.JustifyContent.Center.AlignItems.Center.Wrap" Gap="Gap.Is3" Margin="Margin.Is4.FromTop">
+        <Anchor To="/custom-work#pricing">Compare pricing</Anchor>
+        <Anchor To="/custom-work#priority-options">Priority queue and exclusivity</Anchor>
+        <Anchor To="/custom-work#engagement-process">How it works</Anchor>
+        @if ( !Compact )
+        {
+            <Anchor To="/custom-work#faq">Frequently asked questions</Anchor>
+        }
+    </Div>
+</Container>
+
+<CustomWorkExpertSupport />
+<CustomWorkDevelopment />
+<CustomWorkPriorityOptions />
+<CustomWorkPricing />
+
+<Container ElementId="engagement-process" Padding="Padding.Is5.OnY">
+    <Heading Size="HeadingSize.Is2" TextWeight="TextWeight.Bold" Margin="Margin.Is4.FromBottom">
+        How engagements work
+    </Heading>
+
+    <Row Gutter="Gutter.Is3">
+        @foreach ( var item in EngagementSteps )
+        {
+            <Column @key="@item.Title" ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnTablet.Is3.OnDesktop" Margin="Margin.Is4.FromBottom">
+                <Card Border="Border.Rounded" Height="Height.Is100">
+                    <CardBody>
+                        <Badge Color="Color.Primary" Pill Margin="Margin.Is2.FromBottom">@item.Step</Badge>
+                        <Heading Size="HeadingSize.Is3" TextSize="TextSize.Heading5" TextWeight="TextWeight.SemiBold" Margin="Margin.Is2.FromBottom">
+                            @item.Title
+                        </Heading>
+                        <Paragraph TextColor="TextColor.Muted" Margin="Margin.Is0">
+                            @item.Description
+                        </Paragraph>
+                    </CardBody>
+                </Card>
+            </Column>
+        }
+    </Row>
+</Container>
+
+@if ( !Compact )
+{
+    <CustomWorkFaq />
+}
+
+<Container Padding="Padding.Is5.OnY">
+    <Card Border="Border.Rounded" Shadow="Shadow.Small">
+        <CardBody Padding="Padding.Is4.Is5.OnDesktop">
+            <Row Flex="Flex.AlignItems.Center">
+                <Column ColumnSize="ColumnSize.Is12.Is7.OnDesktop" Margin="Margin.Is4.FromBottom.Is0.FromBottom.OnDesktop">
+                    <Heading Size="HeadingSize.Is2" TextWeight="TextWeight.Bold">
+                        Tell us what you need to build or solve
+                    </Heading>
+                    <Paragraph TextSize="TextSize.Large" TextColor="TextColor.Muted" Margin="Margin.Is0.FromBottom">
+                        Share your goal, current setup, and target timeline. You do not need to know which service to choose before getting in touch.
+                    </Paragraph>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is12.Is5.OnDesktop">
+                    <Div Flex="Flex.Column" Gap="Gap.Is3">
+                        <Button Type="ButtonType.Link" To="custom-work/quote" Color="Color.Primary" Size="Size.Large">
+                            Request a quote
+                        </Button>
+                        <Anchor To="mailto:sales@blazorise.com" TextAlignment="TextAlignment.Center">
+                            Email sales@blazorise.com
+                        </Anchor>
+                    </Div>
+                </Column>
+            </Row>
+        </CardBody>
+    </Card>
+</Container>
+
+@code {
+    [Parameter] public bool Compact { get; set; }
+
+    [Parameter] public bool ShowHeader { get; set; } = true;
+
+    private static readonly ServicePath[] ServicePaths =
+    [
+        new( IconName.Headset, TextColor.Info, "Solve a technical problem", "Work directly with an expert on troubleshooting, code review, or implementation guidance. Live sessions start at one hour.", "/custom-work#expert-support", "Explore live expert support" ),
+        new( IconName.Briefcase, TextColor.Primary, "Build for your application", "Get help with company-specific integrations, bespoke components, theming, or migration. Development engagements start at 16-24 hours.", "/custom-work#custom-development", "Explore custom development" ),
+        new( IconName.Lightbulb, TextColor.Warning, "Sponsor a Blazorise feature", "Fund a generally useful feature under a fixed-price proposal, with agreed scope and acceptance criteria.", "/custom-work#feature-sponsorship", "Explore feature sponsorship" ),
+    ];
+
+    private static readonly EngagementStep[] EngagementSteps =
+    [
+        new( "1", "Request", "Share the goal, target timeline, versions, providers, dependencies, and acceptance criteria." ),
+        new( "2", "Qualify", "We confirm whether the request fits a live expert session, Feature Sponsorship, Time and Materials, or the Priority Development Queue." ),
+        new( "3", "Confirm", "We schedule the session or provide a proposal with scope, assumptions, timeline, and commercial terms." ),
+        new( "4", "Begin", "The live session takes place or delivery proceeds against the agreed scope and milestones." ),
+    ];
+
+    private sealed record ServicePath( IconName Icon, TextColor TextColor, string Title, string Description, string To, string Action );
+
+    private sealed record EngagementStep( string Step, string Title, string Description );
+}

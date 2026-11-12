@@ -1,0 +1,69 @@
+#region Using directives
+using Blazorise.Modules;
+using Bunit;
+using Xunit;
+#endregion
+
+namespace Blazorise.Tests.Components;
+
+public class NumericPickerComponentTest : BunitContext
+{
+    public NumericPickerComponentTest()
+    {
+        Services.AddBlazoriseTests().AddBootstrapProviders().AddEmptyIconProvider().AddTestData();
+        JSInterop.AddBlazoriseUtilities();
+
+        var module = JSInterop.SetupModule( new JSNumericPickerModule( JSInterop.JSRuntime, new MockVersionProvider(), new( null, ( Options ) => { } ) ).ModuleFileName );
+        module.SetupVoid( "import", _ => true ).SetVoidResult();
+        module.SetupVoid( "initialize", _ => true ).SetVoidResult();
+        module.SetupVoid( "destroy", _ => true ).SetVoidResult();
+        module.SetupVoid( "updateValue", _ => true ).SetVoidResult();
+        module.SetupVoid( "updateOptions", _ => true ).SetVoidResult();
+    }
+
+    [Fact]
+    public void SetParametersAndRender_Should_SendRawValue_ToJsUpdateValue()
+    {
+        // setup
+        var comp = Render<NumericPicker<decimal>>( parameters =>
+            parameters.Add( x => x.Value, 10m ) );
+
+        // test
+        comp.Render( parameters =>
+            parameters.Add( x => x.Value, 99m ) );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            var invocation = this.JSInterop.VerifyInvoke( "updateValue" );
+            Assert.Equal( 99m, Assert.IsType<decimal>( invocation.Arguments[2] ) );
+        }, TestExtensions.WaitTime );
+    }
+
+    [Theory]
+    [InlineData( false )]
+    [InlineData( true )]
+    public void EnableStep_Should_InitializeAndUpdateJsOptions( bool enableStep )
+    {
+        var comp = Render<NumericPicker<decimal>>( parameters => parameters
+            .Add( x => x.EnableStep, enableStep )
+            .Add( x => x.ShowStepButtons, false ) );
+
+        comp.WaitForAssertion( () =>
+        {
+            var invocation = JSInterop.VerifyInvoke( "initialize" );
+            NumericPickerJSOptions options = Assert.IsType<NumericPickerJSOptions>( invocation.Arguments[3] );
+            Assert.Equal( enableStep, options.EnableStep );
+        }, TestExtensions.WaitTime );
+
+        comp.Render( parameters => parameters.Add( x => x.EnableStep, !enableStep ) );
+
+        comp.WaitForAssertion( () =>
+        {
+            var invocation = JSInterop.VerifyInvoke( "updateOptions" );
+            NumericPickerUpdateJSOptions options = Assert.IsType<NumericPickerUpdateJSOptions>( invocation.Arguments[2] );
+            Assert.True( options.EnableStep.Changed );
+            Assert.Equal( !enableStep, options.EnableStep.Value );
+        }, TestExtensions.WaitTime );
+    }
+}

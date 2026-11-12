@@ -1,33 +1,74 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<PropertyGroup>
-		<Version>1.0.2</Version>
-		<PackageVersion>1.0.2</PackageVersion>
+  <Import Project="Blazorise.Version.props" />
+  <Import Project="Blazorise.Pack.props" />
+  <PropertyGroup>
+    <Version>$(BlazoriseVersion)</Version>
+    <PackageVersion>$(BlazoriseVersion)</PackageVersion>
 
-		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-		<PackageIcon>Blazorise.png</PackageIcon>
-		<PackageProjectUrl>https://blazorise.com/</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/Megabit/Blazorise</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
+    <TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
+    <LangVersion>latest</LangVersion>
 
-		<Description>Blazorise is a component library built on top of Blazor and CSS frameworks like Bootstrap, Bulma and Material.</Description>
-		<Authors>Megabit</Authors>
-		<Company>Megabit</Company>
-		<Copyright>Copyright 2018-2022 Megabit</Copyright>
-		
-		<TargetFrameworks>net6.0</TargetFrameworks>
-		<OutputType>Library</OutputType>
-		<IsPackable>true</IsPackable>
-		<LangVersion>10.0</LangVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
 
-		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-	</PropertyGroup>
+  <!-- Keep TargetFrameworks independent of Configuration so Visual Studio restores every framework:
+       https://github.com/dotnet/project-system/issues/8185
+       Restrict only the build dispatch for the fast development build. -->
+  <Target Name="SelectBlazoriseDebugTargetFramework"
+          BeforeTargets="DispatchToInnerBuilds"
+          Condition="'$(Configuration)' == 'DebugNet11'">
+    <ItemGroup>
+      <_BlazoriseDebugInnerBuildProjects Include="@(_InnerBuildProjects)" />
+      <_InnerBuildProjects Remove="@(_InnerBuildProjects)"
+                           Condition="'%(_InnerBuildProjects.AdditionalProperties)' != 'TargetFramework=$(PrimaryTargetFramework)'" />
+    </ItemGroup>
+  </Target>
 
-	<ItemGroup>
-		<SupportedPlatform Include="browser" />
-		<PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="*" />
-	</ItemGroup>
+  <!-- Later framework negotiation in the same project instance must still see every framework. -->
+  <Target Name="RestoreBlazoriseTargetFrameworkBuildItems"
+          AfterTargets="DispatchToInnerBuilds"
+          Condition="'@(_BlazoriseDebugInnerBuildProjects)' != ''">
+    <ItemGroup>
+      <_InnerBuildProjects Remove="@(_InnerBuildProjects)" />
+      <_InnerBuildProjects Include="@(_BlazoriseDebugInnerBuildProjects)" />
+      <_BlazoriseDebugInnerBuildProjects Remove="@(_BlazoriseDebugInnerBuildProjects)" />
+    </ItemGroup>
+  </Target>
 
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <!-- Don't remove this. It is needed for the WASM workloads to publish demo projects. -->
+  <ItemGroup>
+    <Content Remove="compilerconfig.json" />
+    <None Include="compilerconfig.json" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+    <DefineConstants>$(DefineConstants);NET8_0</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+    <DefineConstants>$(DefineConstants);NET9_0</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
+    <DefineConstants>$(DefineConstants);NET10_0</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net11.0' ">
+    <DefineConstants>$(DefineConstants);NET11_0</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Condition="'$(TargetFramework)' != '' and $([MSBuild]::VersionLessThan($([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')), '11.0'))" />
+  </ItemGroup>
+
+  <Import Project="Blazorise.Assets.targets" />
 </Project>

@@ -1,0 +1,282 @@
+@each $name, $color in $theme-colors {
+    .is-color-#{$name} {
+        @extend %bulma-input-color;
+        --bulma-input-custom-color: var(--bulma-#{$name}, #{$color});
+    }
+}
+
+.is-colored {
+    @extend %bulma-input-color;
+}
+
+%bulma-input-color {
+    &:is(.input, .textarea):not(.is-static):not(:disabled):not(.is-success, .is-warning, .is-danger) {
+        --bulma-input-border-color: var(--bulma-input-custom-color);
+        --bulma-input-focus-shadow-color: color-mix(in srgb, var(--bulma-input-custom-color), transparent 75%);
+        border-color: var(--bulma-input-border-color);
+
+        &:focus,
+        &.is-focused,
+        &:active,
+        &.is-active {
+            box-shadow: var(--bulma-input-focus-shadow-size, 0 0 0 0.125em) var(--bulma-input-focus-shadow-color);
+        }
+    }
+}
+
+label.radio.button {
+    display: flex;
+}
+
+label.radio.button {
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+
+    input[type=radio] {
+        position: absolute;
+        left: 0;
+        opacity: 0;
+        outline: none;
+        z-index: -1;
+    }
+}
+
+.buttons.has-addons.are-vertical {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .button {
+        display: block;
+        width: 100%;
+        border-radius: 0;
+    }
+
+    .button:not(:last-child) {
+        margin: -1px;
+    }
+}
+
+.field-body {
+    .switch[type="checkbox"] {
+        + label {
+            margin-top: .375em;
+        }
+    }
+}
+
+.field-body {
+    .slider[type="range"]:not(.range-slider-input) {
+        width: 100%;
+    }
+}
+
+.slider[type="range"]:not(.range-slider-input) {
+    width: 100%;
+    height: 1rem;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    &[aria-orientation='vertical'] {
+        width: 1rem;
+        height: 10rem;
+        writing-mode: vertical-lr;
+        direction: rtl;
+
+        &::-webkit-slider-runnable-track {
+            width: .375rem;
+            height: 100%;
+        }
+
+        &::-webkit-slider-thumb {
+            margin-top: 0;
+            margin-left: -.3125rem;
+        }
+
+        &::-moz-range-track,
+        &::-moz-range-progress {
+            width: .375rem;
+            height: 100%;
+        }
+    }
+
+    &:focus {
+        outline: 0;
+    }
+
+    &::-moz-focus-outer {
+        border: 0;
+    }
+
+    &::-webkit-slider-runnable-track {
+        height: .375rem;
+        background-color: $grey-lighter;
+        border: 0;
+        border-radius: 999px;
+        color: transparent;
+        cursor: pointer;
+    }
+
+    &::-webkit-slider-thumb {
+        width: 1rem;
+        height: 1rem;
+        margin-top: -.3125rem;
+        border: 0;
+        border-radius: 50%;
+        background-color: $primary;
+        box-shadow: none;
+        cursor: pointer;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    &::-moz-range-track {
+        height: .375rem;
+        background-color: $grey-lighter;
+        border: 0;
+        border-radius: 999px;
+        cursor: pointer;
+    }
+
+    &::-moz-range-progress {
+        height: .375rem;
+        background-color: $primary;
+        border: 0;
+        border-radius: 999px;
+    }
+
+    &::-moz-range-thumb {
+        width: 1rem;
+        height: 1rem;
+        border: 0;
+        border-radius: 50%;
+        background-color: $primary;
+        box-shadow: none;
+        cursor: pointer;
+    }
+
+    @each $state, $color in $slider-validation-state-colors {
+        &.is-#{$state} {
+            &::-webkit-slider-thumb {
+                background-color: $color;
+            }
+
+            &::-moz-range-progress,
+            &::-moz-range-thumb {
+                background-color: $color;
+            }
+        }
+    }
+
+    &:disabled,
+    &[readonly] {
+        pointer-events: none;
+    }
+
+    &:disabled::-webkit-slider-thumb,
+    &[readonly]::-webkit-slider-thumb {
+        background-color: $grey-light;
+        cursor: not-allowed;
+    }
+
+    &:disabled::-moz-range-progress,
+    &[readonly]::-moz-range-progress,
+    &:disabled::-moz-range-thumb,
+    &[readonly]::-moz-range-thumb {
+        background-color: $grey-light;
+        cursor: not-allowed;
+    }
+}
+
+// When file is placed inside of "field-body" it will not be fullwidth. With this we force it to work as expected.
+.file.has-name.is-fullwidth {
+    width: 100%;
+}
+
+@each $name, $size in $button-sizes {
+    .has-addons.is-#{$name} > .control > .button,
+    .has-addons.is-#{$name} > .control > .control > .button,
+    .has-addons.is-#{$name} > .control > .field > .control > .input,
+    .has-addons.is-#{$name} > .control > .field > .control > .select,
+    .input.is-#{$name},
+    .select.is-#{$name},
+    .textarea.is-#{$name} {
+        font-size: $size;
+    }
+}
+
+.has-addons.is-extra-small,
+.input.is-extra-small,
+.select.is-extra-small,
+.textarea.is-extra-small {
+    --bulma-control-radius: var(--bulma-radius-small);
+}
+
+.has-addons.is-extra-large,
+.input.is-extra-large,
+.select.is-extra-large,
+.textarea.is-extra-large {
+    --bulma-control-radius: var(--bulma-radius-medium);
+}
+
+.textarea.is-static {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.textarea[data-autosize='true'] {
+    field-sizing: content;
+    height: auto;
+    min-block-size: calc(var(--bulma-textarea-min-block-size) + var(--bulma-control-padding-vertical) + var(--bulma-control-padding-vertical) + var(--bulma-control-border-width) + var(--bulma-control-border-width));
+}
+
+select[readonly] {
+    pointer-events: none;
+
+    option,
+    optgroup {
+        display: none;
+    }
+}
+
+.focus-trap {
+    display: contents;
+}
+
+.field-label-required:after {
+    content: " *";
+    color: var(--b-theme-danger, $danger);
+}
+
+fieldset.field,
+fieldset.columns {
+    min-inline-size: 0;
+    border: 0;
+    padding: 0;
+}
+
+fieldset.field > legend.field-label,
+fieldset.columns > legend.field-label {
+    display: block;
+    flex: 0 0 100%;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    text-align: left;
+}
+
+fieldset.columns > legend.field-label {
+    padding-inline: calc(#{$grid-gutter-width} * 0.5);
+}
+
+fieldset.columns > legend.field-label ~ .column {
+    padding-top: 0;
+}

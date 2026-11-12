@@ -1,0 +1,13 @@
+.mui-character {
+    &-casing-upper {
+        text-transform: uppercase !important;
+    }
+
+    &-casing-lower {
+        text-transform: lowercase !important;
+    }
+
+    &-casing-title {
+        text-transform: capitalize !important;
+    }
+}

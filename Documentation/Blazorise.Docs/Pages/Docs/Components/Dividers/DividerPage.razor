@@ -1,65 +1,75 @@
-﻿@page "/docs/components/divider"
+@page "/docs/components/divider"
 
-<Seo Canonical="/docs/components/divider" Title="Blazorise Divider component" Description="The divider component is used to separate sections of lists or layouts." />
+<Seo Canonical="/docs/components/divider" Title="Blazorise Divider component" Description="Learn to use and work with the Blazorise Divider component, which is used to separate sections of lists or layouts." />
 
-<DocsPageTitle>
-    Divider component
+<DocsPageTitle Path="Components/Divider">
+    Blazorise Divider component
 </DocsPageTitle>
 
-<DocsPageParagraph>
-    The <Code Tag>Divider</Code> component is used to separate sections of lists or layouts.
-</DocsPageParagraph>
+<DocsPageLead>
+    Dividers are used to visually separate or group elements.
+</DocsPageLead>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic">
         Dividers in their simplest form display a horizontal line.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="SolidDividerExample" Outlined FullWidth>
         <SolidDividerExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="SolidDividerExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Dashed">
+        Use <Code>DividerType.Dashed</Code> custom property to show divider with a dashes.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="DashedDividerExample" Outlined FullWidth>
         <DashedDividerExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="DashedDividerExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Dotted">
+        Use <Code>DividerType.Dotted</Code> custom property to show divider with dots.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="DottedDividerExample" Outlined FullWidth>
         <DottedDividerExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="DottedDividerExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Text Content">
+        Use <Code>DividerType.TextContent</Code> custom property to show text in the middle of a divider.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="TextContentDividerExample" Outlined FullWidth>
         <TextContentDividerExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="TextContentDividerExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes>
-    <DocsAttributesItem Name="DividerType" Type="DividerType" Default="Solid">
-        Specifies horizontal line style variants.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Text" Type="string" Default="null">
-        Label that will appear between the solid lines.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Content Hierarchy
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Dividers should separate related groups rather than compensate for an unclear page structure. Prefer spacing or semantic headings whenever they communicate the relationship between sections more clearly.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Subtle Separation
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Decorative dividers should not compete with the content they organize. When a divider contains text, keep the label concise and preserve the document's semantic heading structure separately.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/divider/api" Name="<Divider />" />
+</DocsPageApi>

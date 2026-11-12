@@ -1,0 +1,11 @@
+@namespace Blazorise
+@typeparam TItem
+@inherits BaseComponent
+<CascadingValue TValue="IDragHandleOwner" Value="@this">
+    <div @ref="@ElementRef" id="@ElementId" class="@ClassNames" style="@StyleNames" draggable="@DraggableString" data-drag-disabled="@(Disabled ? "true" : null)" data-index="@Index" data-dragging="@DraggingString" data-reorder-source="@ReorderSourceString" @ondragstart="@OnDragStartHandler" @ondragend="@OnDragEndHandler" @ondragenter="@OnDragEnterHandler" @ondragleave="@OnDragLeaveHandler" @attributes="@Attributes">
+        @if ( !HideContent )
+        {
+            @ChildContent
+        }
+    </div>
+</CascadingValue>

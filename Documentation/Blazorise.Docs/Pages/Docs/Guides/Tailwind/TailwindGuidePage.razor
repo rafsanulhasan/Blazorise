@@ -1,0 +1,164 @@
+﻿@page "/docs/usage/tailwind"
+
+<Seo Canonical="/docs/usage/tailwind" Title="Blazorise Tailwind Usage" Description="Learn all the steps on how to quickly install and setup Blazorise for Tailwind CSS framework and FontAwesome icons." />
+
+<DocsPageTitle Path="Usage/Tailwind">
+    Blazorise Tailwind Usage
+</DocsPageTitle>
+
+<DocsPageLead>
+    Quickly install Blazorise with Tailwind, one of the world's most popular Blazor UI framework.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    Blazorise Tailwind provider is made possible with the help of <Anchor To="https://flowbite.com/" Title="Link to Flowbite" Target="Target.Blank">Flowbite</Anchor>, an open-source Tailwind CSS Components.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    <Alert Color="Color.Info" Visible>
+        <AlertDescription>
+            <Strong>Note:</Strong> Before proceeding, ensure you have already created a Blazor project. If not, the simplest way to start with Blazorise is by using our <Anchor To="docs/templates" Title="Link to templates">Templates</Anchor>.
+        </AlertDescription>
+    </Alert>
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    <GuideSeeTheDemo Provider="CssProvider.Tailwind" />
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Install Packages
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        First step is to install a Tailwind provider for Blazorise:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="TailwindGuideNuget1Example" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        You also need to install the icon package:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="TailwindGuideNuget2Example" />
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Add Static Files
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        Add these lines inside the <Code Tag>head</Code> section:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSourceGroup AriaLabel="Blazor project type">
+        <DocsPageSectionSource Code="TailwindGuideSourceFiles3Example" CodeTitle="WebAssembly">
+            Update <Code>wwwroot/index.html</Code>.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="TailwindGuideSourceFiles3Example" CodeTitle="Blazor Server">
+            Update <Code>_Layout.cshtml</Code> or <Code>_Host.cshtml</Code>, depending on your project template.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="TailwindGuideSourceFiles3Example" CodeTitle="Blazor Web App">
+            Update <Code>Components/App.razor</Code> in the server project.
+        </DocsPageSectionSource>
+    </DocsPageSectionSourceGroup>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        In the same file add the following. It should be placed just before the default blazor script.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSourceGroup AriaLabel="Blazor project type">
+        <DocsPageSectionSource Code="TailwindGuideSourceFiles2Example" CodeTitle="WebAssembly">
+            Update <Code>wwwroot/index.html</Code>.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="TailwindGuideSourceFiles2Example" CodeTitle="Blazor Server">
+            Update <Code>_Layout.cshtml</Code> or <Code>_Host.cshtml</Code>, depending on your project template.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="TailwindGuideSourceFiles2Example" CodeTitle="Blazor Web App">
+            Update <Code>Components/App.razor</Code> in the server project.
+        </DocsPageSectionSource>
+    </DocsPageSectionSourceGroup>
+</DocsPageSection>
+
+<Alert Color="Color.Info" Visible>
+    <AlertDescription>
+        <Strong>Note:</Strong> Don't forget to remove Bootstrap JS and CSS files that comes with the default Blazor project template.
+    </AlertDescription>
+</Alert>
+
+<DocsPageParagraph>
+    If you're interested in integrating Tailwind CSS with your Blazor projects, check out our blog post that guides you through the process of <Anchor To="blog/blazor-and-tailwind-quick-setup-without-npm" Title="Link to use Tailwind CSS with Blazorise">using Tailwind CSS with Blazor</Anchor>.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Custom Tailwind Pipeline
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    If you want Tailwind to generate utilities for your app while keeping Blazorise styles, build a single Tailwind output and reference it instead of the prebuilt <Code>_content/Blazorise.Tailwind/blazorise.tailwind.min.css</Code>.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    <DocsPageUnorderedList>
+        <DocsPageUnorderedListItem>
+            Copy the Blazorise Tailwind build inputs from the <Anchor To="https://github.com/Megabit/Blazorise/tree/master/Source/Blazorise.Tailwind/tailwind-build" Title="Blazorise Tailwind build inputs" Target="Target.Blank">Blazorise repository</Anchor> into your project: <Code>btw-prebuild.css</Code>, <Code>blazorise.tailwind.css</Code>, <Code>btw-colors.css</Code>, and <Code>safelist.txt</Code>.
+        </DocsPageUnorderedListItem>
+        <DocsPageUnorderedListItem>
+            Extend the entry file with your own <Code>@@source</Code> directives (for example, <Code>@@source "./**/*.razor"</Code>), <Code>@@theme</Code> overrides, and custom utilities.
+        </DocsPageUnorderedListItem>
+        <DocsPageUnorderedListItem>
+            Build one CSS file with Tailwind and include it in your app in place of the package stylesheet.
+        </DocsPageUnorderedListItem>
+    </DocsPageUnorderedList>
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Safelist Classnames
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Blazorise generates some classnames dynamically, so Tailwind content scanning might not see them. Use the provided <Code>safelist.txt</Code> file as an additional content source to keep those classes in your output.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    <DocsPageUnorderedList>
+        <DocsPageUnorderedListItem>
+            Keep one class per line in your safelist file and add any of your own dynamic classes there as well.
+        </DocsPageUnorderedListItem>
+        <DocsPageUnorderedListItem>
+            Reference it in your Tailwind entry file with <Code>@@source "./path/to/safelist.txt"</Code> or pass it via the Tailwind CLI <Code>--content</Code> argument.
+        </DocsPageUnorderedListItem>
+    </DocsPageUnorderedList>
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Add Imports
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        In your main <Badge Color="Color.Light">_Imports.razor</Badge> add:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="TailwindGuideUsingExample" />
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Register Services
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        Add the following lines to the relevant sections of <Code>Program.cs</Code>.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="TailwindGuideRegistrationExample" />
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Offline Support
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    For information about PWAs &amp; offline support, please take a look at our <Anchor To="docs/pwa">PWA docs.</Anchor>
+</DocsPageParagraph>

@@ -1,0 +1,367 @@
+.button {
+    min-height: var(--bulma-control-height);
+
+    &.is-secondary {
+        background-color: #6c757d;
+        border-color: transparent;
+        color: #fff;
+
+        &:hover, &.is-hovered {
+            background-color: #5a6268;
+            border-color: transparent;
+            color: #fff;
+        }
+
+        &:focus, &.is-focused {
+            border-color: transparent;
+            color: #fff;
+        }
+
+        &:focus:not(:active), &.is-focused:not(:active) {
+            box-shadow: 0 0 0 0.125em rgba(0, 209, 178, 0.25);
+        }
+
+        &:active, &.is-active {
+            background-color: #545b62;
+            border-color: transparent;
+            color: #fff;
+        }
+
+        &[disabled],
+        fieldset[disabled] & {
+            background-color: #6c757d;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        &.is-inverted {
+            background-color: #fff;
+            color: #6c757d;
+
+            &:hover, &.is-hovered {
+                background-color: #f2f2f2;
+            }
+
+            &[disabled],
+            fieldset[disabled] & {
+                background-color: #fff;
+                border-color: transparent;
+                box-shadow: none;
+                color: #6c757d;
+            }
+        }
+
+
+        &.is-loading {
+            &::after {
+                border-color: transparent transparent #fff #fff !important;
+            }
+        }
+
+        &.is-outlined {
+            background-color: transparent;
+            border-color: #6c757d;
+            color: #6c757d;
+
+            &:hover, &.is-hovered, &:focus, &.is-focused {
+                background-color: #6c757d;
+                border-color: #6c757d;
+                color: #fff;
+            }
+
+            &.is-loading::after {
+                border-color: transparent transparent #6c757d #6c757d !important;
+            }
+
+            &.is-loading:hover::after, &.is-loading.is-hovered::after, &.is-loading:focus::after, &.is-loading.is-focused::after {
+                border-color: transparent transparent #fff #fff !important;
+            }
+
+            &[disabled],
+            fieldset[disabled] & {
+                background-color: transparent;
+                border-color: #6c757d;
+                box-shadow: none;
+                color: #6c757d;
+            }
+        }
+
+        &.is-inverted.is-outlined {
+            background-color: transparent;
+            border-color: #fff;
+            color: #fff;
+
+            &:hover, &.is-hovered, &:focus, &.is-focused {
+                background-color: #fff;
+                color: #6c757d;
+            }
+
+            &.is-loading {
+                &:hover::after, &.is-hovered::after, &:focus::after, &.is-focused::after {
+                    border-color: transparent transparent #6c757d #6c757d !important;
+                }
+            }
+
+            &[disabled],
+            fieldset[disabled] & {
+                background-color: transparent;
+                border-color: #fff;
+                box-shadow: none;
+                color: #fff;
+            }
+        }
+    }
+
+    @each $name, $size in $button-sizes {
+        &.is-#{$name} {
+            font-size: $size;
+        }
+    }
+
+    &.is-extra-small {
+        --bulma-control-radius: var(--bulma-radius-small);
+    }
+
+    &.is-extra-large {
+        --bulma-control-radius: var(--bulma-radius-medium);
+    }
+}
+
+@each $size in map-keys($button-sizes) {
+    .field.has-addons.are-#{$size},
+    .field.is-grouped.are-#{$size} {
+        > .control > .button {
+            @extend .is-#{$size};
+        }
+    }
+}
+
+.field.has-addons {
+    gap: 0;
+
+    > .control {
+        align-self: stretch;
+
+        > .control {
+            height: 100%;
+        }
+
+        > .button,
+        > .control > .button {
+            height: 100%;
+
+            &.is-light {
+                border-color: var(--bulma-input-border-color, $grey-lighter);
+            }
+        }
+    }
+
+    > .control > .button,
+    > .dropdown-trigger > .control > .button,
+    > .dropdown > .dropdown-trigger > .control > .button {
+        &:hover,
+        &.is-hovered {
+            z-index: 2;
+        }
+
+        &:focus,
+        &.is-focused,
+        &:active,
+        &.is-active,
+        &.is-selected {
+            z-index: 3;
+
+            &:hover {
+                z-index: 4;
+            }
+        }
+
+        &.is-expanded {
+            flex-grow: 1;
+            flex-shrink: 1;
+        }
+    }
+
+    > .control:not(:first-child) > .button,
+    > .dropdown-trigger:not(:first-child) > .control > .button,
+    > .dropdown:not(:first-child) > .dropdown-trigger > .control > .button {
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+    }
+
+    > .control:not(:last-child) > .button,
+    > .dropdown-trigger:not(:last-child) > .control > .button.button,
+    > .dropdown:not(:last-child) > .dropdown-trigger > .control > .button.button {
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
+        margin-inline-end: -1px;
+    }
+
+    &.dropdown > .dropdown-trigger:not(:last-child) > .control > .button,
+    > .dropdown:last-child > .dropdown-trigger > .control > .button {
+        border-bottom-right-radius: $radius;
+        border-top-right-radius: $radius;
+        border-right-style: solid;
+        border-right-width: var(--bulma-button-border-width, 1px);
+        border-right-color: var(--bulma-button-border-color, $grey-lighter);
+        margin-inline-end: 0;
+    }
+}
+
+.buttons.has-addons {
+    > .button,
+    > .label.button {
+        display: inline-flex;
+        margin-bottom: 0;
+    }
+}
+
+.button.is-custom {
+    --bulma-button-color: #{$white};
+    --bulma-button-background-color: var(--bulma-button-custom-color);
+    color: var(--bulma-button-color);
+    background-color: var(--bulma-button-background-color);
+    border-color: var(--bulma-button-background-color);
+
+    @supports (color: contrast-color(white)) {
+        --bulma-button-color: contrast-color(var(--bulma-button-background-color));
+    }
+
+    &:not(:disabled):not(.is-disabled) {
+        &:hover,
+        &.is-hovered {
+            --bulma-button-background-color: color-mix(in srgb, var(--bulma-button-custom-color) 90%, black);
+        }
+
+        &:active,
+        &.is-active,
+        &[aria-expanded="true"] {
+            --bulma-button-background-color: color-mix(in srgb, var(--bulma-button-custom-color) 80%, black);
+        }
+
+        &:focus,
+        &.is-focused {
+            box-shadow: 0 0 0 0.125em color-mix(in srgb, var(--bulma-button-custom-color) 25%, transparent);
+        }
+    }
+
+    &.is-loading::after {
+        border-color: transparent transparent var(--bulma-button-color) var(--bulma-button-color) !important;
+    }
+
+    &.is-outlined {
+        --bulma-button-color: var(--bulma-button-custom-color);
+        color: var(--bulma-button-color);
+        background-color: transparent;
+        border-color: var(--bulma-button-custom-color);
+
+        &:not(:disabled):not(.is-disabled) {
+            &:hover,
+            &.is-hovered,
+            &:focus,
+            &.is-focused,
+            &:active,
+            &.is-active,
+            &[aria-expanded="true"] {
+                --bulma-button-color: #{$white};
+                color: var(--bulma-button-color);
+                background-color: var(--bulma-button-background-color);
+                border-color: var(--bulma-button-background-color);
+
+                @supports (color: contrast-color(white)) {
+                    --bulma-button-color: contrast-color(var(--bulma-button-background-color));
+                }
+            }
+        }
+    }
+
+    &[disabled],
+    &.is-disabled,
+    fieldset[disabled] & {
+        box-shadow: none;
+    }
+}
+
+label.button.is-custom:has(input:focus-visible) {
+    box-shadow: 0 0 0 .125em color-mix(in srgb, var(--bulma-button-custom-color) 25%, transparent);
+}
+
+@mixin bulma-button-ghost-states($hover-background, $active-background) {
+    &:not(:disabled):not(.is-disabled):not([aria-disabled="true"]) {
+        &:hover,
+        &.is-hovered {
+            background-color: $hover-background;
+        }
+
+        &:active,
+        &.is-active,
+        &[aria-pressed="true"],
+        &[aria-expanded="true"] {
+            background-color: $active-background;
+        }
+    }
+}
+
+.button.is-ghost,
+.dropdown-item.is-ghost {
+    --bulma-button-ghost-color: inherit;
+    --bulma-button-ghost-decoration: none;
+    --bulma-button-ghost-hover-decoration: none;
+    color: var(--bulma-button-ghost-color, inherit);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    text-decoration: none;
+
+    @include bulma-button-ghost-states(var(--bulma-button-text-hover-background-color, var(--bulma-background)), var(--bulma-scheme-main-ter));
+
+    @each $name, $color in $button-ghost-colors {
+        $hover-background: color-mix(in srgb, #{$color} 12%, var(--bulma-scheme-main));
+        $active-background: color-mix(in srgb, #{$color} 25%, var(--bulma-scheme-main));
+
+        @if $name != custom and $name != secondary {
+            $hover-background: var(--bulma-#{$name}-soft, #{$hover-background});
+            $active-background: color-mix(in srgb, #{$color} 15%, #{$hover-background});
+        }
+
+        &.is-ghost-#{$name} {
+            --bulma-button-ghost-color: #{$color};
+            --bulma-button-ghost-hover-color: #{$color};
+            --bulma-button-focus-box-shadow-color: color-mix(in srgb, #{$color} 25%, transparent);
+
+            @include bulma-button-ghost-states($hover-background, $active-background);
+        }
+    }
+
+    &:not(:disabled):not(.is-disabled):not([aria-disabled="true"]) {
+        color: var(--bulma-button-ghost-color, inherit);
+
+        &:hover,
+        &.is-hovered,
+        &:active,
+        &.is-active,
+        &[aria-pressed="true"],
+        &[aria-expanded="true"] {
+            color: var(--bulma-button-ghost-color, inherit);
+            border-color: transparent;
+            text-decoration: none;
+        }
+
+        &:focus-visible,
+        &.is-focused {
+            outline: 0;
+            box-shadow: var(--bulma-button-focus-box-shadow-size, 0 0 0 .125em) var(--bulma-button-focus-box-shadow-color, color-mix(in srgb, var(--bulma-link) 25%, transparent));
+        }
+    }
+
+    &:disabled,
+    &.is-disabled,
+    &[aria-disabled="true"] {
+        color: var(--bulma-button-ghost-color, inherit);
+        background: transparent;
+        border-color: transparent;
+        box-shadow: var(--bulma-button-disabled-shadow, none);
+        opacity: var(--bulma-button-disabled-opacity, .5);
+        text-decoration: none;
+    }
+}

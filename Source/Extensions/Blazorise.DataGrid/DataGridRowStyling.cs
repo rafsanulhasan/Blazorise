@@ -1,28 +1,28 @@
-﻿namespace Blazorise.DataGrid
+﻿namespace Blazorise.DataGrid;
+
+/// <summary>
+/// Helper class used to override default row styling.
+/// Applied to the row <c>tr</c> element.
+/// </summary>
+public class DataGridRowStyling
 {
     /// <summary>
-    /// Helpers class to override default row styling.
+    /// Row custom class names.
     /// </summary>
-    public class DataGridRowStyling
-    {
-        /// <summary>
-        /// Row custom classnames.
-        /// </summary>
-        public string Class { get; set; }
+    public string Class { get; set; }
 
-        /// <summary>
-        /// Row custom styles.
-        /// </summary>
-        public string Style { get; set; }
+    /// <summary>
+    /// Row custom inline styles.
+    /// </summary>
+    public string Style { get; set; }
 
-        /// <summary>
-        /// Row custom color.
-        /// </summary>
-        public Color Color { get; set; }
+    /// <summary>
+    /// Row variant color.
+    /// </summary>
+    public Color Color { get; set; }
 
-        /// <summary>
-        /// Row custom background color.
-        /// </summary>
-        public Background Background { get; set; }
-    }
+    /// <summary>
+    /// Row background utility color.
+    /// </summary>
+    public Background Background { get; set; }
 }

@@ -1,0 +1,96 @@
+@page "/docs/components/dock-layout"
+
+<Seo Canonical="/docs/components/dock-layout" Title="Blazorise DockLayout component" Description="Learn to use the Blazorise DockLayout component to build docked workspaces with panes, tabs, splitters, auto-hide, and persisted layout state." />
+
+<DocsPageTitle Path="Components/DockLayout" AddedVersion="2.3" AddedDate="2026-07-26">
+    Blazorise DockLayout component
+</DocsPageTitle>
+
+<DocsPageLead>
+    Build IDE-like workspaces with docked panes, document areas, tab groups, splitters, auto-hide panes, and restorable layout state.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    Use the <Code>DockLayout</Code> component for editors, monitoring tools, and other workspaces where users need to rearrange related panes around their main content.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    A pane can start on the left, right, top, bottom, or center document area.
+    Users can move panes by dragging their headers, resize panes with splitters, group panes as tabs, auto-hide side panes, and close panes when enabled.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Place <Code>DockPane</Code> components directly inside <Code>DockLayout</Code> for a simple workspace, or use <Code>DockSplit</Code> and <Code>DockTabs</Code> to define the initial arrangement.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="DockLayout component anatomy">
+    <DocsAnatomyRegion Label="DockLayout" Description="Owns the workspace layout and state.">
+        <DocsAnatomyRegion Label="DockPane" Description="A tool or document pane placed directly in the workspace." />
+        <DocsAnatomyRegion Label="DockSplit" Description="An optional split between two layout nodes.">
+            <DocsAnatomyRegion Label="DockTabs" Description="An optional group of tabbed panes.">
+                <DocsAnatomyRegion Label="DockPane" Description="One pane in the tab group." />
+            </DocsAnatomyRegion>
+            <DocsAnatomyRegion Label="DockPane" Description="A pane on the other side of the split." />
+        </DocsAnatomyRegion>
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Basic workspace">
+        A typical workspace uses a top toolbar, left explorer, center document pane, right properties pane, and bottom output pane.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="BasicDockLayoutExample" Outlined FullWidth>
+        <BasicDockLayoutExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Tabbed panes">
+        Panes that share the same tab group can render as tabs. Tool panes usually place tabs at the bottom, while document panes usually place tabs at the top.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DockLayoutTabbedPanesExample" Outlined FullWidth>
+        <DockLayoutTabbedPanesExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="State">
+        Use <Code>GetState</Code>, <Code>LoadState</Code>, or <Code>@@bind-State</Code> to persist the layout after users move, resize, hide, or activate panes.
+        The returned state can also be edited directly for advanced layouts. Keep pane names stable and call <Code>Refresh</Code> after changing an assigned state instance in place.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DockLayoutStateExample" Outlined FullWidth>
+        <DockLayoutStateExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Useful Workspace
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Provide an understandable default arrangement before users begin customizing it. Concise pane headers and practical minimum sizes help every region remain usable after resizing or docking. Small screens may need a simpler responsive arrangement where multi-pane dragging is not required.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Restore State
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Give panes stable identities when persisting layout state. A restored layout may have been created before panes were added, removed, or renamed, so handle missing and newly introduced panes without leaving the workspace incomplete.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/dock-layout/api" Name="<DockLayout />" />
+</DocsPageApi>

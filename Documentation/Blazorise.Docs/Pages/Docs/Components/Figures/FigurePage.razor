@@ -1,56 +1,77 @@
-﻿@page "/docs/components/figure"
+@page "/docs/components/figure"
 
-<Seo Canonical="/docs/components/figure" Title="Blazorise Figure component" Description="Figures are used as containers for responsive images." />
+<Seo Canonical="/docs/components/figure" Title="Blazorise Figure component" Description="Learn to use and work with the Blazorise Figure component, which is used as container for responsive images." />
 
-<DocsPageTitle>
-    Figure
+<DocsPageTitle Path="Components/Figure">
+    Blazorise Figure component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Keep an image and its caption together as a single piece of content.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    Figures are used as containers for responsive images.
+    Use the <Code>Figure</Code> component for illustrations, photographs, or diagrams that need a related caption.
 </DocsPageParagraph>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>Figure</Code> the main container
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>FigureImage</Code> source image that needs to be displayed
-            </UnorderedListItem>
-            <UnorderedListItem>
-                <Code Tag>FigureCaption</Code> a caption text bellow the image
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A <Code>Figure</Code> groups an image with an optional caption.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Figure component anatomy">
+    <DocsAnatomyRegion Label="Figure" Description="Groups the image and caption.">
+        <DocsAnatomyRegion Label="FigureImage" Description="The image to display." />
+        <DocsAnatomyRegion Label="FigureCaption" Description="An optional caption." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic Example">
+        Use the included <Code Tag>Figure</Code>, <Code Tag>FigureImage</Code> and <Code Tag>FigureCaption</Code> classes to provide some baseline styles for the HTML5 <Code>figure</Code> and <Code>figcaption</Code> elements.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="FigureExample" Outlined>
         <FigureExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="FigureExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Rounded">
+        Making the figure rounded is easy with the <Code>Rounded</Code> attribute.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="FigureRoundedExample" Outlined>
+        <FigureRoundedExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes Title="Figure">
-    <DocsAttributesItem Name="Size" Type="FigureSize" Default="Default">
-        Figure size variations.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes Title="FigureImage">
-    <DocsAttributesItem Name="Source" Type="string">
-        Image URL.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="AlternateText" Type="string">
-        Alternate text when image cannot be found.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Rounded" Type="bool" Default="false">
-        Makes the figure border rounded.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Image Captions
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Use a figure when an image and its caption form one self-contained piece of content. Alternative text should explain the image's purpose, while the caption supplies surrounding context instead of repeating the same wording. Keep captions brief and place longer explanations in the main document flow.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Stable Layout
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Make figure images responsive and reserve their dimensions or aspect ratio whenever possible. This prevents surrounding content from moving while the image loads.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/figure/api" Name="<Figure />" />
+    <DocsPageApiItem Url="docs/components/figure/api" Name="<FigureImage />" />
+</DocsPageApi>

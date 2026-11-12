@@ -1,169 +1,136 @@
-﻿@page "/docs/components/card"
+@page "/docs/components/card"
 
-<Seo Canonical="/docs/components/card" Title="Blazorise Card component" Description="The Card component is a versatile component that can be used for anything from a panel to a static image." />
+<Seo Canonical="/docs/components/card" Title="Blazorise Card component" Description="The Blazorise Card component is a versatile component that can be used for anything from a panel to a static image." />
 
-<DocsPageTitle>
-    Cards
+<DocsPageTitle Path="Components/Card">
+    Blazorise Card component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Group related information and actions in a flexible content container.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    The <Code Tag>Card</Code> component is a versatile component that can be used for anything from a panel to a static image.
-    The card component has numerous helper components to make markup as easy as possible.
+    Use the <Code>Card</Code> component for summaries, product previews, profiles, and other content that benefits from a clear visual boundary.
 </DocsPageParagraph>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>Card</Code>
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>CardHeader</Code>
-            </UnorderedListItem>
-            <UnorderedListItem>
-                <Code Tag>CardImage</Code>
-            </UnorderedListItem>
-            <UnorderedListItem>
-                <Code Tag>CardBody</Code>
-                <UnorderedList>
-                    <UnorderedListItem>
-                        <Code Tag>CardTitle</Code>
-                    </UnorderedListItem>
-                    <UnorderedListItem>
-                        <Code Tag>CardSubtitle</Code>
-                    </UnorderedListItem>
-                    <UnorderedListItem>
-                        <Code Tag>CardText</Code>
-                    </UnorderedListItem>
-                </UnorderedList>
-            </UnorderedListItem>
-            <UnorderedListItem>
-                <Code Tag>CardFooter</Code>
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-    <UnorderedListItem>
-        <Code Tag>CardGroup</Code>
-    </UnorderedListItem>
-    <UnorderedListItem>
-        <Code Tag>CardDeck</Code>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A <Code>Card</Code> can combine a header, image, body, and footer. Add the parts your content needs.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Card component anatomy">
+    <DocsAnatomyRegion Label="Card" Description="Contains related content and actions.">
+        <DocsAnatomyRegion Label="CardHeader" Description="An optional header." />
+        <DocsAnatomyRegion Label="CardImage" Description="An optional image." />
+        <DocsAnatomyRegion Label="CardBody" Description="The main content area.">
+            <DocsAnatomyRegion Label="CardTitle" Description="A title for the content." />
+            <DocsAnatomyRegion Label="CardSubtitle" Description="An optional subtitle." />
+            <DocsAnatomyRegion Label="CardText" Description="Descriptive text." />
+        </DocsAnatomyRegion>
+        <DocsAnatomyRegion Label="CardFooter" Description="An optional footer for actions or supporting information." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageParagraph>
+    Wrap multiple cards in <Code>CardGroup</Code> to join them together, or <Code>CardDeck</Code> to arrange them with equal width and height.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
 
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Card">
-        Simple card
+    <DocsPageSectionHeader Title="Default card">
+        Use the following simple card component with a title and description.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="CardExample" Outlined>
         <CardExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="CardExample" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Card with button">
+        Use the following example of a card element if you also want to have an action button.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CardButtonExample" Outlined>
+        <CardButtonExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Card with image">
+        You can use the following example of a card element with an image for blog posts, user cards, and many more.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CardImageExample" Outlined>
+        <CardImageExample />
+    </DocsPageSectionContent>
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Card deck">
-        A set of equal width and height cards that aren’t attached to one another.
+        A set of equal width and height cards that aren't attached to one another.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="CardDeckExample" Outlined>
         <CardDeckExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="CardDeckExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Styling cards">
+        <Paragraph>
+            Use <Code>Classes</Code> or <Code>Styles</Code> to target the wrapper element rendered for cards inside a <Code>CardDeck</Code>.
+        </Paragraph>
+        <Paragraph>
+            For advanced styling of card wrappers and inner elements, see the <Anchor To="docs/helpers/utilities/styling">Styling</Anchor> guide.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CardDeckStylingExample" Outlined>
+        <CardDeckStylingExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes Title="Card">
-    <DocsAttributesItem Name="Background" Type="Background" Default="Default">
-        Sets the bar background color.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="WhiteText" Type="bool" Default="false">
-        Sets the white text when using the darker background.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Background color">
+        <Paragraph>
+            If you want to make the card standout you can set its background color.
+        </Paragraph>
+        <Paragraph>
+            Please note, depending on the used background color you might need to adjust the text color. This can be done by setting the <Code>WhiteText</Code> parameters.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CardBackgroundExample" Outlined>
+        <CardBackgroundExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes Title="CardText">
-    <DocsAttributesItem Name="Italic" Type="bool" Default="false">
-        Italicize text if set to true.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextAlignment" Type="TextAlignment" Default="Default">
-        Sets the text alignment.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextColor" Type="TextColor" Default="Default">
-        Sets the text color.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextOverflow" Type="TextOverflow" Default="Default">
-        Determines how the text will behave when it is larger than a parent container.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextTransform" Type="TextTransform" Default="Default">
-        Sets the text transformation.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextWeight" Type="TextWeight" Default="Default">
-        Sets the text weight.
-    </DocsAttributesItem>
-</DocsAttributes>
 
-<DocsAttributes Title="CardTitle">
-    <DocsAttributesItem Name="Italic" Type="bool" Default="false">
-        Italicize text if set to true.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Size" Type="int?" Default="null">
-        Number from 1 to 6 that defines the title size where the smaller number means larger text.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextAlignment" Type="TextAlignment" Default="Default">
-        Sets the text alignment.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextColor" Type="TextColor" Default="Default">
-        Sets the text color.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextOverflow" Type="TextOverflow" Default="Default">
-        Determines how the text will behave when it is larger than a parent container.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextTransform" Type="TextTransform" Default="Default">
-        Sets the text transformation.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextWeight" Type="TextWeight" Default="Default">
-        Sets the text weight.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes Title="CardSubtitle">
-    <DocsAttributesItem Name="Italic" Type="bool" Default="false">
-        Italicize text if set to true.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Size" Type="int" Default="6">
-        Number from 1 to 6 that defines the subtitle size where the smaller number means larger text.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextAlignment" Type="TextAlignment" Default="Default">
-        Sets the text alignment.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextColor" Type="TextColor" Default="Default">
-        Sets the text color.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextOverflow" Type="TextOverflow" Default="Default">
-        Determines how the text will behave when it is larger than a parent container.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextTransform" Type="TextTransform" Default="Default">
-        Sets the text transformation.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TextWeight" Type="TextWeight" Default="Default">
-        Sets the text weight.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Clear Purpose
+</DocsPageSubsectionTitle>
 
-<DocsAttributes Title="CardLink">
-    <DocsAttributesItem Name="Alt" Type="string" Default="null">
-        Alternative link text.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Source" Type="string" Default="null">
-        Link URL.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageParagraph>
+    Each card should focus on one subject and establish a clear order between its title, supporting content, and actions. Card collections should remain responsive and readable; do not remove essential information merely to force every card to the same height.
+</DocsPageParagraph>
 
-<DocsAttributes Title="CardImage">
-    <DocsAttributesItem Name="Alt" Type="string" Default="null">
-        Alternative image text.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Source" Type="string" Default="null">
-        Image URL.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Interactive Cards
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Avoid placing several competing actions inside the same card. Make the primary action obvious, and use a stretched link only when the entire card represents one destination. Informative images need meaningful alternative text, while purely decorative images should use an empty alternative.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/card/api" Name="<Card />" />
+    <DocsPageApiItem Url="docs/components/card/api" Name="<CardText />" />
+    <DocsPageApiItem Url="docs/components/card/api" Name="<CardTitle />" />
+    <DocsPageApiItem Url="docs/components/card/api" Name="<CardImage />" />
+</DocsPageApi>

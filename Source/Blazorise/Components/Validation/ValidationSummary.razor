@@ -1,8 +1,8 @@
 ﻿@namespace Blazorise
-@inherits BaseComponent
+@inherits BaseComponent<ValidationSummaryClasses,ValidationSummaryStyles>
 @if ( HasErrorMessages )
 {
-    <ul id="@ElementId" class="@ClassNames" style="@StyleNames" @attributes="@Attributes">
+    <ul @ref="@ElementRef" id="@ElementId" class="@ClassNames" style="@StyleNames" @attributes="@Attributes">
         @Label
 
         @foreach ( var errorMessage in ErrorMessages )
@@ -12,7 +12,7 @@
                 continue;
             }
 
-            <li class="@ErrorClassNames">@errorMessage</li>
+            <li class="@ErrorClassNames" style="@ErrorStyleNames">@errorMessage</li>
         }
         @ChildContent
     </ul>

@@ -2,9 +2,11 @@
 using System.Text.Json.Serialization;
 #endregion
 
-namespace Blazorise.Charts
+namespace Blazorise.Charts;
+
+/// <summary>
+/// Configures bubble chart behavior.
+/// </summary>
+public class BubbleChartOptions : ChartOptions
 {
-    public class BubbleChartOptions : ChartOptions
-    {
-    }
 }

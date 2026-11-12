@@ -1,39 +1,38 @@
-﻿@page "/docs/components/alert"
+@page "/docs/components/alert"
 
-<Seo Canonical="/docs/components/alert" Title="Blazorise Alert component" Description="The Alert component is used to convey important information to the user through the use of contextual types, icons, and colors." />
+<Seo Canonical="/docs/components/alert" Title="Blazorise Alert component" Description="Learn to work with the Blazorise Alert component, which is used to convey important information to the user through the use of contextual types, icons, and colors." />
 
-<DocsPageTitle>
-    Alert component
+<DocsPageTitle Path="Components/Alert">
+    Blazorise Alert component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Draw attention to important information with contextual feedback messages.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    The <Code Tag>Alert</Code> component is used to convey important information to the user through the use of contextual types, icons, and colors.
+    Use the <Code>Alert</Code> component for confirmations, warnings, and errors that users need to notice within a page.
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
-    Overview
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code>Alert</Code> main container.
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code>AlertMessage</Code> content of the Alert.
-            </UnorderedListItem>
-            <UnorderedListItem>
-                <Code>AlertDescription</Code>additional content of the Alert.
-            </UnorderedListItem>
-            <UnorderedListItem>
-                <Code>CloseButton</Code> an optional button to close the Alert.
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageParagraph>
+    An <Code>Alert</Code> contains a message, an optional description, and an optional close button.
+</DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsAnatomy Label="Alert component anatomy">
+    <DocsAnatomyRegion Label="Alert" Description="Contains the feedback message.">
+        <DocsAnatomyRegion Label="AlertMessage" Description="The main message." />
+        <DocsAnatomyRegion Label="AlertDescription" Description="Optional supporting details." />
+        <DocsAnatomyRegion Label="CloseButton" Description="An optional control for dismissing the alert." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
     When to use
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <UnorderedList>
     <UnorderedListItem>
@@ -44,104 +43,101 @@
     </UnorderedListItem>
 </UnorderedList>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicAlertExample" Outlined FullWidth>
         <BasicAlertExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicAlertExample" />
 </DocsPageSection>
 
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Basic">
-        You can also add a <Code>CloseButton</Code>.
+    <DocsPageSectionHeader Title="Custom colors" AddedVersion="2.3" AddedDate="2026-09-24">
+        Use a custom CSS color to style the alert background, border, and text.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="CustomColorsAlertExample" Outlined FullWidth>
+        <CustomColorsAlertExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Close button">
+        Adding a <Code>CloseButton</Code> automatically applies the padding and positioning needed for dismissal.
+        An explicit <Code>Dismisable</Code> value overrides this behavior: use <Code>true</Code> for custom close controls or <Code>false</Code> to opt out of automatic styling.
+        The close button's <Code>AutoClose</Code> parameter controls whether clicking it hides the alert.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CloseAlertExample" Outlined FullWidth>
         <CloseAlertExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="CloseAlertExample" />
 </DocsPageSection>
 
 <DocsPageSection>
-    <DocsPageSectionHeader Title="With content">
+    <DocsPageSectionHeader Title="Extra content">
         <Code Tag>Alert</Code> can also contain additional HTML elements like headings and paragraphs, which will be styled with the appropriate color matching the variant.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="AlertWithContentExample" Outlined FullWidth>
         <AlertWithContentExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="AlertWithContentExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Usages
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Two-way binding">
         To show alert just set <Code>Visible</Code> attribute to true.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="AlertUseWithBindExample" Outlined FullWidth>
         <AlertUseWithBindExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="AlertUseWithBindExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Programmatically">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="AlertUseProgrammaticallyExample" Outlined FullWidth>
         <AlertUseProgrammaticallyExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="AlertUseProgrammaticallyExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Functions
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Animation" AddedVersion="2.4" AddedDate="2026-09-18">
+        Set <Code>Animated="false"</Code> for immediate changes, or use <Code>AnimationDuration</Code> to adjust the duration in milliseconds.
+        A null duration preserves the provider's default; zero or a negative value disables animations.
+        Toggle the alert or use its close button to see the entrance and exit effects. The alert stays in layout until its exit animation finishes. Animations also work without a close button, and the initial visibility is applied immediately. Reduced-motion preferences disable the effects.
+        <Code>VisibleChanged</Code> reports the requested visibility without waiting for animation completion.
+        The effects use CSS display transitions and starting styles. Unsupported effects fall back to immediate visibility changes.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="AlertAnimationExample" Outlined>
+        <AlertAnimationExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<Table>
-    <TableHeader ThemeContrast="ThemeContrast.Light">
-        <TableRow>
-            <TableHeaderCell>Name</TableHeaderCell>
-            <TableHeaderCell>Description</TableHeaderCell>
-        </TableRow>
-    </TableHeader>
-    <TableBody>
-        <TableRow>
-            <TableRowCell><Code>Show()</Code></TableRowCell>
-            <TableRowCell>Makes the alert visible.</TableRowCell>
-        </TableRow>
-        <TableRow>
-            <TableRowCell><Code>Hide()</Code></TableRowCell>
-            <TableRowCell>Hides the alert.</TableRowCell>
-        </TableRow>
-        <TableRow>
-            <TableRowCell><Code>Toggle()</Code></TableRowCell>
-            <TableRowCell>Switches the alert visibility.</TableRowCell>
-        </TableRow>
-    </TableBody>
-</Table>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Make Messages Actionable
+</DocsPageSubsectionTitle>
 
-<DocsAttributes>
-    <DocsAttributesItem Name="Dismisable" Type="bool" Default="false">
-        Enables the alert to be closed by placing the padding for close button.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Visible" Type="bool" Default="false">
-        Defines the alert visibility.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="VisibleChanged" Type="EventCallback<bool>">
-        Occurs when the alert visibility changes.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Color" Type="Color" Default="Default">
-        Component visual or contextual style variants.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageParagraph>
+    Write a concise message that explains what happened and, when applicable, what the user should do next. Match the color to the message severity, but include meaningful text or an appropriate icon so color is not the only indication of status.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Feedback Pattern
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Alerts are appropriate for information that belongs in the current page and may need to remain visible. Make an alert dismissible only when it can be safely ignored, and keep blocking errors visible until the problem is resolved. For brief feedback about a completed action, use a <Anchor To="docs/components/toast">Toast</Anchor> instead.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/alert/api" Name="<Alert />" />
+</DocsPageApi>

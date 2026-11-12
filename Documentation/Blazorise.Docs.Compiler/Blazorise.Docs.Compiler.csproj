@@ -1,12 +1,38 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="../../Build/Blazorise.Version.props" />
 
   <PropertyGroup>
+    <Version>$(BlazoriseVersion)</Version>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>$(PrimaryTargetFramework)</TargetFramework>
+    <!-- This build tool is invoked through dotnet with its assembly path. -->
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ColorCode.HTML" Version="2.0.9" />
+    <AssemblyMetadata Include="BlazorisePackageVersion" Value="$(BlazoriseVersion)" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ColorCode.HTML" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+  </ItemGroup>
+
+  <Target Name="CopyNuGetXmlDocs" AfterTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <!-- Use XML beside the exact assembly references selected by the SDK. -->
+      <_DocsXmlReference Include="@(ReferencePath)"
+                         Condition="'%(ReferencePath.Filename)' == 'Microsoft.AspNetCore.Components' or '%(ReferencePath.Filename)' == 'System.Runtime'" />
+      <_DocsReferenceXml Include="@(_DocsXmlReference->'%(RootDir)%(Directory)%(Filename).xml')" />
+    </ItemGroup>
+    <Copy SourceFiles="%(_DocsReferenceXml.Identity)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true"
+          Condition="Exists('%(_DocsReferenceXml.Identity)')">
+      <Output TaskParameter="CopiedFiles" ItemName="FileWrites" />
+    </Copy>
+  </Target>
 
 </Project>

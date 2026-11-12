@@ -1,0 +1,97 @@
+@each $name, $color in $input-color-variants {
+    .ant-input-color-#{$name} {
+        @extend %ant-input-color;
+        --ant-input-custom-color: #{$color};
+    }
+}
+
+.ant-input-colored {
+    @extend %ant-input-color;
+}
+
+%ant-input-color {
+    @each $component in $input-color-components {
+        &.#{$component}:not(:disabled):not(.#{$component}-disabled):not(.#{$component}-status-success, .#{$component}-status-warning, .#{$component}-status-error) {
+            --ant-input-active-border-color: var(--ant-input-custom-color);
+            --ant-input-active-shadow: 0 0 0 var(--ant-control-outline-width) color-mix(in srgb, var(--ant-input-active-border-color), transparent 80%);
+            border-color: var(--ant-input-active-border-color);
+
+            &:hover {
+                border-color: var(--ant-input-active-border-color);
+            }
+
+            &:focus,
+            &:focus-within,
+            &.#{$component}-focused {
+                border-color: var(--ant-input-active-border-color);
+                box-shadow: var(--ant-input-active-shadow);
+                outline: 0;
+            }
+        }
+    }
+
+    > .ant-input-number-input {
+        color: inherit;
+    }
+
+    > .ant-input-number-input-wrap,
+    > .ant-picker-input {
+        color: inherit;
+
+        > input {
+            color: inherit;
+        }
+    }
+}
+
+.ant-input {
+    height: var(--ant-control-height);
+
+    @each $name, $properties in $control-sizes {
+        &-#{$name} {
+            padding: map-get($properties, input-padding);
+            font-size: map-get($properties, font-size);
+            height: map-get($properties, height);
+            border-radius: map-get($properties, border-radius);
+        }
+    }
+
+    &-number {
+        padding-inline: 0;
+
+        .ant-input-number-input-wrap {
+            height: 100%;
+        }
+
+        .ant-input-number-input {
+            padding: var(--ant-input-padding-block) var(--ant-input-padding-inline);
+        }
+
+        @each $name, $properties in $control-sizes {
+            &-#{$name} {
+                font-size: map-get($properties, font-size);
+                height: map-get($properties, height);
+                padding-block: 0;
+                border-radius: map-get(map-get($control-sizes, $name), border-radius);
+
+                .ant-input-number-input {
+                    height: 100%;
+                    padding: map-get($properties, input-padding);
+                }
+            }
+        }
+    }
+}
+
+textarea.ant-input[data-autosize='true'] {
+    --ant-textarea-padding-block: var(--ant-input-padding-block);
+    field-sizing: content;
+    height: auto;
+    min-block-size: calc(var(--ant-textarea-min-block-size) + var(--ant-textarea-padding-block) + var(--ant-textarea-padding-block) + var(--ant-line-width) + var(--ant-line-width));
+
+    @each $name, $properties in $control-sizes {
+        &.ant-input-#{$name} {
+            --ant-textarea-padding-block: #{nth(map-get($properties, input-padding), 1)};
+        }
+    }
+}

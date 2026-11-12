@@ -1,7 +1,8 @@
-﻿namespace Blazorise.Animate
+﻿namespace Blazorise.Animate;
+
+/// <inheritdoc cref="Animations.SlideUp"/>
+public class SlideUpAnimation : IAnimation
 {
-    public class SlideUpAnimation : IAnimation
-    {
-        public string Name => "slide-up";
-    }
+    /// <inheritdoc />
+    public string Name => "slide-up";
 }

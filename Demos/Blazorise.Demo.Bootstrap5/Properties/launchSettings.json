@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:8712/",
+      "applicationUrl": "http://localhost:8712",
       "sslPort": 0
     }
   },
@@ -19,11 +19,13 @@
     "Blazorise.Demo.Bootstrap5": {
       "commandName": "Project",
       "launchBrowser": true,
+      "launchUrl": "wasm/bootstrap5/",
+      "commandLineArgs": "--pathbase=/wasm/bootstrap5",
       "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:8713/"
+      "applicationUrl": "http://localhost:8713"
     }
   }
 }

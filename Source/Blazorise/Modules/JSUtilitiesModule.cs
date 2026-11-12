@@ -1,167 +1,173 @@
-﻿#region Using directives
+#region Using directives
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 #endregion
 
-namespace Blazorise.Modules
+namespace Blazorise.Modules;
+
+/// <summary>
+/// Default implementation for the utilities JS module.
+/// </summary>
+public class JSUtilitiesModule : BaseJSModule, IJSUtilitiesModule
 {
+    #region Constructors
+
     /// <summary>
-    /// Default implementation for the utilities JS module.
+    /// Default module constructor.
     /// </summary>
-    public class JSUtilitiesModule : BaseJSModule, IJSUtilitiesModule
+    /// <param name="jsRuntime">JavaScript runtime instance.</param>
+    /// <param name="versionProvider">Version provider.</param>
+    /// <param name="options">Blazorise options.</param>
+    public JSUtilitiesModule( IJSRuntime jsRuntime, IVersionProvider versionProvider, BlazoriseOptions options )
+        : base( jsRuntime, versionProvider, options )
     {
-        #region Constructors
-
-        /// <summary>
-        /// Default module constructor.
-        /// </summary>
-        /// <param name="jsRuntime">JavaScript runtime instance.</param>
-        /// <param name="versionProvider">Version provider.</param>
-        public JSUtilitiesModule( IJSRuntime jsRuntime, IVersionProvider versionProvider )
-            : base( jsRuntime, versionProvider )
-        {
-        }
-
-        #endregion
-
-        #region Methods
-
-        /// <inheritdoc/>
-        public virtual async ValueTask AddClass( ElementReference elementRef, string classname )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "addClass", elementRef, classname );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask RemoveClass( ElementReference elementRef, string classname )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "removeClass", elementRef, classname );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask ToggleClass( ElementReference elementRef, string classname )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "toggleClass", elementRef, classname );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask AddClassToBody( string classname )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "addClassToBody", classname );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask RemoveClassFromBody( string classname )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "removeClassFromBody", classname );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask<bool> ParentHasClass( ElementReference elementRef, string classname )
-        {
-            var moduleInstance = await Module;
-
-            return await moduleInstance.InvokeAsync<bool>( "parentHasClass", elementRef, classname );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask Focus( ElementReference elementRef, string elementId, bool scrollToElement )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "focus", elementRef, elementId, scrollToElement );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask Select( ElementReference elementRef, string elementId, bool focus )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "select", elementRef, elementId, focus );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask ScrollAnchorIntoView( string anchorTarget )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "scrollAnchorIntoView", anchorTarget );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask SetCaret( ElementReference elementRef, int caret )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "setCaret", elementRef, caret );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask<int> GetCaret( ElementReference elementRef )
-        {
-            var moduleInstance = await Module;
-
-            return await moduleInstance.InvokeAsync<int>( "getCaret", elementRef );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask SetTextValue( ElementReference elementRef, object value )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeAsync<int>( "setTextValue", elementRef, value );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask SetProperty( ElementReference elementRef, string property, object value )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "setProperty", elementRef, property, value );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask<DomElement> GetElementInfo( ElementReference elementRef, string elementId )
-        {
-            var moduleInstance = await Module;
-
-            return await moduleInstance.InvokeAsync<DomElement>( "getElementInfo", elementRef, elementId );
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask<string> GetUserAgent()
-        {
-            var moduleInstance = await Module;
-
-            return await moduleInstance.InvokeAsync<string>( "getUserAgent" );
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask CopyToClipboard( ElementReference elementRef, string elementId )
-        {
-            var moduleInstance = await Module;
-
-            await moduleInstance.InvokeVoidAsync( "copyToClipboard", elementRef, elementId );
-        }
-
-        #endregion
-
-        #region Properties
-
-        /// <inheritdoc/>
-        public override string ModuleFileName => $"./_content/Blazorise/utilities.js?v={VersionProvider.Version}";
-
-        #endregion
     }
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc/>
+    public virtual ValueTask AddClass( ElementReference elementRef, string classname )
+        => InvokeSafeVoidAsync( "addClass", elementRef, classname );
+
+    /// <inheritdoc/>
+    public virtual ValueTask RemoveClass( ElementReference elementRef, string classname )
+        => InvokeSafeVoidAsync( "removeClass", elementRef, classname );
+
+    /// <inheritdoc/>
+    public virtual ValueTask ToggleClass( ElementReference elementRef, string classname )
+        => InvokeSafeVoidAsync( "toggleClass", elementRef, classname );
+
+    /// <inheritdoc/>
+    public virtual ValueTask AddClassToBody( string classname )
+        => InvokeSafeVoidAsync( "addClassToBody", classname );
+
+    /// <inheritdoc/>
+    public virtual ValueTask RemoveClassFromBody( string classname )
+        => InvokeSafeVoidAsync( "removeClassFromBody", classname );
+
+    /// <inheritdoc/>
+    public virtual ValueTask AddAttributeToBody( string attribute, string value )
+        => InvokeSafeVoidAsync( "addAttributeToBody", attribute, value );
+
+    /// <inheritdoc/>
+    public virtual ValueTask RemoveAttributeFromBody( string attribute )
+        => InvokeSafeVoidAsync( "removeAttributeFromBody", attribute );
+
+    /// <inheritdoc/>
+    public virtual ValueTask<bool> ParentHasClass( ElementReference elementRef, string classname )
+        => InvokeSafeAsync<bool>( "parentHasClass", elementRef, classname );
+
+    /// <inheritdoc/>
+    public virtual ValueTask Focus( ElementReference elementRef, string elementId, bool scrollToElement )
+        => InvokeSafeVoidAsync( "focus", ResolveElementReference( elementRef ), elementId, scrollToElement );
+
+    /// <inheritdoc/>
+    public virtual ValueTask Select( ElementReference elementRef, string elementId, bool focus )
+        => InvokeSafeVoidAsync( "select", ResolveElementReference( elementRef ), elementId, focus );
+
+    /// <inheritdoc/>
+    public virtual ValueTask ShowPicker( ElementReference elementRef, string elementId )
+        => InvokeSafeVoidAsync( "showPicker", elementRef, elementId );
+
+    /// <inheritdoc/>
+    public virtual ValueTask ShowAnchoredElement( string elementId, string targetId )
+        => InvokeSafeVoidAsync( "showAnchoredElement", elementId, targetId );
+
+    /// <inheritdoc/>
+    public virtual ValueTask RestoreElement( string elementId )
+        => InvokeSafeVoidAsync( "restoreElement", elementId );
+
+    /// <inheritdoc/>
+    public virtual ValueTask SubmitClosestForm( ElementReference elementRef )
+        => InvokeSafeVoidAsync( "submitClosestForm", elementRef );
+
+    /// <inheritdoc/>
+    public virtual ValueTask<bool> DispatchKeyboardEvent( ElementReference elementRef, string eventName, string key, string code, int keyCode )
+        => InvokeSafeAsync<bool>( "dispatchKeyboardEvent", elementRef, eventName, key, code, keyCode );
+
+    /// <inheritdoc/>
+    public virtual ValueTask ScrollAnchorIntoView( string anchorTarget )
+        => InvokeSafeVoidAsync( "scrollAnchorIntoView", anchorTarget );
+
+    /// <inheritdoc/>
+    public virtual ValueTask ScrollElementIntoView( string elementId, bool smooth = true )
+        => InvokeSafeVoidAsync( "scrollElementIntoView", elementId, smooth );
+
+    /// <inheritdoc/>
+    public virtual ValueTask ScrollElementIntoViewForOnScreenKeyboard( string elementId, string keyboardElementId, int margin )
+        => InvokeSafeVoidAsync( "scrollElementIntoViewForOnScreenKeyboard", elementId, keyboardElementId, margin );
+
+    /// <inheritdoc/>
+    public virtual ValueTask ClearOnScreenKeyboardScrollAdjustment()
+        => InvokeSafeVoidAsync( "clearOnScreenKeyboardScrollAdjustment" );
+
+    /// <inheritdoc/>
+    public virtual ValueTask SetCaret( ElementReference elementRef, int caret )
+        => InvokeSafeVoidAsync( "setCaret", elementRef, caret );
+
+    /// <inheritdoc/>
+    public virtual ValueTask<int> GetCaret( ElementReference elementRef )
+        => InvokeSafeAsync<int>( "getCaret", elementRef );
+
+    /// <inheritdoc/>
+    public virtual ValueTask<TextSelection> GetSelection( ElementReference elementRef )
+        => InvokeSafeAsync<TextSelection>( "getSelection", elementRef );
+
+    /// <inheritdoc/>
+    public virtual ValueTask SetTextValue( ElementReference elementRef, object value )
+        => InvokeSafeVoidAsync( "setTextValue", elementRef, value );
+
+    /// <inheritdoc/>
+    public virtual ValueTask SetProperty( ElementReference elementRef, string property, object value )
+        => InvokeSafeVoidAsync( "setProperty", elementRef, property, value );
+
+    /// <inheritdoc/>
+    public virtual ValueTask<DomElement> GetElementInfo( ElementReference elementRef, string elementId )
+        => InvokeSafeAsync<DomElement>( "getElementInfo", elementRef, elementId );
+
+    /// <inheritdoc/>
+    public virtual ValueTask<string> GetUserAgent()
+        => InvokeSafeAsync<string>( "getUserAgent" );
+
+    /// <summary>
+    /// Determines whether the current browser should use native mobile controls.
+    /// </summary>
+    /// <returns>A task containing the mobile-device detection result.</returns>
+    internal ValueTask<bool> IsMobileDevice()
+        => InvokeSafeAsync<bool>( "isMobileDevice" );
+
+    /// <inheritdoc/>
+    public ValueTask CopyToClipboard( ElementReference elementRef, string elementId )
+        => InvokeSafeVoidAsync( "copyToClipboard", elementRef, elementId );
+
+    /// <inheritdoc/>
+    public ValueTask Log( bool showBanner, string message, params string[] args )
+        => InvokeSafeVoidAsync( "log", showBanner, message, args );
+
+    /// <inheritdoc/>
+    public ValueTask Log( bool showBanner, bool showCompactBanner, string message, params string[] args )
+        => InvokeSafeVoidAsync( "log", showBanner, showCompactBanner, message, args );
+
+    /// <inheritdoc/>
+    public ValueTask WaitForAnimationFrame()
+        => InvokeSafeVoidAsync( "waitForAnimationFrame" );
+
+    private ElementReference? ResolveElementReference( ElementReference elementReference )
+        => elementReference.Context is null ? null : elementReference;
+
+    /// <inheritdoc/>
+    public ValueTask<bool> IsSystemDarkMode()
+        => InvokeSafeAsync<bool>( "isSystemDarkMode" );
+
+    #endregion
+
+    #region Properties
+
+    /// <inheritdoc/>
+    public override string ModuleFileName => $"./_content/Blazorise/utilities.js?v={VersionProvider.Version}";
+
+    #endregion
 }

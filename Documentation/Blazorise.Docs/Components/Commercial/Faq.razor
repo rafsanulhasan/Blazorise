@@ -1,0 +1,213 @@
+﻿@if ( ShowHeader )
+{
+    <Paragraph TextSize="TextSize.Heading1" TextAlignment="TextAlignment.Center" Margin="Margin.Is5.FromTop.Is4.FromBottom">
+        Blazorise licensing FAQ
+    </Paragraph>
+}
+
+<Accordion>
+    @for ( var i = 0; i < faqInfos.Count; i++ )
+    {
+        var faqInfo = faqInfos[i];
+        var index = i + 1;
+
+        <AccordionItem @key="@faqInfo" @bind-Visible="@faqInfo.Visible">
+            <AccordionHeader>
+                <Heading Size="HeadingSize.Is3" TextSize="TextSize.Heading5" TextAlignment="TextAlignment.Start" Margin="Margin.Is0.OnY">
+                    <AccordionToggle>
+                        @($"{index}. {faqInfo.Title}")
+                    </AccordionToggle>
+                </Heading>
+            </AccordionHeader>
+            <AccordionBody TextAlignment="TextAlignment.Start">
+                @faqInfo.Body
+            </AccordionBody>
+        </AccordionItem>
+    }
+</Accordion>
+@code {
+    [Parameter] public bool ShowHeader { get; set; } = true;
+
+    class FaqInfo
+    {
+        public bool Visible { get; set; }
+
+        public string Title { get; set; }
+
+        public RenderFragment Body { get; set; }
+    }
+
+    private List<FaqInfo> faqInfos = new List<FaqInfo>
+    {
+        new FaqInfo {
+            Title = "How does Blazorise license software?",
+            Body = (__builder) => {
+                <Paragraph>
+                    We license on a per-developer basis. All members of a development team using Blazorise need a license. We do not charge runtime, royalty, server, or deployment fees.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Who needs a commercial license?",
+            Body = (__builder) => {
+                <Paragraph>
+                    Companies, non-profit organizations, government entities, agencies, and other organizations need a commercial license when Blazorise is used for work, internal systems, client work, or commercial products.
+                </Paragraph>
+                <Paragraph>
+                    Individual developers can use the Community License when they meet the Community License eligibility requirements.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "How many licenses do I need?",
+            Body = (__builder) => {
+                <Paragraph>
+                    The number of licenses purchased must match the maximum number of concurrent developers contributing changes to the front-end code of projects that use Blazorise.
+                </Paragraph>
+                <Paragraph>
+                    <Strong>Example 1.</Strong> A team has 5 front-end developers and 10 back-end developers on an app that uses Blazorise. Only the front-end developers work on Blazorise-related UI code, so the company purchases 5 licenses.
+                </Paragraph>
+                <Paragraph>
+                    <Strong>Example 2.</Strong> A UI platform team with 2 front-end developers builds an internal component library with Blazorise. Two product teams with 5 and 3 front-end developers use it. The company purchases 10 licenses.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Do freelancers and contractors need a license?",
+            Body = (__builder) => {
+                <Paragraph>
+                    <Strong>Yes.</Strong> Freelancers and contractors using Blazorise for client work need a commercial license. Whether the freelancer or client purchases it depends on the project agreement.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Do my customers need their own license?",
+            Body = (__builder) => {
+                <Paragraph>
+                    <Strong>No.</Strong> Customers who only use or receive an application built with Blazorise do not need to purchase a Blazorise license.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "What is included while my subscription is active?",
+            Body = (__builder) => {
+                <Paragraph>
+                    An active commercial subscription includes updates, access to licensed packages and private repositories available for your plan, and support during the subscription period.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Can I keep using Blazorise after my subscription expires?",
+            Body = (__builder) => {
+                <Paragraph>
+                    <Strong>Yes.</Strong> You may continue to use the last version available to you in production after the subscription expires. An active subscription is required to keep developing with new versions, receive updates, access support, or access private repositories.
+                </Paragraph>
+                <Paragraph>
+                    To renew your license, please <Anchor To="mailto:sales@blazorise.com" Title="Contact Sales">contact sales</Anchor>.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Is subscription renewal automatic?",
+            Body = (__builder) => {
+                <Paragraph>
+                    Renewal is automatic if the license was purchased through our website and paid by credit card. You can cancel your subscription at any time.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Does the license include support?",
+            Body = (__builder) => {
+                <Paragraph>
+                    <Strong>Yes.</Strong> Blazorise Professional and Blazorise Enterprise include dedicated support via our <Anchor To="https://blazorise.com/support" Title="Support forum">support forum</Anchor> during the subscription period. Response-time targets depend on the selected plan.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "What is the difference between a License Key and ProductToken?",
+            Body = (__builder) => {
+                <Paragraph>
+                    A License Key identifies a commercial purchase and is used for license and account management. Never embed it in an application. A ProductToken is generated for application use and applies the functionality, limits, and notices for that license level. It is not considered secret data in the same way as a License Key and may be embedded in Blazor WebAssembly application code.
+                </Paragraph>
+                <Paragraph>
+                    See the <Anchor To="docs/usage/licensing" Title="Blazorise licensing overview">licensing guide</Anchor> for the comparison and <Anchor To="docs/usage/licensing/register-product-token#protecting-your-producttoken" Title="Protecting your ProductToken">ProductToken security guidance</Anchor>.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Do unlicensed and Community versions have component limits?",
+            Body = (__builder) => {
+                <Paragraph>
+                    <Strong>Yes.</Strong> Some advanced components have record, row, item, node, or point limits when used without a commercial license. Licensed and trial versions remove those limits.
+                </Paragraph>
+                <Paragraph>
+                    The full limits are shown in the plan comparison table above.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Are Themes and Blocks included in every plan?",
+            Body = (__builder) => {
+                <Paragraph>
+                    <Strong>No.</Strong> Blazorise Themes and Blazorise Blocks are commercial resources available on the plans shown in the comparison table. Choose Enterprise or Enterprise Plus when your team needs those assets.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Why do you require LinkedIn for the Community License?",
+            Body = (__builder) => {
+                <Paragraph>
+                    To offer a Community License at no cost, we confirm eligibility using LinkedIn. We verify your profile in read-only mode; LinkedIn does not receive information about your Blazorise activity.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "What currency are prices shown in?",
+            Body = (__builder) => {
+                <Paragraph>
+                    Prices are shown in EUR. Charges are made in your local currency when available; otherwise, they are charged in EUR. Local taxes may apply depending on your location.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Do you support purchase orders or volume discounts?",
+            Body = (__builder) => {
+                <Paragraph>
+                    <Strong>Yes.</Strong> You can request a <Anchor To="purchase-order" Title="Purchase order">purchase order</Anchor> or contact our <Anchor To="mailto:sales@blazorise.com" Title="Contact Sales">sales team</Anchor> for volume pricing.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Do you have a refund policy?",
+            Body = (__builder) => {
+                <Paragraph>
+                    You can request a refund within 30 days of purchase. Because Professional and Enterprise include source-code access, refunds for these licenses are 60% within 30 days. Renewals and subsequent license purchases are non-refundable.
+                </Paragraph>
+            }
+        },
+
+        new FaqInfo {
+            Title = "Where can I download the license agreement?",
+            Body = (__builder) => {
+                <Paragraph>
+                    You can download the latest software license agreement from our <Anchor To="license">license page</Anchor>.
+                </Paragraph>
+            }
+        },
+    };
+}

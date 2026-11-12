@@ -1,28 +1,32 @@
-﻿namespace Blazorise
+﻿namespace Blazorise;
+
+/// <summary>
+/// Defines the text weight.
+/// </summary>
+public enum TextWeight
 {
     /// <summary>
-    /// Defines the text weight.
+    /// No weight will be applied.
     /// </summary>
-    public enum TextWeight
-    {
-        /// <summary>
-        /// No weight will be applied.
-        /// </summary>
-        Default,
+    Default,
 
-        /// <summary>
-        /// Defines normal characters. This is default.
-        /// </summary>
-        Normal,
+    /// <summary>
+    /// Defines normal characters. This is default.
+    /// </summary>
+    Normal,
 
-        /// <summary>
-        /// Defines thick characters.
-        /// </summary>
-        Bold,
+    /// <sumary>
+    /// Defines semi thick characters.
+    /// </sumary>
+    SemiBold,
 
-        /// <summary>
-        /// Defines lighter characters.
-        /// </summary>
-        Light,
-    }
+    /// <summary>
+    /// Defines thick characters.
+    /// </summary>
+    Bold,
+
+    /// <summary>
+    /// Defines lighter characters.
+    /// </summary>
+    Light,
 }

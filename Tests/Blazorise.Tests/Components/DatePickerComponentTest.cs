@@ -1,198 +1,1624 @@
-﻿using System;
-using BasicTestApp.Client;
-using Blazorise.Tests.Helpers;
+#region Using directives
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
+using AngleSharp.Dom;
+using Blazorise.Localization;
+using Blazorise.Modules;
+using Blazorise.Utilities;
 using Bunit;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+#endregion
 
-namespace Blazorise.Tests.Components
+namespace Blazorise.Tests.Components;
+
+public class DatePickerComponentTest : BunitContext
 {
-    public class DatePickerComponentTest : TestContext
+    private const string MobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148";
+
+    public DatePickerComponentTest()
     {
-        public DatePickerComponentTest()
+        Services.AddBlazoriseTests().AddBootstrapProviders().AddEmptyIconProvider().AddTestData();
+        JSInterop.AddBlazoriseUtilities( MobileUserAgent, mobileDevice: true );
+        JSInterop.AddBlazoriseInputMask();
+        JSInterop.AddBlazoriseDocumentObserver();
+    }
+
+    [Theory]
+    [InlineData( "Mozilla/5.0 Mobile" )]
+    [InlineData( "Opera Mobi" )]
+    [InlineData( "Silk/3.13" )]
+    [InlineData( "Kindle/3.0" )]
+    [InlineData( "Windows Phone 10.0" )]
+    [InlineData( "PlayBook" )]
+    [InlineData( "BB10" )]
+    [InlineData( "MeeGo" )]
+    [InlineData( "Tizen 6.0" )]
+    [InlineData( "Puffin/10.0" )]
+    public void MobileDetectorUsesCompleteCompatibilityUserAgentPattern( string userAgent )
+    {
+        Assert.True( MobileDeviceDetector.IsMobile( userAgent ) );
+    }
+
+    [Fact]
+    public void DesktopUserAgentDoesNotMatchMobilePattern()
+    {
+        Assert.False( MobileDeviceDetector.IsMobile( "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/131.0.0.0" ) );
+    }
+
+    [Fact]
+    public void WeekDisplayFormatUsesEnglishOrdinalSuffix()
+    {
+        Assert.Equal(
+            "2026-41st",
+            WeekDateFormat.Format(
+                new DateTime( 2026, 10, 8 ),
+                WeekDateFormat.DefaultDisplayFormat,
+                System.Globalization.CultureInfo.GetCultureInfo( "en-US" ) ) );
+    }
+
+    [Fact]
+    public async Task MobileModeUsesNativeDateInput()
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+
+        // test
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.DisplayFormat, "dd.MM.yyyy" )
+            .Add( x => x.DisableMobile, false ) );
+        IElement input = comp.Find( "input" );
+
+        await input.ChangeAsync( new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = "2026-07-28" } );
+        input = comp.Find( "input" );
+
+        // validate
+        Assert.Equal( "date", input.GetAttribute( "type" ) );
+        Assert.Equal( "2026-07-28", input.GetAttribute( "value" ) );
+        Assert.Equal( new DateTime( 2026, 7, 28 ), comp.Instance.Value );
+        Assert.False( input.HasAttribute( "role" ) );
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+    }
+
+    [Fact]
+    public async Task MobileDateValuesRemainInvariantAfterLanguageChange()
+    {
+        // setup
+        var localizerService = Services.GetRequiredService<ITextLocalizerService>();
+        localizerService.ChangeLanguage( "en-US", false );
+        var comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 11, 4 ) )
+            .Add( x => x.DisplayFormat, "dddd {day:ordinal} MMMM yyyy" )
+            .Add( x => x.DisableMobile, false ) );
+
+        // test
+        await comp.InvokeAsync( () => localizerService.ChangeLanguage( "ar-SA", false ) );
+
+        // validate
+        Assert.Equal( "date", comp.Find( "input" ).GetAttribute( "type" ) );
+        Assert.Equal( "2026-11-04", comp.Find( "input" ).GetAttribute( "value" ) );
+
+        // test
+        await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = "2026-11-05" } );
+
+        // validate
+        Assert.Equal( new DateTime( 2026, 11, 5 ), comp.Instance.Value );
+        Assert.Equal( "2026-11-05", comp.Find( "input" ).GetAttribute( "value" ) );
+    }
+
+    [Fact]
+    public void MobileModeRetainsBlazorCalendarForDisabledDates()
+    {
+        // test
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.DisableMobile, false )
+            .Add( x => x.DisabledDates, new[] { new DateTime( 2026, 7, 28 ) } ) );
+        IElement input = comp.Find( "input" );
+
+        // validate
+        Assert.Equal( "text", input.GetAttribute( "type" ) );
+        Assert.Equal( "combobox", input.GetAttribute( "role" ) );
+    }
+
+    [Fact]
+    public void MobileModeRetainsBlazorCalendarWhenEnabledDatesIsDefined()
+    {
+        // test
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.DisableMobile, false )
+            .Add( x => x.EnabledDates, Array.Empty<DateTime>() ) );
+
+        // validate
+        Assert.Equal( "text", comp.Find( "input" ).GetAttribute( "type" ) );
+    }
+
+    [Fact]
+    public void MobileModeRetainsBlazorCalendarWhenDisabledDaysIsDefined()
+    {
+        // test
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.DisableMobile, false )
+            .Add( x => x.DisabledDays, Array.Empty<DayOfWeek>() ) );
+
+        // validate
+        Assert.Equal( "text", comp.Find( "input" ).GetAttribute( "type" ) );
+    }
+
+    [Fact]
+    public async Task MobileOpenUsesBrowserPicker()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.DisableMobile, false ) );
+
+        // test
+        await comp.InvokeAsync( () => comp.Instance.OpenAsync().AsTask() );
+
+        // validate
+        JSInterop.VerifyInvoke( "showPicker", 1 );
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+    }
+
+    [Fact]
+    public void InlineCalendarUsesProviderOwnedClasses()
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+
+        // test
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.Inline, true )
+            .Add( x => x.StaticPicker, false ) );
+
+        // validate
+        Assert.NotNull( comp.Find( ".datepicker" ) );
+        Assert.NotNull( comp.Find( ".datepicker-calendar-inline" ) );
+        Assert.DoesNotContain( "datepicker-calendar-floating", comp.Find( "[role='dialog']" ).ClassList );
+        Assert.Equal( 42, comp.FindAll( ".datepicker-day" ).Count );
+        Assert.DoesNotContain( "b-datepicker", comp.Markup );
+        Assert.DoesNotContain( "flatpickr", comp.Markup );
+    }
+
+    [Fact]
+    public async Task SharedCalendarNavigationSupportsMonthAndYearChanges()
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.Inline, true ) );
+
+        // validate
+        Assert.Single( comp.FindAll( "button[aria-label='Previous year']" ) );
+        Assert.Single( comp.FindAll( "button[aria-label='Previous month']" ) );
+        Assert.Single( comp.FindAll( "button[aria-label='Next month']" ) );
+        Assert.Single( comp.FindAll( "button[aria-label='Next year']" ) );
+        Assert.Collection(
+            comp.FindComponents<Icon>(),
+            icon => Assert.Equal( IconName.ChevronDoubleLeft, icon.Instance.Name ),
+            icon => Assert.Equal( IconName.ChevronLeft, icon.Instance.Name ),
+            icon => Assert.Equal( IconName.ChevronRight, icon.Instance.Name ),
+            icon => Assert.Equal( IconName.ChevronDoubleRight, icon.Instance.Name ) );
+
+        // test
+        await comp.Find( "button[aria-label='Next year']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "2027", comp.Find( "input[aria-label='Year']" ).GetAttribute( "value" ) );
+    }
+
+    [Fact]
+    public async Task PopupCalendarNavigationRefreshesImmediately()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 7, 27 ) ) );
+
+        await comp.Find( "input[role='combobox']" ).ClickAsync( new MouseEventArgs() );
+
+        // test
+        await comp.Find( "button[aria-label='Next month']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "8", comp.Find( "select[aria-label='Month']" ).GetAttribute( "value" ) );
+
+        // test
+        await comp.Find( "button[aria-label='Next year']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "2027", comp.Find( "input[aria-label='Year']" ).GetAttribute( "value" ) );
+    }
+
+    [Theory]
+    [InlineData( DateInputMode.Date )]
+    [InlineData( DateInputMode.DateTime )]
+    [InlineData( DateInputMode.Week )]
+    public async Task CalendarNavigationStopsAtMinimumAndMaximumMonths( DateInputMode inputMode )
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.InputMode, inputMode )
+            .Add( x => x.Inline, true )
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2026, 7, 27, 9, 0, 0 ) ) )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2026, 8, 1 ) ) ) );
+
+        // validate
+        Assert.True( comp.Find( "button[aria-label='Previous month']" ).HasAttribute( "disabled" ) );
+        Assert.True( comp.Find( "button[aria-label='Previous year']" ).HasAttribute( "disabled" ) );
+        Assert.True( comp.Find( "button[aria-label='Next year']" ).HasAttribute( "disabled" ) );
+        Assert.False( comp.Find( "button[aria-label='Next month']" ).HasAttribute( "disabled" ) );
+
+        // test
+        await comp.Find( "button[aria-label='Next month']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "8", comp.Find( "select[aria-label='Month']" ).GetAttribute( "value" ) );
+        Assert.True( comp.Find( "button[aria-label='Next month']" ).HasAttribute( "disabled" ) );
+        Assert.False( comp.Find( "button[aria-label='Previous month']" ).HasAttribute( "disabled" ) );
+        Assert.Equal( value, comp.Instance.Value );
+    }
+
+    [Theory]
+    [InlineData( "PageUp", false )]
+    [InlineData( "PageDown", false )]
+    [InlineData( "PageUp", true )]
+    [InlineData( "PageDown", true )]
+    public async Task CalendarPageNavigationCannotBypassDateLimits( string key, bool shiftKey )
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.Inline, true )
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2026, 7, 1 ) ) )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2026, 7, 31 ) ) ) );
+
+        // test
+        await comp.Find( "[role='grid']" ).KeyDownAsync( new KeyboardEventArgs { Key = key, ShiftKey = shiftKey } );
+        await comp.InvokeAsync( () =>
         {
-            BlazoriseConfig.AddBootstrapProviders( Services );
-            BlazoriseConfig.JSInterop.AddDatePicker( this.JSInterop );
+            comp.Instance.ShowPreviousPeriod();
+            comp.Instance.ShowNextPeriod();
+            comp.Instance.ShowPreviousYear();
+            comp.Instance.ShowNextYear();
+        } );
+
+        // validate
+        Assert.Equal( "7", comp.Find( "select[aria-label='Month']" ).GetAttribute( "value" ) );
+        Assert.Equal( "2026", comp.Find( "input[aria-label='Year']" ).GetAttribute( "value" ) );
+        Assert.Equal( value, comp.Instance.Value );
+    }
+
+    [Theory]
+    [InlineData( DateInputMode.Date )]
+    [InlineData( DateInputMode.DateTime )]
+    [InlineData( DateInputMode.Week )]
+    public async Task CalendarMonthSelectorDisablesAndRejectsMonthsOutsideDateLimits( DateInputMode inputMode )
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.InputMode, inputMode )
+            .Add( x => x.Inline, true )
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2026, 7, 15 ) ) )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2026, 9, 3 ) ) ) );
+
+        // validate
+        Assert.Equal( 9, comp.FindAll( "select[aria-label='Month'] option[disabled]" ).Count );
+        Assert.False( comp.Find( "select[aria-label='Month'] option[value='7']" ).HasAttribute( "disabled" ) );
+        Assert.False( comp.Find( "select[aria-label='Month'] option[value='8']" ).HasAttribute( "disabled" ) );
+        Assert.False( comp.Find( "select[aria-label='Month'] option[value='9']" ).HasAttribute( "disabled" ) );
+
+        // test
+        await comp.Find( "select[aria-label='Month']" ).ChangeAsync( new ChangeEventArgs { Value = "6" } );
+
+        // validate
+        Assert.Equal( "7", comp.Find( "select[aria-label='Month']" ).GetAttribute( "value" ) );
+
+        // test
+        await comp.Find( "select[aria-label='Month']" ).ChangeAsync( new ChangeEventArgs { Value = "9" } );
+        await comp.Find( "select[aria-label='Month']" ).ChangeAsync( new ChangeEventArgs { Value = "10" } );
+
+        // validate
+        Assert.Equal( "9", comp.Find( "select[aria-label='Month']" ).GetAttribute( "value" ) );
+        Assert.Equal( value, comp.Instance.Value );
+    }
+
+    [Theory]
+    [InlineData( "2024", "2025", "11" )]
+    [InlineData( "2025", "2025", "11" )]
+    [InlineData( "2027", "2027", "3" )]
+    [InlineData( "2028", "2027", "3" )]
+    public async Task CalendarYearSelectorClampsToAllowedYearAndMonth( string year, string expectedYear, string expectedMonth )
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.Inline, true )
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2025, 11, 15 ) ) )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2027, 3, 5 ) ) ) );
+
+        // validate
+        Assert.Equal( "2025", comp.Find( "input[aria-label='Year']" ).GetAttribute( "min" ) );
+        Assert.Equal( "2027", comp.Find( "input[aria-label='Year']" ).GetAttribute( "max" ) );
+        Assert.Empty( comp.FindAll( "select[aria-label='Month'] option[disabled]" ) );
+
+        // test
+        await comp.Find( "input[aria-label='Year']" ).ChangeAsync( new ChangeEventArgs { Value = year } );
+
+        // validate
+        Assert.Equal( expectedYear, comp.Find( "input[aria-label='Year']" ).GetAttribute( "value" ) );
+        Assert.Equal( expectedMonth, comp.Find( "select[aria-label='Month']" ).GetAttribute( "value" ) );
+        Assert.Equal( expectedYear == "2025" ? 10 : 9, comp.FindAll( "select[aria-label='Month'] option[disabled]" ).Count );
+        Assert.Equal( value, comp.Instance.Value );
+
+        // test a year outside the limits while already at the boundary
+        await comp.Find( "input[aria-label='Year']" ).ChangeAsync( new ChangeEventArgs { Value = expectedYear == "2025" ? "2023" : "2029" } );
+
+        // validate
+        Assert.Equal( expectedYear, comp.Find( "input[aria-label='Year']" ).GetAttribute( "value" ) );
+        Assert.Equal( expectedMonth, comp.Find( "select[aria-label='Month']" ).GetAttribute( "value" ) );
+    }
+
+    [Fact]
+    public async Task CalendarYearNavigationAllowsPartiallyAvailableBoundaryMonths()
+    {
+        // setup
+        DateTime value = new( 2024, 2, 29 );
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.Inline, true )
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2023, 2, 28, 9, 0, 0 ) ) )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2025, 2, 1 ) ) ) );
+
+        // test
+        await comp.Find( "button[aria-label='Previous year']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "2023", comp.Find( "input[aria-label='Year']" ).GetAttribute( "value" ) );
+        Assert.True( comp.Find( "button[aria-label='Previous year']" ).HasAttribute( "disabled" ) );
+
+        // test
+        await comp.Find( "button[aria-label='Next year']" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( "button[aria-label='Next year']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "2025", comp.Find( "input[aria-label='Year']" ).GetAttribute( "value" ) );
+        Assert.True( comp.Find( "button[aria-label='Next year']" ).HasAttribute( "disabled" ) );
+        Assert.Equal( value, comp.Instance.Value );
+    }
+
+    [Theory]
+    [InlineData( 0, "year", "2030", "2020" )]
+    [InlineData( 1, "decade", "2030-2039", "2020-2029" )]
+    [InlineData( 2, "century", "2100-2199", "2000-2099" )]
+    public async Task MonthCalendarNavigationChecksEntireDestinationPeriod( int broaderViews, string period, string nextTitle, string previousTitle )
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2029, 7, 1 ) )
+            .Add( x => x.Inline, true )
+            .Add( x => x.InputMode, DateInputMode.Month )
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2020, 12, 31 ) ) )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2100, 1, 1 ) ) ) );
+
+        for ( int view = 0; view < broaderViews; view++ )
+        {
+            await comp.Find( ".datepicker-title > button" ).ClickAsync( new MouseEventArgs() );
         }
 
-        [Fact]
-        public void RenderDateTimeTest()
+        // test
+        await comp.Find( $"button[aria-label='Next {period}']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( nextTitle, comp.Find( ".datepicker-title" ).TextContent.Trim() );
+        Assert.Equal( broaderViews == 2, comp.Find( $"button[aria-label='Next {period}']" ).HasAttribute( "disabled" ) );
+
+        // test
+        await comp.Find( $"button[aria-label='Previous {period}']" ).ClickAsync( new MouseEventArgs() );
+
+        if ( broaderViews == 0 )
         {
-            // setup
-            var defDate = new DateTime();
-            var dateOpen = "<input";
-            var dateClose = "</input>";
-            var dateType = @"type=""text""";
-            var dateOutput = @"<span id=""date-event-initially-undefined-result"">" + defDate.ToString() + "</span>";
-            var nullableOutput = @"<span id=""nullable-date-event-initially-null-result""></span>";
+            for ( int year = 2029; year > 2020; year-- )
+            {
+                await comp.Find( "button[aria-label='Previous year']" ).ClickAsync( new MouseEventArgs() );
+            }
+        }
+
+        // validate
+        Assert.Equal( previousTitle, comp.Find( ".datepicker-title" ).TextContent.Trim() );
+        Assert.True( comp.Find( $"button[aria-label='Previous {period}']" ).HasAttribute( "disabled" ) );
+    }
+
+    [Fact]
+    public void CalendarNavigationRefreshesWhenDateLimitsChange()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 7, 27 ) )
+            .Add( x => x.Inline, true ) );
+
+        // test
+        comp.Render( parameters => parameters
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2026, 7, 1 ) ) )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2026, 7, 31 ) ) ) );
+
+        // validate
+        Assert.Equal( 4, comp.FindAll( ".datepicker-navigation[disabled]" ).Count );
+        Assert.Equal( 11, comp.FindAll( "select[aria-label='Month'] option[disabled]" ).Count );
+        Assert.Equal( "2026", comp.Find( "input[aria-label='Year']" ).GetAttribute( "min" ) );
+        Assert.Equal( "2026", comp.Find( "input[aria-label='Year']" ).GetAttribute( "max" ) );
+
+        // test
+        comp.Render( parameters => parameters
+            .Add( x => x.Min, (DateTimeOffset?)null )
+            .Add( x => x.Max, (DateTimeOffset?)null ) );
+
+        // validate
+        Assert.Equal( 4, comp.FindAll( ".datepicker-navigation:not([disabled])" ).Count );
+        Assert.Empty( comp.FindAll( "select[aria-label='Month'] option[disabled]" ) );
+        Assert.Equal( "1", comp.Find( "input[aria-label='Year']" ).GetAttribute( "min" ) );
+        Assert.Equal( "9999", comp.Find( "input[aria-label='Year']" ).GetAttribute( "max" ) );
+    }
+
+    [Fact]
+    public async Task PendingRangeSelectionRefreshesImmediately()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime[]>> comp = Render<DatePicker<DateTime[]>>( parameters => parameters
+            .Add( x => x.Value, new[] { new DateTime( 2026, 7, 27 ) } )
+            .Add( x => x.SelectionMode, DateInputSelectionMode.Range )
+            .Add( x => x.Inline, true ) );
+
+        // test
+        await comp.Find( "[id$='day-20260728']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Contains( "datepicker-day-range-start", comp.Find( "[id$='day-20260728']" ).ClassList );
+    }
+
+    [Fact]
+    public void MonthModeDoesNotDuplicateYearNavigation()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.Inline, true )
+            .Add( x => x.InputMode, DateInputMode.Month ) );
+
+        // validate
+        Assert.Single( comp.FindAll( "button[aria-label='Previous year']" ) );
+        Assert.Single( comp.FindAll( "button[aria-label='Next year']" ) );
+        Assert.Empty( comp.FindAll( "button[aria-label='Previous month']" ) );
+        Assert.Empty( comp.FindAll( "button[aria-label='Next month']" ) );
+        Assert.Collection(
+            comp.FindComponents<Icon>(),
+            icon => Assert.Equal( IconName.ChevronDoubleLeft, icon.Instance.Name ),
+            icon => Assert.Equal( IconName.ChevronDoubleRight, icon.Instance.Name ) );
+    }
+
+    [Theory]
+    [InlineData( DateInputMode.Date, "Today" )]
+    [InlineData( DateInputMode.Month, "This month" )]
+    [InlineData( DateInputMode.Week, "This week" )]
+    public void TodayButtonUsesInputModeSpecificLabel( DateInputMode inputMode, string expected )
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.InputMode, inputMode )
+            .Add( x => x.Inline, true )
+            .Add( x => x.ShowClearButton, false )
+            .Add( x => x.ShowTodayButton, true ) );
+
+        // validate
+        Assert.Equal( expected, comp.Find( ".datepicker-actions button" ).TextContent.Trim() );
+    }
+
+    [Fact]
+    public async Task MonthModeNavigatesThroughYearsAndDecadesBeforeSelectingMonth()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 7, 1 ) )
+            .Add( x => x.Inline, true )
+            .Add( x => x.InputMode, DateInputMode.Month ) );
+
+        // test
+        await comp.Find( ".datepicker-title > button" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "2020-2029", comp.Find( ".datepicker-title > button" ).TextContent.Trim() );
+        Assert.Collection(
+            comp.FindAll( ".datepicker-months[data-calendar-view='year'] > button" ),
+            year => Assert.Equal( "2019", year.TextContent.Trim() ),
+            year => Assert.Equal( "2020", year.TextContent.Trim() ),
+            year => Assert.Equal( "2021", year.TextContent.Trim() ),
+            year => Assert.Equal( "2022", year.TextContent.Trim() ),
+            year => Assert.Equal( "2023", year.TextContent.Trim() ),
+            year => Assert.Equal( "2024", year.TextContent.Trim() ),
+            year => Assert.Equal( "2025", year.TextContent.Trim() ),
+            year => Assert.Equal( "2026", year.TextContent.Trim() ),
+            year => Assert.Equal( "2027", year.TextContent.Trim() ),
+            year => Assert.Equal( "2028", year.TextContent.Trim() ),
+            year => Assert.Equal( "2029", year.TextContent.Trim() ),
+            year => Assert.Equal( "2030", year.TextContent.Trim() ) );
+
+        // test
+        await comp.Find( "button[aria-label='Next decade']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "2030-2039", comp.Find( ".datepicker-title > button" ).TextContent.Trim() );
+
+        // test
+        await comp.Find( "button[aria-label='Previous decade']" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( ".datepicker-title > button" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "2000-2099", comp.Find( ".datepicker-title > span" ).TextContent.Trim() );
+        Assert.Equal( "1990-1999", comp.Find( ".datepicker-months[data-calendar-view='decade'] > button" ).TextContent.Trim() );
+
+        // test
+        await comp.Find( "button[aria-label='Next century']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "2100-2199", comp.Find( ".datepicker-title > span" ).TextContent.Trim() );
+
+        // test
+        await comp.Find( "button[aria-label='Previous century']" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( "button[aria-label='2040-2049']" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( "button[aria-label='2045']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( "2045", comp.Find( ".datepicker-title > button" ).TextContent.Trim() );
+        Assert.Equal( 12, comp.FindAll( ".datepicker-months[data-calendar-view='month'] > button" ).Count );
+    }
+
+    [Fact]
+    public async Task CalendarKeyboardNavigationSelectsFocusedDate()
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.Inline, true ) );
+
+        // test
+        await comp.Find( "[role='grid']" ).KeyDownAsync( new KeyboardEventArgs { Key = "ArrowRight" } );
+        await comp.Find( "[role='grid']" ).KeyDownAsync( new KeyboardEventArgs { Key = "Enter" } );
+
+        // validate
+        Assert.Equal( new DateTime( 2026, 7, 28 ), comp.Instance.Value );
+    }
+
+    [Fact]
+    public async Task WeekModeSelectsAndFormatsCompleteIsoWeek()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 10, 8 ) )
+            .Add( x => x.InputMode, DateInputMode.Week )
+            .Add( x => x.DisplayFormat, "yyyy-'W'ww" )
+            .Add( x => x.Inline, true ) );
+
+        // validate
+        Assert.Equal( "2026-W41", comp.Find( "input[type='text']" ).GetAttribute( "value" ) );
+        Assert.Equal( 6, comp.FindAll( ".datepicker-week .datepicker-week-number" ).Count );
+
+        IElement selectedWeek = comp.Find( ".datepicker-week[data-week-selected='true']" );
+        Assert.Equal( 7, selectedWeek.QuerySelectorAll( ".datepicker-day-selected" ).Length );
+
+        // test
+        await comp.Find( "[id$='day-20261020']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( new DateTime( 2026, 10, 19 ), comp.Instance.Value );
+        Assert.Equal( "2026-W43", comp.Find( "input[type='text']" ).GetAttribute( "value" ) );
+    }
+
+    [Fact]
+    public async Task WeekModeUsesFirstDayOfWeekForLayoutWithoutChangingIsoSelection()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 10, 8 ) )
+            .Add( x => x.InputMode, DateInputMode.Week )
+            .Add( x => x.FirstDayOfWeek, DayOfWeek.Sunday )
+            .Add( x => x.Inline, true ) );
+
+        // validate
+        Assert.Equal( "Sun", comp.Find( ".datepicker-weekday" ).TextContent );
+        Assert.Equal( 7, comp.FindAll( ".datepicker-day-selected" ).Count );
+        Assert.NotEqual(
+            comp.Find( "[id$='day-20261005']" ).ParentElement,
+            comp.Find( "[id$='day-20261011']" ).ParentElement );
+        Assert.Equal( "41", comp.Find( ".datepicker-week[data-week-selected='true'] .datepicker-week-number" ).TextContent );
+
+        // test
+        await comp.Find( "[id$='day-20261007']" ).TriggerEventAsync( "onmouseover", new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( 7, comp.FindAll( ".datepicker-day[data-week-hovered='true']" ).Count );
+        Assert.Equal( "41", comp.Find( ".datepicker-week-number[data-week-hovered='true']" ).TextContent );
+    }
+
+    [Fact]
+    public async Task WeekModeParsesOrdinalWeekInput()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.InputMode, DateInputMode.Week )
+            .Add( x => x.DisplayFormat, "yyyy-'W'ww" ) );
+
+        // test
+        await comp.Find( "input" ).ChangeAsync( new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = "2026-41st" } );
+
+        // validate
+        Assert.Equal( new DateTime( 2026, 10, 5 ), comp.Instance.Value );
+        Assert.Equal( "2026-W41", comp.Find( "input" ).GetAttribute( "value" ) );
+    }
+
+    [Fact]
+    public async Task WeekModeKeyboardNavigationMovesByCompleteWeeks()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 10, 8 ) )
+            .Add( x => x.InputMode, DateInputMode.Week )
+            .Add( x => x.Inline, true ) );
+
+        // test
+        await comp.Find( "[role='grid']" ).KeyDownAsync( new KeyboardEventArgs { Key = "ArrowDown" } );
+        await comp.Find( "[role='grid']" ).KeyDownAsync( new KeyboardEventArgs { Key = "Enter" } );
+
+        // validate
+        Assert.Equal( new DateTime( 2026, 10, 12 ), comp.Instance.Value );
+    }
+
+    [Fact]
+    public async Task MobileWeekModeUsesNativeWeekInput()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 10, 8 ) )
+            .Add( x => x.InputMode, DateInputMode.Week )
+            .Add( x => x.DisableMobile, false ) );
+        IElement input = comp.Find( "input" );
+
+        // validate
+        Assert.Equal( "week", input.GetAttribute( "type" ) );
+        Assert.Equal( "2026-W41", input.GetAttribute( "value" ) );
+
+        // test
+        await input.ChangeAsync( new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = "2026-W42" } );
+
+        // validate
+        Assert.Equal( new DateTime( 2026, 10, 12 ), comp.Instance.Value );
+    }
+
+    [Fact]
+    public async Task WeekInputFormatUsesNumericWeekMask()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.InputMode, DateInputMode.Week )
+            .Add( x => x.InputFormat, "yyyy-ww" ) );
+
+        // test
+        await comp.Find( "input" ).FocusAsync( new FocusEventArgs() );
+
+        // validate
+        JSRuntimeInvocation inputMaskInitialization = Assert.Single(
+            JSInterop.Invocations["initialize"],
+            invocation => invocation.Arguments.Count > 3 && invocation.Arguments[3] is InputMaskJSOptions );
+        InputMaskJSOptions options = Assert.IsType<InputMaskJSOptions>( inputMaskInitialization.Arguments[3] );
+
+        Assert.Null( options.Alias );
+        Assert.Equal( "9999-99", options.Mask );
+    }
+
+    [Fact]
+    public async Task SelectingDateRestoresInputFocusDuringCloseRender()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 7, 27 ) ) );
+
+        // test
+        await comp.Find( "input" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( "[id$='day-20260728']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+        JSInterop.VerifyInvoke( "focus", 1 );
+    }
+
+    [Fact]
+    public async Task ClickingInputOpensCalendarWithoutMovingFocusToCalendar()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>();
+
+        // test
+        await comp.Find( "input" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.NotNull( comp.Find( "[role='dialog']" ) );
+        Assert.False( comp.Instance.FocusCalendarOnOpen );
+        Assert.False( comp.Find( "[role='dialog']" ).HasAttribute( "aria-activedescendant" ) );
+        Assert.NotNull( comp.Find( "[role='grid']" ).GetAttribute( "aria-activedescendant" ) );
+        Assert.All(
+            comp.FindAll( "[role='dialog'] button, [role='dialog'] select, [role='dialog'] input" ),
+            element => Assert.Equal( "-1", element.GetAttribute( "tabindex" ) ) );
+
+        Assert.Equal( 2, JSInterop.Invocations["addSubscription"].Count );
+
+        DocumentObserverJsSubscription keyboardSubscription = Assert.IsType<DocumentObserverJsSubscription>(
+            JSInterop.Invocations["addSubscription"][0].Arguments[0] );
+
+        Assert.Equal( "keydown", Assert.Single( keyboardSubscription.EventNames ) );
+        Assert.Equal( new[] { "ArrowDown", "F4" }, keyboardSubscription.KeysFilter );
+        Assert.True( keyboardSubscription.PreventDefault );
+        Assert.Equal(
+            $"[id=\"{comp.Instance.ElementId}\"][data-open-keys]",
+            keyboardSubscription.Selector );
+
+        DocumentObserverJsSubscription outsideSubscription = Assert.IsType<DocumentObserverJsSubscription>(
+            JSInterop.Invocations["addSubscription"][1].Arguments[0] );
+
+        Assert.Equal( new[] { "pointerdown", "focusin" }, outsideSubscription.EventNames );
+        Assert.Equal(
+            $"[id=\"{comp.Instance.PickerContainerId}\"], [id=\"{comp.Instance.CalendarId}\"]",
+            outsideSubscription.ExcludeSelector );
+    }
+
+    [Fact]
+    public async Task FocusingInputOpensCalendarByDefault()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>();
+
+        // test
+        await comp.Find( "input" ).FocusAsync( new FocusEventArgs() );
+
+        // validate
+        Assert.NotNull( comp.Find( "[role='dialog']" ) );
+        Assert.False( comp.Instance.FocusCalendarOnOpen );
+    }
+
+    [Fact]
+    public async Task ClickOnlyTriggerDoesNotOpenCalendarForFocusOrOpeningKeys()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.OpenTrigger, PickerOpenTrigger.Click ) );
+        IElement input = comp.Find( "input" );
+
+        // test
+        await input.FocusAsync( new FocusEventArgs() );
+        await input.KeyDownAsync( new KeyboardEventArgs { Key = "ArrowDown" } );
+
+        // validate
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+
+        // test
+        await input.ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.NotNull( comp.Find( "[role='dialog']" ) );
+    }
+
+    [Fact]
+    public async Task FocusOnlyTriggerIgnoresPointerInducedFocusAndClick()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.OpenTrigger, PickerOpenTrigger.Focus ) );
+        IElement input = comp.Find( "input" );
+
+        // test
+        await input.TriggerEventAsync( "onpointerdown", new PointerEventArgs() );
+        await input.FocusAsync( new FocusEventArgs() );
+        await input.TriggerEventAsync( "onpointerup", new PointerEventArgs() );
+        await input.ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+
+        // test
+        await input.BlurAsync( new FocusEventArgs() );
+        await input.FocusAsync( new FocusEventArgs() );
+
+        // validate
+        Assert.NotNull( comp.Find( "[role='dialog']" ) );
+    }
+
+    [Fact]
+    public async Task OpenKeysOnlyTriggerOpensCalendarWithOpeningKey()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.OpenTrigger, PickerOpenTrigger.OpenKeys ) );
+        IElement input = comp.Find( "input" );
+
+        // test
+        await input.FocusAsync( new FocusEventArgs() );
+
+        // validate
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+
+        // test
+        await input.KeyDownAsync( new KeyboardEventArgs { Key = "ArrowDown" } );
+
+        // validate
+        Assert.NotNull( comp.Find( "[role='dialog']" ) );
+        Assert.True( comp.Instance.FocusCalendarOnOpen );
+        Assert.Equal( "-1", comp.Find( "[role='grid']" ).GetAttribute( "tabindex" ) );
+        JSInterop.VerifyInvoke( "focus", 1 );
+    }
+
+    [Fact]
+    public async Task TabFromInputClosesCalendar()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime?>> comp = Render<DatePicker<DateTime?>>();
+        IElement input = comp.Find( "input" );
+
+        // test
+        await input.ClickAsync( new MouseEventArgs() );
+        await input.KeyDownAsync( new KeyboardEventArgs { Key = "Tab" } );
+
+        // validate
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+    }
+
+    [Fact]
+    public async Task InputFormatKeepsMaskWhileFocusedAndFormatsOnBlur()
+    {
+        // setup
+        var comp = Render<DatePicker<DateTime?>>( parameters => parameters
+            .Add( x => x.InputFormat, "dd.MM.yyyy" )
+            .Add( x => x.DisplayFormat, "yyyy-MM-dd" ) );
+        var input = comp.Find( "input" );
+
+        // test
+        await input.FocusAsync( new FocusEventArgs() );
+        await input.ChangeAsync( new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = "27.07.2026" } );
+
+        // validate
+        var inputMaskInitialization = Assert.Single(
+            JSInterop.Invocations["initialize"],
+            invocation => invocation.Arguments.Count > 3 && invocation.Arguments[3] is InputMaskJSOptions );
+
+        var options = Assert.IsType<InputMaskJSOptions>( inputMaskInitialization.Arguments[3] );
+
+        Assert.Equal( "datetime", options.Alias );
+        Assert.Equal( "dd.mm.yyyy", options.InputFormat );
+        Assert.Equal( "_", options.MaskPlaceholder );
+        Assert.True( options.ShowMaskOnFocus );
+        Assert.True( options.ShowMaskOnHover );
+        Assert.True( options.DispatchChangeOnComplete );
+        JSInterop.VerifyNotInvoke( "destroy" );
+        JSInterop.VerifyNotInvoke( "setTextValue" );
+        Assert.Equal( new DateTime( 2026, 7, 27 ), comp.Instance.Value );
+        Assert.Equal( "27.07.2026", comp.Find( "input" ).GetAttribute( "value" ) );
+
+        // test
+        await input.ChangeAsync( new ChangeEventArgs { Value = "27.07.2025" } );
+
+        // validate
+        JSInterop.VerifyNotInvoke( "destroy" );
+        JSInterop.VerifyNotInvoke( "setTextValue" );
+        Assert.Equal( new DateTime( 2025, 7, 27 ), comp.Instance.Value );
+        Assert.Equal( "27.07.2025", comp.Find( "input" ).GetAttribute( "value" ) );
+
+        // test
+        await input.BlurAsync( new FocusEventArgs() );
+
+        // validate
+        JSInterop.VerifyInvoke( "destroy", 1 );
+        JSInterop.VerifyInvoke( "setTextValue", 1 );
+        Assert.Equal( new DateTime( 2025, 7, 27 ), comp.Instance.Value );
+        Assert.Equal( "2025-07-27", comp.Find( "input" ).GetAttribute( "value" ) );
+    }
+
+    [Fact]
+    public async Task OrdinalDisplayParsesTypedDatesAndRejectsIncorrectSuffixes()
+    {
+        // setup
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo( "en-US" );
+            Services.GetRequiredService<ITextLocalizerService>().ChangeLanguage( "en-US", false );
+            DateTime? changedValue = null;
 
             // test
-            var comp = RenderComponent<DatePickerComponent>();
+            var comp = Render<DatePicker<DateTime?>>( parameters => parameters
+                .Add( x => x.Value, new DateTime( 2026, 11, 3 ) )
+                .Add( x => x.ValueChanged, value => changedValue = value )
+                .Add( x => x.DisplayFormat, "dddd {day:ordinal} MMMM yyyy" )
+                .Add( x => x.DisableMobile, true ) );
 
             // validate
-            Assert.Contains( dateOpen, comp.Markup );
-            Assert.Contains( dateClose, comp.Markup );
-            Assert.Contains( dateType, comp.Markup );
-            Assert.Contains( dateOutput, comp.Markup );
-            Assert.NotNull( comp.Find( "#date-event-initially-undefined" ) );
-            Assert.NotNull( comp.Find( "#date-control" ) );
-            Assert.NotNull( comp.Find( "#date-event-initially-undefined-result" ) );
-
-            Assert.Contains( nullableOutput, comp.Markup );
-            Assert.NotNull( comp.Find( "#nullable-date-event-initially-null" ) );
-            Assert.NotNull( comp.Find( "#nullable-date-control" ) );
-            Assert.NotNull( comp.Find( "#nullable-date-event-initially-null-result" ) );
-        }
-
-        [Fact]
-        public void RenderDateOnlyTest()
-        {
-            // setup
-            var defDate = new DateOnly();
-            var dateOpen = "<input";
-            var dateClose = "</input>";
-            var dateType = @"type=""text""";
-            var dateOutput = @"<span id=""date-only-event-initially-undefined-result"">" + defDate.ToString().Replace( "+", "&#x2B;" ) + "</span>";
-            var nullableOutput = @"<span id=""nullable-date-only-event-initially-null-result""></span>";
+            Assert.Equal( "Tuesday 3rd November 2026", comp.Find( "input" ).GetAttribute( "value" ) );
 
             // test
-            var comp = RenderComponent<DatePickerComponent>();
+            await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = "Wednesday 11th November 2026" } );
 
             // validate
-            Assert.Contains( dateOpen, comp.Markup );
-            Assert.Contains( dateClose, comp.Markup );
-            Assert.Contains( dateType, comp.Markup );
-            Assert.Contains( dateOutput, comp.Markup );
-            Assert.NotNull( comp.Find( "#date-only-event-initially-undefined" ) );
-            Assert.NotNull( comp.Find( "#date-only-control" ) );
-            Assert.NotNull( comp.Find( "#date-only-event-initially-undefined-result" ) );
-
-            Assert.Contains( nullableOutput, comp.Markup );
-            Assert.NotNull( comp.Find( "#nullable-date-only-event-initially-null" ) );
-            Assert.NotNull( comp.Find( "#nullable-date-only-control" ) );
-            Assert.NotNull( comp.Find( "#nullable-date-only-event-initially-null-result" ) );
-        }
-
-        [Fact]
-        public void RenderDateTimeOffsetTest()
-        {
-            // setup
-            var defDate = new DateTimeOffset();
-            var dateOpen = "<input";
-            var dateClose = "</input>";
-            var dateType = @"type=""text""";
-            var dateOutput = @"<span id=""date-offset-event-initially-undefined-result"">" + defDate.ToString().Replace( "+", "&#x2B;" ) + "</span>";
-            var nullableOutput = @"<span id=""nullable-date-offset-event-initially-null-result""></span>";
+            Assert.Equal( new DateTime( 2026, 11, 11 ), comp.Instance.Value );
+            Assert.Equal( comp.Instance.Value, changedValue );
 
             // test
-            var comp = RenderComponent<DatePickerComponent>();
+            await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = "Thursday 12nd November 2026" } );
 
             // validate
-            Assert.Contains( dateOpen, comp.Markup );
-            Assert.Contains( dateClose, comp.Markup );
-            Assert.Contains( dateType, comp.Markup );
-            Assert.Contains( dateOutput, comp.Markup );
-            Assert.NotNull( comp.Find( "#date-offset-event-initially-undefined" ) );
-            Assert.NotNull( comp.Find( "#date-offset-control" ) );
-            Assert.NotNull( comp.Find( "#date-offset-event-initially-undefined-result" ) );
-
-            Assert.Contains( nullableOutput, comp.Markup );
-            Assert.NotNull( comp.Find( "#nullable-date-offset-event-initially-null" ) );
-            Assert.NotNull( comp.Find( "#nullable-date-offset-control" ) );
-            Assert.NotNull( comp.Find( "#nullable-date-offset-event-initially-null-result" ) );
+            Assert.Equal( new DateTime( 2026, 11, 11 ), comp.Instance.Value );
+            Assert.Equal( comp.Instance.Value, changedValue );
         }
-
-        [Fact]
-        public void SetDateTime()
+        finally
         {
-            // setup
-            var dateOutput = @"<span id=""date-event-initially-undefined-result"">" + new DateTime( 1970, 5, 3 ).ToString() + "</span>";
-            var comp = RenderComponent<DatePickerComponent>();
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Theory]
+    [InlineData( "cs-CZ", "Středa", "Čtvrtek", "Listopad", "." )]
+    [InlineData( "da-DK", "Onsdag", "Torsdag", "November", "." )]
+    [InlineData( "de-DE", "Mittwoch", "Donnerstag", "November", "." )]
+    [InlineData( "en-GB", "Wednesday", "Thursday", "November", "th" )]
+    [InlineData( "es-ES", "Miércoles", "Jueves", "Noviembre", "" )]
+    [InlineData( "fr-FR", "mercredi", "jeudi", "novembre", "" )]
+    [InlineData( "hr-HR", "Srijeda", "Četvrtak", "Studeni", "." )]
+    [InlineData( "is-IS", "Miðvikudagur", "Fimmtudagur", "Nóvember", "." )]
+    [InlineData( "it-IT", "Mercoledì", "Giovedì", "Novembre", "" )]
+    [InlineData( "nl-NL", "woensdag", "donderdag", "november", "" )]
+    [InlineData( "pl-PL", "Środa", "Czwartek", "Listopad", "" )]
+    [InlineData( "pt-BR", "Quarta-feira", "Quinta-feira", "Novembro", "" )]
+    [InlineData( "ro-RO", "miercuri", "joi", "noiembrie", "" )]
+    [InlineData( "ru-RU", "Среда", "Четверг", "Ноябрь", "" )]
+    [InlineData( "sk-SK", "Streda", "Štvrtok", "November", "." )]
+    [InlineData( "tr-TR", "Çarşamba", "Perşembe", "Kasım", "" )]
+    [InlineData( "zh-CN", "星期三", "星期四", "十一月", "" )]
+    public async Task LanguageChangeLocalizesDisplayedAndTypedDates( string cultureName, string wednesday, string thursday, string november, string suffix )
+    {
+        // setup
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo( "en-US" );
+            var localizerService = Services.GetRequiredService<ITextLocalizerService>();
+            localizerService.ChangeLanguage( "en-US", false );
+
+            var comp = Render<DatePicker<DateTime?>>( parameters => parameters
+                .Add( x => x.Value, new DateTime( 2026, 11, 4 ) )
+                .Add( x => x.DisplayFormat, "dddd {day:ordinal}, MMMM yyyy" )
+                .Add( x => x.DisableMobile, true ) );
+
+            Assert.Equal( "Wednesday 4th, November 2026", comp.Find( "input" ).GetAttribute( "value" ) );
 
             // test
-            comp.Instance.DateValue = new( 1970, 5, 3 );
-            comp.Render();
+            await comp.InvokeAsync( () => localizerService.ChangeLanguage( cultureName, false ) );
 
             // validate
-            Assert.Contains( dateOutput, comp.Markup );
-        }
-
-        [Fact]
-        public void SetNullableDateTime()
-        {
-            // setup
-            var dateOutput = @"<span id=""nullable-date-event-initially-null-result"">" + new DateTime( 1970, 5, 3 ).ToString() + "</span>";
-            var comp = RenderComponent<DatePickerComponent>();
+            Assert.Equal( "en-US", CultureInfo.CurrentCulture.Name );
+            Assert.Equal( $"{wednesday} 4{suffix}, {november} 2026", comp.Find( "input" ).GetAttribute( "value" ) );
 
             // test
-            comp.Instance.NullableDateValue = new DateTime( 1970, 5, 3 );
-            comp.Render();
+            await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = $"{thursday} 5{suffix}, {november} 2026" } );
 
             // validate
-            Assert.Contains( dateOutput, comp.Markup );
+            Assert.Equal( new DateTime( 2026, 11, 5 ), comp.Instance.Value );
+            Assert.Equal( $"{thursday} 5{suffix}, {november} 2026", comp.Find( "input" ).GetAttribute( "value" ) );
         }
-
-        [Fact]
-        public void SetDateOnly()
+        finally
         {
-            // setup
-            var dateonly = new DateOnly( 2020, 4, 13 );
-            var dateOutput = @"<span id=""date-only-event-initially-undefined-result"">" + dateonly.ToString().Replace( "+", "&#x2B;" ) + "</span>";
-            var comp = RenderComponent<DatePickerComponent>();
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Theory]
+    [InlineData( "fr-FR", "2026-11-1er" )]
+    [InlineData( "de-DE", "2026-11-1." )]
+    [InlineData( "ja-JP", "2026-11-1" )]
+    public async Task OrdinalInputDoesNotFallBackToEnglish( string cultureName, string inputText )
+    {
+        // setup
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUICulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo( cultureName );
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo( "en-US" );
+            Services.GetRequiredService<ITextLocalizerService>().ChangeLanguage( cultureName, false );
+            var comp = Render<DatePicker<DateTime?>>( parameters => parameters
+                .Add( x => x.DisplayFormat, "yyyy-MM-{day:ordinal}" )
+                .Add( x => x.DisableMobile, true ) );
 
             // test
-            comp.Instance.DateOnlyValue = dateonly;
-            comp.Render();
+            await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = inputText } );
 
             // validate
-            Assert.Contains( dateOutput, comp.Markup );
-        }
-
-        [Fact]
-        public void SetNullableDateOnly()
-        {
-            // setup
-            var dateonly = new DateOnly( 2020, 4, 13 );
-            var dateOutput = @"<span id=""nullable-date-only-event-initially-null-result"">" + dateonly.ToString().Replace( "+", "&#x2B;" ) + "</span>";
-            var comp = RenderComponent<DatePickerComponent>();
+            Assert.Equal( new DateTime( 2026, 11, 1 ), comp.Instance.Value );
+            Assert.Equal( inputText, comp.Find( "input" ).GetAttribute( "value" ) );
 
             // test
-            comp.Instance.NullableDateOnlyValue = dateonly;
-            comp.Render();
+            await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = "2026-11-2nd" } );
 
             // validate
-            Assert.Contains( dateOutput, comp.Markup );
+            Assert.Equal( new DateTime( 2026, 11, 1 ), comp.Instance.Value );
         }
-
-        [Fact]
-        public void SetDateTimeOffset()
+        finally
         {
-            // setup
-            var offset = new DateTimeOffset( new( 2020, 4, 13 ) );
-            var dateOutput = @"<span id=""date-offset-event-initially-undefined-result"">" + offset.ToString().Replace( "+", "&#x2B;" ) + "</span>";
-            var comp = RenderComponent<DatePickerComponent>();
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUICulture;
+        }
+    }
+
+    [Fact]
+    public async Task NumericMaskReturnsToOrdinalDisplayAfterEditing()
+    {
+        // setup
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo( "en-US" );
+            Services.GetRequiredService<ITextLocalizerService>().ChangeLanguage( "en-US", false );
+            var comp = Render<DatePicker<DateTime?>>( parameters => parameters
+                .Add( x => x.Value, new DateTime( 2026, 11, 3 ) )
+                .Add( x => x.InputFormat, "dd.MM.yyyy" )
+                .Add( x => x.DisplayFormat, "dddd {day:ordinal} MMMM yyyy" )
+                .Add( x => x.DisableMobile, true ) );
+            var input = comp.Find( "input" );
 
             // test
-            comp.Instance.OffsetValue = offset;
-            comp.Render();
+            await input.FocusAsync( new FocusEventArgs() );
 
             // validate
-            Assert.Contains( dateOutput, comp.Markup );
-        }
-
-        [Fact]
-        public void SetNullableDateTimeOffset()
-        {
-            // setup
-            var offset = new DateTimeOffset( new( 2020, 4, 13 ) );
-            var dateOutput = @"<span id=""nullable-date-offset-event-initially-null-result"">" + offset.ToString().Replace( "+", "&#x2B;" ) + "</span>";
-            var comp = RenderComponent<DatePickerComponent>();
+            Assert.Equal( "03.11.2026", comp.Find( "input" ).GetAttribute( "value" ) );
 
             // test
-            comp.Instance.NullableOffsetValue = offset;
-            comp.Render();
+            await input.ChangeAsync( new ChangeEventArgs { Value = "21.11.2026" } );
+            await input.BlurAsync( new FocusEventArgs() );
 
             // validate
-            Assert.Contains( dateOutput, comp.Markup );
+            Assert.Equal( new DateTime( 2026, 11, 21 ), comp.Instance.Value );
+            Assert.Equal( "Saturday 21st November 2026", comp.Find( "input" ).GetAttribute( "value" ) );
         }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Theory]
+    [InlineData( DateInputSelectionMode.Range, " to " )]
+    [InlineData( DateInputSelectionMode.Multiple, ", " )]
+    public async Task OrdinalDisplayFormatsAndParsesEachSelectedDate( DateInputSelectionMode selectionMode, string delimiter )
+    {
+        // setup
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo( "en-US" );
+            Services.GetRequiredService<ITextLocalizerService>().ChangeLanguage( "en-US", false );
+            var dates = new[] { new DateTime( 2026, 11, 3 ), new DateTime( 2026, 11, 11 ) };
+
+            // test
+            var comp = Render<DatePicker<DateTime[]>>( parameters => parameters
+                .Add( x => x.Value, dates )
+                .Add( x => x.SelectionMode, selectionMode )
+                .Add( x => x.RangeSeparator, " to " )
+                .Add( x => x.DisplayFormat, "{day:ordinal} MMMM yyyy" )
+                .Add( x => x.DisableMobile, true ) );
+
+            // validate
+            Assert.Equal( $"3rd November 2026{delimiter}11th November 2026", comp.Find( "input" ).GetAttribute( "value" ) );
+
+            // test
+            await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = $"21st November 2026{delimiter}22nd November 2026" } );
+
+            // validate
+            Assert.Equal( new[] { new DateTime( 2026, 11, 21 ), new DateTime( 2026, 11, 22 ) }, comp.Instance.Value );
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Fact]
+    public void SingleTokenDisplayFormatPreservesPreviousPickerSemantics()
+    {
+        // setup
+        DateTime value = new( 2026, 7, 9 );
+
+        // test
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.DisplayFormat, "d" ) );
+
+        // validate
+        Assert.Equal( "9", comp.Find( "input" ).GetAttribute( "value" ) );
+    }
+
+    [Fact]
+    public void DateTimeDefaultDisplayFormatPreservesPreviousPickerSemantics()
+    {
+        // setup
+        DateTime first = new( 2026, 7, 26, 22, 22, 21 );
+        DateTime second = new( 2026, 8, 1, 22, 22, 21 );
+
+        // test
+        IRenderedComponent<DatePicker<DateTime>> single = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, first )
+            .Add( x => x.InputMode, DateInputMode.DateTime ) );
+        IRenderedComponent<DatePicker<DateTime[]>> range = Render<DatePicker<DateTime[]>>( parameters => parameters
+            .Add( x => x.Value, new[] { first, second } )
+            .Add( x => x.InputMode, DateInputMode.DateTime )
+            .Add( x => x.SelectionMode, DateInputSelectionMode.Range ) );
+        IRenderedComponent<DatePicker<DateTime[]>> multiple = Render<DatePicker<DateTime[]>>( parameters => parameters
+            .Add( x => x.Value, new[] { first, second } )
+            .Add( x => x.InputMode, DateInputMode.DateTime )
+            .Add( x => x.SelectionMode, DateInputSelectionMode.Multiple ) );
+
+        // validate
+        Assert.Equal( "2026-07-26 22:22", single.Find( "input" ).GetAttribute( "value" ) );
+        Assert.Equal( "2026-07-26 22:22 to 2026-08-01 22:22", range.Find( "input" ).GetAttribute( "value" ) );
+        Assert.Equal( "2026-07-26 22:22, 2026-08-01 22:22", multiple.Find( "input" ).GetAttribute( "value" ) );
+    }
+
+    [Fact]
+    public async Task DateTimeOffsetValuePreservesOffsetWhenDateChanges()
+    {
+        // setup
+        TimeSpan offset = TimeSpan.FromHours( 5.5 );
+        DateTimeOffset value = new( 2026, 7, 27, 9, 15, 0, offset );
+        IRenderedComponent<DatePicker<DateTimeOffset>> comp = Render<DatePicker<DateTimeOffset>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.InputMode, DateInputMode.DateTime ) );
+
+        // test
+        await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = "2026-07-28 14:30" } );
+
+        // validate
+        Assert.Equal( new DateTimeOffset( 2026, 7, 28, 14, 30, 0, offset ), comp.Instance.Value );
+    }
+
+    [Fact]
+    public async Task DateTimeOffsetRangePreservesOffsetWhenDatesChange()
+    {
+        // setup
+        TimeSpan offset = TimeSpan.FromHours( 5.5 );
+        DateTimeOffset[] value = new[]
+        {
+            new DateTimeOffset( 2026, 7, 27, 9, 15, 0, offset ),
+            new DateTimeOffset( 2026, 7, 29, 9, 15, 0, offset ),
+        };
+        IRenderedComponent<DatePicker<DateTimeOffset[]>> comp = Render<DatePicker<DateTimeOffset[]>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.InputMode, DateInputMode.DateTime )
+            .Add( x => x.SelectionMode, DateInputSelectionMode.Range ) );
+
+        // test
+        await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = "2026-07-28 10:30 to 2026-07-30 11:45" } );
+
+        // validate
+        Assert.Equal(
+            new[]
+            {
+                new DateTimeOffset( 2026, 7, 28, 10, 30, 0, offset ),
+                new DateTimeOffset( 2026, 7, 30, 11, 45, 0, offset ),
+            },
+            comp.Instance.Value );
+    }
+
+    [Theory]
+    [InlineData( "2026-07-19" )]
+    [InlineData( "2026-08-01" )]
+    [InlineData( "2026-07-25" )]
+    [InlineData( "2026-07-26" )]
+    [InlineData( "2026-07-29" )]
+    public async Task TypedDateHonorsDateConstraints( string inputValue )
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2026, 7, 20 ) ) )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2026, 7, 31 ) ) )
+            .Add( x => x.DisabledDates, new[] { new DateTime( 2026, 7, 25 ) } )
+            .Add( x => x.DisabledDays, new[] { DayOfWeek.Sunday } )
+            .Add( x => x.EnabledDates, new[]
+            {
+                value,
+                new DateTime( 2026, 7, 19 ),
+                new DateTime( 2026, 8, 1 ),
+                new DateTime( 2026, 7, 25 ),
+                new DateTime( 2026, 7, 26 ),
+            } ) );
+
+        // test
+        await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = inputValue } );
+
+        // validate
+        Assert.Equal( value, comp.Instance.Value );
+    }
+
+    [Fact]
+    public async Task TypedRangeRejectsDisabledDate()
+    {
+        // setup
+        DateTime[] value = new[] { new DateTime( 2026, 7, 23 ), new DateTime( 2026, 7, 24 ) };
+        IRenderedComponent<DatePicker<DateTime[]>> comp = Render<DatePicker<DateTime[]>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.SelectionMode, DateInputSelectionMode.Range )
+            .Add( x => x.DisabledDates, new[] { new DateTime( 2026, 7, 25 ) } ) );
+
+        // test
+        await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = "2026-07-24 to 2026-07-25" } );
+
+        // validate
+        Assert.Equal( value, comp.Instance.Value );
+    }
+
+    [Theory]
+    [InlineData( "2026-07-27 08:59" )]
+    [InlineData( "2026-07-27 17:01" )]
+    public async Task TypedDateTimeHonorsTimeConstraints( string inputValue )
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27, 12, 0, 0 );
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.InputMode, DateInputMode.DateTime )
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2026, 7, 27, 9, 0, 0 ) ) )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2026, 7, 27, 17, 0, 0 ) ) ) );
+
+        // test
+        await comp.Find( "input" ).ChangeAsync( new ChangeEventArgs { Value = inputValue } );
+
+        // validate
+        Assert.Equal( value, comp.Instance.Value );
+    }
+
+    [Fact]
+    public void DisabledDateRendersAsDisabledCalendarCell()
+    {
+        // setup
+        DateTime value = new( 2026, 7, 27 );
+
+        // test
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, value )
+            .Add( x => x.Inline, true )
+            .Add( x => x.DisabledDates, new[] { new DateTime( 2026, 7, 28 ) } ) );
+
+        // validate
+        Assert.True( comp.Find( "[id$='day-20260728']" ).HasAttribute( "disabled" ) );
+    }
+
+    [Fact]
+    public void DateTimeMenuUsesTwoDigitTimeValues()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 7, 27, 7, 4, 0 ) )
+            .Add( x => x.InputMode, DateInputMode.DateTime )
+            .Add( x => x.Inline, true ) );
+
+        // validate
+        Assert.Equal( "07", comp.FindAll( ".datepicker-time-input" )[0].GetAttribute( "value" ) );
+        Assert.Equal( "04", comp.FindAll( ".datepicker-time-input" )[1].GetAttribute( "value" ) );
+    }
+
+    [Fact]
+    public async Task DateTimeCalendarSelectionClampsToMinimumTime()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 7, 28, 8, 0, 0 ) )
+            .Add( x => x.InputMode, DateInputMode.DateTime )
+            .Add( x => x.Inline, true )
+            .Add( x => x.Min, new DateTimeOffset( new DateTime( 2026, 7, 27, 9, 0, 0 ) ) ) );
+
+        // test
+        await comp.Find( "[id$='day-20260727']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( new DateTime( 2026, 7, 27, 9, 0, 0 ), comp.Instance.Value );
+    }
+
+    [Fact]
+    public async Task DateTimeControlClampsToMaximumTime()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime>> comp = Render<DatePicker<DateTime>>( parameters => parameters
+            .Add( x => x.Value, new DateTime( 2026, 7, 29, 16, 0, 0 ) )
+            .Add( x => x.InputMode, DateInputMode.DateTime )
+            .Add( x => x.Inline, true )
+            .Add( x => x.TimeAs24hr, true )
+            .Add( x => x.Max, new DateTimeOffset( new DateTime( 2026, 7, 29, 17, 0, 0 ) ) ) );
+
+        // test
+        await comp.FindAll( ".datepicker-time-input" )[0].ChangeAsync( new ChangeEventArgs { Value = "18" } );
+
+        // validate
+        Assert.Equal( new DateTime( 2026, 7, 29, 17, 0, 0 ), comp.Instance.Value );
+    }
+
+    [Fact]
+    public async Task RangeSelectionCommitsOrderedDates()
+    {
+        // setup
+        IRenderedComponent<DatePicker<DateTime[]>> comp = Render<DatePicker<DateTime[]>>( parameters => parameters
+            .Add( x => x.Value, new[] { new DateTime( 2026, 7, 27 ) } )
+            .Add( x => x.SelectionMode, DateInputSelectionMode.Range )
+            .Add( x => x.Inline, true ) );
+
+        // test
+        await comp.Find( "[id$='day-20260729']" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( "[id$='day-20260727']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal(
+            new[] { new DateTime( 2026, 7, 27 ), new DateTime( 2026, 7, 29 ) },
+            comp.Instance.Value );
+    }
+
+    [Fact]
+    public async Task EqualRangeDatesAreDisplayedOnce()
+    {
+        // setup
+        DateTime date = new( 2026, 7, 16 );
+        IRenderedComponent<DatePicker<DateTime[]>> comp = Render<DatePicker<DateTime[]>>( parameters => parameters
+            .Add( x => x.Value, new[] { date } )
+            .Add( x => x.SelectionMode, DateInputSelectionMode.Range )
+            .Add( x => x.DisplayFormat, "yyyy-MM-dd" ) );
+
+        // test
+        await comp.Find( "input" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( "[id$='day-20260716']" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( "[id$='day-20260716']" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( new[] { date }, comp.Instance.Value );
+        Assert.Equal( "2026-07-16", comp.Find( "input" ).GetAttribute( "value" ) );
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+    }
+
+    [Fact]
+    public async Task TodayButtonCommitsRangeOnFirstClick()
+    {
+        // setup
+        DateTime today = DateTime.Today;
+        IRenderedComponent<DatePicker<DateTime[]>> comp = Render<DatePicker<DateTime[]>>( parameters => parameters
+            .Add( x => x.SelectionMode, DateInputSelectionMode.Range )
+            .Add( x => x.ShowTodayButton, true )
+            .Add( x => x.DisplayFormat, "yyyy-MM-dd" )
+            .Add( x => x.RangeSeparator, " to " ) );
+
+        // test
+        await comp.Find( "input" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( ".datepicker-button" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( new[] { today }, comp.Instance.Value );
+        Assert.Equal( $"{today:yyyy-MM-dd}", comp.Find( "input" ).GetAttribute( "value" ) );
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+    }
+
+    [Fact]
+    public async Task TodayButtonReplacesPendingRange()
+    {
+        // setup
+        DateTime today = DateTime.Today;
+        DateTime pendingStart = today.AddDays( -1 );
+        IRenderedComponent<DatePicker<DateTime[]>> comp = Render<DatePicker<DateTime[]>>( parameters => parameters
+            .Add( x => x.SelectionMode, DateInputSelectionMode.Range )
+            .Add( x => x.ShowTodayButton, true ) );
+
+        // test
+        await comp.Find( "input" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( $"[id$='day-{pendingStart:yyyyMMdd}']" ).ClickAsync( new MouseEventArgs() );
+        await comp.Find( ".datepicker-button" ).ClickAsync( new MouseEventArgs() );
+
+        // validate
+        Assert.Equal( new[] { today }, comp.Instance.Value );
+        Assert.Empty( comp.FindAll( "[role='dialog']" ) );
+    }
+
+    [Fact]
+    public void RenderDateTimeTest()
+    {
+        // setup
+        var defDate = new DateTime();
+        var dateOpen = "<input";
+        var dateClose = "</input>";
+        var dateType = @"type=""text""";
+        var dateOutput = @"<span id=""date-event-initially-undefined-result"">" + defDate.ToString() + "</span>";
+        var nullableOutput = @"<span id=""nullable-date-event-initially-null-result""></span>";
+
+        // test
+        var comp = Render<DatePickerComponent>();
+
+        // validate
+        Assert.Contains( dateOpen, comp.Markup );
+        Assert.Contains( dateClose, comp.Markup );
+        Assert.Contains( dateType, comp.Markup );
+        Assert.Contains( dateOutput, comp.Markup );
+        Assert.NotNull( comp.Find( "#date-event-initially-undefined" ) );
+        Assert.NotNull( comp.Find( "#date-control" ) );
+        Assert.NotNull( comp.Find( "#date-event-initially-undefined-result" ) );
+
+        Assert.Contains( nullableOutput, comp.Markup );
+        Assert.NotNull( comp.Find( "#nullable-date-event-initially-null" ) );
+        Assert.NotNull( comp.Find( "#nullable-date-control" ) );
+        Assert.NotNull( comp.Find( "#nullable-date-event-initially-null-result" ) );
+    }
+
+    [Fact]
+    public void RenderDateOnlyTest()
+    {
+        // setup
+        var defDate = new DateOnly();
+        var dateOpen = "<input";
+        var dateClose = "</input>";
+        var dateType = @"type=""text""";
+        var dateOutput = @"<span id=""date-only-event-initially-undefined-result"">" + defDate.ToString() + "</span>";
+        var nullableOutput = @"<span id=""nullable-date-only-event-initially-null-result""></span>";
+
+        // test
+        var comp = Render<DatePickerComponent>();
+
+        // validate
+        Assert.Contains( dateOpen, comp.Markup );
+        Assert.Contains( dateClose, comp.Markup );
+        Assert.Contains( dateType, comp.Markup );
+        Assert.Contains( dateOutput, comp.Markup );
+        Assert.NotNull( comp.Find( "#date-only-event-initially-undefined" ) );
+        Assert.NotNull( comp.Find( "#date-only-control" ) );
+        Assert.NotNull( comp.Find( "#date-only-event-initially-undefined-result" ) );
+
+        Assert.Contains( nullableOutput, comp.Markup );
+        Assert.NotNull( comp.Find( "#nullable-date-only-event-initially-null" ) );
+        Assert.NotNull( comp.Find( "#nullable-date-only-control" ) );
+        Assert.NotNull( comp.Find( "#nullable-date-only-event-initially-null-result" ) );
+    }
+
+    [Fact]
+    public void RenderDateTimeOffsetTest()
+    {
+        // setup
+        var defDate = new DateTimeOffset();
+        var dateOpen = "<input";
+        var dateClose = "</input>";
+        var dateType = @"type=""text""";
+        var dateOutput = @"<span id=""date-offset-event-initially-undefined-result"">" + defDate.ToString() + "</span>";
+        var nullableOutput = @"<span id=""nullable-date-offset-event-initially-null-result""></span>";
+
+        // test
+        var comp = Render<DatePickerComponent>();
+
+        // validate
+        Assert.Contains( dateOpen, comp.Markup );
+        Assert.Contains( dateClose, comp.Markup );
+        Assert.Contains( dateType, comp.Markup );
+        Assert.Contains( dateOutput, comp.Markup );
+        Assert.NotNull( comp.Find( "#date-offset-event-initially-undefined" ) );
+        Assert.NotNull( comp.Find( "#date-offset-control" ) );
+        Assert.NotNull( comp.Find( "#date-offset-event-initially-undefined-result" ) );
+
+        Assert.Contains( nullableOutput, comp.Markup );
+        Assert.NotNull( comp.Find( "#nullable-date-offset-event-initially-null" ) );
+        Assert.NotNull( comp.Find( "#nullable-date-offset-control" ) );
+        Assert.NotNull( comp.Find( "#nullable-date-offset-event-initially-null-result" ) );
+    }
+
+    [Fact]
+    public void SetDateTime()
+    {
+        // setup
+        var dateOutput = @"<span id=""date-event-initially-undefined-result"">" + new DateTime( 1970, 5, 3 ).ToString() + "</span>";
+        var comp = Render<DatePickerComponent>();
+
+        // test
+        comp.Instance.DateValue = new( 1970, 5, 3 );
+        comp.Render();
+
+        // validate
+        Assert.Contains( dateOutput, comp.Markup );
+    }
+
+    [Fact]
+    public void SetNullableDateTime()
+    {
+        // setup
+        var dateOutput = @"<span id=""nullable-date-event-initially-null-result"">" + new DateTime( 1970, 5, 3 ).ToString() + "</span>";
+        var comp = Render<DatePickerComponent>();
+
+        // test
+        comp.Instance.NullableDateValue = new DateTime( 1970, 5, 3 );
+        comp.Render();
+
+        // validate
+        Assert.Contains( dateOutput, comp.Markup );
+    }
+
+    [Fact]
+    public void SetDateOnly()
+    {
+        // setup
+        var dateonly = new DateOnly( 2020, 4, 13 );
+        var dateOutput = @"<span id=""date-only-event-initially-undefined-result"">" + dateonly.ToString() + "</span>";
+        var comp = Render<DatePickerComponent>();
+
+        // test
+        comp.Instance.DateOnlyValue = dateonly;
+        comp.Render();
+
+        // validate
+        Assert.Contains( dateOutput, comp.Markup );
+    }
+
+    [Fact]
+    public void SetNullableDateOnly()
+    {
+        // setup
+        var dateonly = new DateOnly( 2020, 4, 13 );
+        var dateOutput = @"<span id=""nullable-date-only-event-initially-null-result"">" + dateonly.ToString() + "</span>";
+        var comp = Render<DatePickerComponent>();
+
+        // test
+        comp.Instance.NullableDateOnlyValue = dateonly;
+        comp.Render();
+
+        // validate
+        Assert.Contains( dateOutput, comp.Markup );
+    }
+
+    [Fact]
+    public void SetDateTimeOffset()
+    {
+        // setup
+        var offset = new DateTimeOffset( new( 2020, 4, 13 ) );
+        var dateOutput = @"<span id=""date-offset-event-initially-undefined-result"">" + offset.ToString() + "</span>";
+        var comp = Render<DatePickerComponent>();
+
+        // test
+        comp.Instance.OffsetValue = offset;
+        comp.Render();
+
+        // validate
+        Assert.Contains( dateOutput, comp.Markup );
+    }
+
+    [Fact]
+    public void SetNullableDateTimeOffset()
+    {
+        // setup
+        var offset = new DateTimeOffset( new( 2020, 4, 13 ) );
+        var dateOutput = @"<span id=""nullable-date-offset-event-initially-null-result"">" + offset.ToString() + "</span>";
+        var comp = Render<DatePickerComponent>();
+
+        // test
+        comp.Instance.NullableOffsetValue = offset;
+        comp.Render();
+
+        // validate
+        Assert.Contains( dateOutput, comp.Markup );
     }
 }

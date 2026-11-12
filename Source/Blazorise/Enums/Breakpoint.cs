@@ -1,38 +1,72 @@
-﻿namespace Blazorise
+﻿namespace Blazorise;
+
+/// <summary>
+/// Defines the media breakpoint.
+/// </summary>
+public enum Breakpoint
 {
     /// <summary>
-    /// Defines the media breakpoint.
+    /// Breakpoint is undefined.
     /// </summary>
-    public enum Breakpoint
-    {
-        /// <summary>
-        /// Breakpoint is undefined.
-        /// </summary>
-        None,
+    None,
 
-        /// <summary>
-        /// Valid on all devices. (extra small)
-        /// </summary>
-        Mobile,
+    /// <summary>
+    /// Valid on all devices (extra small)
+    /// </summary>
+    Mobile,
 
-        /// <summary>
-        /// Breakpoint on tablets (small).
-        /// </summary>
-        Tablet,
+    /// <summary>
+    /// Valid on all devices.
+    /// </summary>
+    ExtraSmall,
 
-        /// <summary>
-        ///  Breakpoint on desktop (medium).
-        /// </summary>
-        Desktop,
+    /// <summary>
+    /// Breakpoint on tablets (small).
+    /// </summary>
+    Tablet,
 
-        /// <summary>
-        /// Breakpoint on widescreen (large).
-        /// </summary>
-        Widescreen,
+    /// <summary>
+    /// Breakpoint on tablets.
+    /// </summary>
+    Small,
 
-        /// <summary>
-        /// Breakpoint on large desktops (extra large).
-        /// </summary>
-        FullHD,
-    }
+    /// <summary>
+    /// Breakpoint on desktop (medium).
+    /// </summary>
+    Desktop,
+
+    /// <summary>
+    /// Breakpoint on desktop.
+    /// </summary>
+    Medium,
+
+    /// <summary>
+    /// Breakpoint on widescreen (large).
+    /// </summary>
+    Widescreen,
+
+    /// <summary>
+    /// Breakpoint on widescreen.
+    /// </summary>
+    Large,
+
+    /// <summary>
+    /// Breakpoint on hd screens (extra large).
+    /// </summary>
+    FullHD,
+
+    /// <summary>
+    /// Breakpoint on hd screens.
+    /// </summary>
+    ExtraLarge,
+
+    /// <summary>
+    /// Breakpoint on large 2k desktops (extra extra large).
+    /// </summary>
+    QuadHD,
+
+    /// <summary>
+    /// Breakpoint on large desktops.
+    /// </summary>
+    ExtraExtraLarge,
 }

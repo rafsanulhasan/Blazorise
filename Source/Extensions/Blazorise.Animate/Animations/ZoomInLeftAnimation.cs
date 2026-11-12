@@ -1,7 +1,8 @@
-﻿namespace Blazorise.Animate
+﻿namespace Blazorise.Animate;
+
+/// <inheritdoc cref="Animations.ZoomInLeft"/>
+public class ZoomInLeftAnimation : IAnimation
 {
-    public class ZoomInLeftAnimation : IAnimation
-    {
-        public string Name => "zoom-in-left";
-    }
+    /// <inheritdoc />
+    public string Name => "zoom-in-left";
 }

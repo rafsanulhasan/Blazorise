@@ -1,0 +1,1523 @@
+#region Using directives
+using System;
+using System.Globalization;
+using System.Text;
+using Blazorise.Extensions;
+#endregion
+
+namespace Blazorise.Bootstrap5.Providers;
+
+public class Bootstrap5ThemeGenerator : ThemeGenerator
+{
+    #region Constructors
+
+    public Bootstrap5ThemeGenerator( IThemeCache themeCache )
+        : base( themeCache )
+    {
+    }
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc />
+    protected override string GetDockLayoutVariableName( string name )
+        => $"--bs-dock-{name}";
+
+    protected override void GenerateBodyVariables( Theme theme )
+    {
+        base.GenerateBodyVariables( theme );
+
+        SetBootstrapColorVariable( "white", Var( ThemeVariables.White ) );
+        SetBootstrapColorVariable( "black", Var( ThemeVariables.Black ) );
+        SetBootstrapVariable( "border-radius", Var( ThemeVariables.BorderRadius ) );
+        SetBootstrapVariable( "border-radius-lg", Var( ThemeVariables.BorderRadiusLarge ) );
+        SetBootstrapVariable( "border-radius-sm", Var( ThemeVariables.BorderRadiusSmall ) );
+        SetBootstrapVariable( "body-font-family", Var( ThemeVariables.BodyFontFamily ) );
+        SetBootstrapVariable( "body-font-size", Var( ThemeVariables.BodyFontSize ) );
+        SetBootstrapVariable( "body-font-weight", Var( ThemeVariables.BodyFontWeight ) );
+        SetBootstrapColorVariable( "body-bg", Var( ThemeVariables.BodyBackgroundColor ) );
+        SetBootstrapColorVariable( "body-color", Var( ThemeVariables.BodyTextColor ) );
+        SetBootstrapColorVariable( "emphasis-color", Var( ThemeVariables.BodyTextColor ) );
+    }
+
+    protected override void GenerateBarVariables( Theme theme, ThemeBarOptions barOptions )
+    {
+        base.GenerateBarVariables( theme, barOptions );
+
+        GenerateBarFontVariableAliases( barOptions, "--bs-navbar" );
+    }
+
+    protected override void GenerateColorVariables( Theme theme, string variant, string value )
+    {
+        var normalizedValue = NormalizeBootstrapColorOption( variant, value );
+
+        base.GenerateColorVariables( theme, variant, normalizedValue );
+
+        if ( variant == "link" )
+            SetBootstrapColorVariable( "link-color", normalizedValue );
+        else
+            SetBootstrapColorVariable( variant, normalizedValue );
+    }
+
+    protected override void GenerateBackgroundVariables( Theme theme, string variant, string inColor )
+    {
+        base.GenerateBackgroundVariables( theme, variant, inColor );
+
+        var backgroundColor = Var( ThemeVariables.BackgroundColor( variant ) );
+        var backgroundSubtleColor = Var( ThemeVariables.BackgroundSubtleColor( variant ) );
+
+        if ( variant == "body" )
+        {
+            SetBootstrapColorVariable( "body-bg", backgroundColor );
+        }
+        else if ( variant == "muted" )
+        {
+            SetBootstrapColorVariable( "secondary-bg", backgroundColor );
+        }
+        else
+        {
+            if ( variant == "light" )
+                SetBootstrapColorVariable( "tertiary-bg", backgroundColor );
+
+            SetBootstrapColorVariable( $"{variant}-bg-subtle", backgroundSubtleColor );
+        }
+    }
+
+    protected override void GenerateBorderVariables( Theme theme, string variant, string inColor )
+    {
+        base.GenerateBorderVariables( theme, variant, inColor );
+
+        var borderColor = Var( ThemeVariables.BorderColor( variant ) );
+        var borderSubtleColor = Var( ThemeVariables.BorderSubtleColor( variant ) );
+
+        if ( variant == "muted" )
+            SetBootstrapColorVariable( "border-color", borderColor );
+        else if ( variant != "body" )
+            SetBootstrapColorVariable( $"{variant}-border-subtle", borderSubtleColor );
+    }
+
+    protected override void GenerateTextColorVariables( Theme theme, string variant, string inColor )
+    {
+        base.GenerateTextColorVariables( theme, variant, inColor );
+
+        var textColor = Var( ThemeVariables.TextColor( variant ) );
+        var textEmphasisColor = Var( ThemeVariables.TextEmphasisColor( variant ) );
+
+        if ( variant == "body" )
+        {
+            SetBootstrapColorVariable( "body-color", textColor );
+            SetBootstrapColorVariable( "emphasis-color", textEmphasisColor );
+        }
+        else if ( variant == "muted" )
+        {
+            SetBootstrapColorVariable( "secondary-color", textColor );
+        }
+        else if ( IsThemeVariant( variant ) )
+        {
+            SetBootstrapColorVariable( $"{variant}-text-emphasis", textEmphasisColor );
+        }
+    }
+
+    protected override void GenerateColorStyles( StringBuilder sb, Theme theme, string variant, string color )
+    {
+        base.GenerateColorStyles( sb, theme, variant, NormalizeBootstrapColorOption( variant, color ) );
+    }
+
+    protected override void GenerateBreakpointStyles( StringBuilder sb, Theme theme, string breakpointName, string breakpointSize )
+    {
+        if ( !string.IsNullOrEmpty( breakpointSize ) )
+        {
+            if ( !string.IsNullOrEmpty( theme?.ContainerMaxWidthOptions?[breakpointName]?.Invoke() ) )
+            {
+                var containerSize = theme.ContainerMaxWidthOptions[breakpointName].Invoke();
+
+                sb.Append( MediaBreakpointUp( breakpointName, $".container{{max-width: {containerSize};}}" ) );
+            }
+        }
+
+        base.GenerateBreakpointStyles( sb, theme, breakpointName, breakpointSize );
+    }
+
+    protected override void GenerateBackgroundVariantStyles( StringBuilder sb, Theme theme, string variant )
+    {
+        var hexBackgroundColor = Var( ThemeVariables.BackgroundColor( variant ) );
+        var hexBackgroundColorSubtle = Var( ThemeVariables.BackgroundSubtleColor( variant ) );
+
+        sb.Append( $".bg-{variant}" ).Append( "{" )
+            .Append( $"background-color: {hexBackgroundColor} !important;" )
+            .AppendLine( "}" );
+
+        sb.Append( $".bg-{variant}-subtle" ).Append( "{" )
+            .Append( $"background-color: {hexBackgroundColorSubtle} !important;" )
+            .AppendLine( "}" );
+
+        sb.Append( $".jumbotron-{variant}" ).Append( "{" )
+            .Append( $"background-color: {hexBackgroundColor} !important;" )
+            .Append( $"color: {ToHex( GetContrastColor( theme, hexBackgroundColor ) )} !important;" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateBorderVariantStyles( StringBuilder sb, Theme theme, string variant )
+    {
+        var hexBorderColor = Var( ThemeVariables.BorderColor( variant ) );
+        var hexBorderColorSubtle = Var( ThemeVariables.BorderSubtleColor( variant ) );
+
+        sb.Append( $".border-{variant}" ).Append( "{" )
+            .Append( $"border-color: {hexBorderColor} !important;" )
+            .AppendLine( "}" );
+
+        sb.Append( $".border-{variant}-subtle" ).Append( "{" )
+            .Append( $"border-color: {hexBorderColorSubtle} !important;" )
+            .AppendLine( "}" );
+
+        for ( int i = 1; i <= 5; ++i )
+        {
+            sb.Append( $".border-{i}.border-{variant}" ).Append( "{" )
+                .Append( $"border-color: {hexBorderColor} !important;" )
+                .AppendLine( "}" );
+
+            sb.Append( $".border-{i}.border-{variant}-subtle" ).Append( "{" )
+                .Append( $"border-color: {hexBorderColorSubtle} !important;" )
+                .AppendLine( "}" );
+        }
+
+        foreach ( var (side, property) in new[] { ("top", "top"), ("end", "right"), ("bottom", "bottom"), ("start", "left") } )
+        {
+            for ( int i = 1; i <= 5; ++i )
+            {
+                sb.Append( $".border-{side}-{i}.border-{variant}" ).Append( "{" )
+                    .Append( $"border-{property}-color: {hexBorderColor} !important;" )
+                    .AppendLine( "}" );
+
+                sb.Append( $".border-{side}-{i}.border-{variant}-subtle" ).Append( "{" )
+                    .Append( $"border-{property}-color: {hexBorderColorSubtle} !important;" )
+                    .AppendLine( "}" );
+            }
+        }
+    }
+
+    protected override void GenerateButtonVariantStyles( StringBuilder sb, Theme theme, string variant, ThemeButtonOptions options )
+    {
+        var background = Var( ThemeVariables.ButtonBackground( variant ) );
+        var border = Var( ThemeVariables.ButtonBorder( variant ) );
+        var hoverBackground = Var( ThemeVariables.ButtonHoverBackground( variant ) );
+        var hoverBorder = Var( ThemeVariables.ButtonHoverBorder( variant ) );
+        var activeBackground = Var( ThemeVariables.ButtonActiveBackground( variant ) );
+        var activeBorder = Var( ThemeVariables.ButtonActiveBorder( variant ) );
+        var yiqBackground = Var( ThemeVariables.ButtonYiqBackground( variant ) );
+        var yiqHoverBackground = Var( ThemeVariables.ButtonYiqHoverBackground( variant ) );
+        var yiqActiveBackground = Var( ThemeVariables.ButtonYiqActiveBackground( variant ) );
+        var boxShadow = Var( ThemeVariables.ButtonBoxShadow( variant ) );
+
+        if ( variant == "link" )
+        {
+            sb
+                .Append( $".btn-{variant}" ).Append( "{" )
+                .Append( $"color: {background};" )
+                .AppendLine( "}" );
+
+            sb.Append( $".btn-{variant}:hover" )
+                .Append( "{" )
+                .Append( $"color: {hoverBackground};" )
+                .AppendLine( "}" );
+
+            sb.Append( $".btn-{variant}.disabled," )
+                .Append( $".btn-{variant}:disabled" )
+                .Append( "{" )
+                .Append( $"color: {ToHex( Darken( background, 15f ) )};" )
+                .AppendLine( "}" );
+        }
+        else
+        {
+            sb.Append( $".btn-{variant}," )
+                .Append( $"a.btn-{variant}" )
+                .Append( "{" )
+                .Append( $"color: {yiqBackground};" )
+                .Append( GetGradientBg( theme, background, options?.GradientBlendPercentage ) )
+                .Append( $"border-color: {border};" )
+                .AppendLine( "}" );
+
+            sb.Append( $".btn-{variant}:hover," )
+                .Append( $"a.btn-{variant}:hover" )
+                .Append( "{" )
+                .Append( $"color: {yiqHoverBackground};" )
+                .Append( GetGradientBg( theme, hoverBackground, options?.GradientBlendPercentage ) )
+                .Append( $"border-color: {hoverBorder};" )
+                .AppendLine( "}" );
+
+            sb.Append( $".btn-{variant}:focus," )
+                .Append( $".btn-{variant}.focus," )
+                .Append( $"a.btn-{variant}:focus," )
+                .Append( $"a.btn-{variant}.focus" )
+                .Append( "{" )
+                .Append( $"color: {yiqHoverBackground};" )
+                .Append( GetGradientBg( theme, hoverBackground, options?.GradientBlendPercentage ) )
+                .Append( $"border-color: {hoverBorder};" )
+                .Append( $"box-shadow: 0 0 0 {options?.BoxShadowSize ?? ".2rem"} {boxShadow};" )
+                .AppendLine( "}" );
+
+            sb.Append( $".btn-{variant}.disabled," )
+                .Append( $".btn-{variant}:disabled," )
+                .Append( $"a.btn-{variant}.disabled," )
+                .Append( $"a.btn-{variant}:disabled" )
+                .Append( "{" )
+                .Append( $"color: {yiqBackground};" )
+                .Append( $"background-color: {background};" )
+                .Append( $"border-color: {border};" )
+                .AppendLine( "}" );
+
+            sb
+                .Append( $".btn-{variant}:not(:disabled):not(.disabled):active," )
+                .Append( $".btn-{variant}:not(:disabled):not(.disabled).active," )
+                .Append( $".show>.btn-{variant}.dropdown-toggle," )
+                .Append( $"a.btn-{variant}:not(:disabled):not(.disabled):active," )
+                .Append( $"a.btn-{variant}:not(:disabled):not(.disabled).active," )
+                .Append( $"a.show>.btn-{variant}.dropdown-toggle" )
+                .Append( "{" )
+                .Append( $"color: {yiqActiveBackground};" )
+                .Append( $"background-color: {activeBackground};" )
+                .Append( $"border-color: {activeBorder};" )
+                .AppendLine( "}" );
+
+            sb
+                .Append( $".btn-{variant}:not(:disabled):not(.disabled):active:focus," )
+                .Append( $".btn-{variant}:not(:disabled):not(.disabled).active:focus," )
+                .Append( $".show>.btn-{variant}.dropdown-toggle:focus," )
+                .Append( $"a.btn-{variant}:not(:disabled):not(.disabled):active:focus," )
+                .Append( $"a.btn-{variant}:not(:disabled):not(.disabled).active:focus," )
+                .Append( $"a.show>.btn-{variant}.dropdown-toggle:focus" )
+                .Append( "{" )
+                .Append( $"box-shadow: 0 0 0 {options?.BoxShadowSize ?? ".2rem"} {boxShadow}" )
+                .AppendLine( "}" );
+        }
+    }
+
+    protected override void GenerateButtonOutlineVariantStyles( StringBuilder sb, Theme theme, string variant, ThemeButtonOptions options )
+    {
+        var color = Var( ThemeVariables.OutlineButtonColor( variant ) );
+        var yiqColor = Var( ThemeVariables.OutlineButtonYiqColor( variant ) );
+        var boxShadow = Var( ThemeVariables.OutlineButtonBoxShadowColor( variant ) );
+
+        sb
+            .Append( $".btn-outline-{variant}," )
+            .Append( $"a.btn-outline-{variant}" )
+            .Append( "{" )
+            .Append( $"color: {color};" )
+            .Append( $"border-color: {color};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( $".btn-outline-{variant}:hover," )
+            .Append( $"a.btn-outline-{variant}:hover" )
+            .Append( "{" )
+            .Append( $"color: {yiqColor};" )
+            .Append( $"background-color: {color};" )
+            .Append( $"border-color: {color};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( $".btn-outline-{variant}:focus," )
+            .Append( $".btn-outline-{variant}.focus," )
+            .Append( $"a.btn-outline-{variant}:focus," )
+            .Append( $"a.btn-outline-{variant}.focus" )
+            .Append( "{" )
+            .Append( $"box-shadow: 0 0 0 {options?.BoxShadowSize ?? ".2rem"} {boxShadow};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( $".btn-outline-{variant}.disabled," )
+            .Append( $".btn-outline-{variant}:disabled," )
+            .Append( $"a.btn-outline-{variant}.disabled," )
+            .Append( $"a.btn-outline-{variant}:disabled" )
+            .Append( "{" )
+            .Append( $"color: {color};" )
+            .Append( "background-color: transparent;" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( $".btn-outline-{variant}:not(:disabled):not(.disabled):active," )
+            .Append( $".btn-outline-{variant}:not(:disabled):not(.disabled).active," )
+            .Append( $".show>.btn-outline-{variant}.dropdown-toggle," )
+            .Append( $"a.btn-outline-{variant}:not(:disabled):not(.disabled):active," )
+            .Append( $"a.btn-outline-{variant}:not(:disabled):not(.disabled).active," )
+            .Append( $"a.show>.btn-outline-{variant}.dropdown-toggle" )
+            .Append( "{" )
+            .Append( $"color: {yiqColor};" )
+            .Append( $"background-color: {color};" )
+            .Append( $"border-color: {color};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( $".btn-outline-{variant}:not(:disabled):not(.disabled):active:focus," )
+            .Append( $".btn-outline-{variant}:not(:disabled):not(.disabled).active:focus," )
+            .Append( $".show>.btn-outline-{variant}.dropdown-toggle:focus," )
+            .Append( $"a.btn-outline-{variant}:not(:disabled):not(.disabled):active:focus," )
+            .Append( $"a.btn-outline-{variant}:not(:disabled):not(.disabled).active:focus," )
+            .Append( $"a.show>.btn-outline-{variant}.dropdown-toggle:focus" )
+            .Append( "{" )
+            .Append( $"box-shadow: 0 0 0 {options?.BoxShadowSize ?? ".2rem"} {boxShadow};" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateButtonStyles( StringBuilder sb, Theme theme, ThemeButtonOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            sb.Append( ".btn" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) )};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( options?.SmallBorderRadius ) )
+        {
+            sb.Append( ".btn-sm" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.SmallBorderRadius, Var( ThemeVariables.BorderRadiusSmall ) )};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( options?.LargeBorderRadius ) )
+        {
+            sb.Append( ".btn-lg" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.LargeBorderRadius, Var( ThemeVariables.BorderRadiusLarge ) )};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( options?.Padding ) )
+            sb.Append( ".btn" ).Append( "{" )
+                .Append( $"padding: {options.Padding};" )
+                .AppendLine( "}" );
+
+        if ( !string.IsNullOrEmpty( options?.Margin ) )
+            sb.Append( ".btn" ).Append( "{" )
+                .Append( $"margin: {options.Margin};" )
+                .AppendLine( "}" );
+
+        if ( options?.DisabledOpacity != null )
+            sb.Append( ".btn.disabled, .btn:disabled" ).Append( "{" )
+                .Append( $"opacity: {options.DisabledOpacity.ToCultureInvariantString()};" )
+                .AppendLine( "}" );
+    }
+
+    protected override void GenerateDropdownStyles( StringBuilder sb, Theme theme, ThemeDropdownOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            sb.Append( ".dropdown-menu" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) )};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( theme.ColorOptions?.Primary ) )
+        {
+            var primary = Var( ThemeVariables.Color( "primary" ), NormalizeBootstrapColorOption( "primary", theme.ColorOptions.Primary ) );
+            var backgroundColor = ParseColor( primary );
+
+            if ( !backgroundColor.IsEmpty )
+            {
+                var background = ToHex( backgroundColor );
+                var color = ToHex( GetContrastColor( theme, background ) );
+
+                sb.Append( ".dropdown-item.active," )
+                    .Append( ".dropdown-item:active" ).Append( "{" )
+                    .Append( GetGradientBg( theme, background, options?.GradientBlendPercentage ) )
+                    .Append( $"color: {color} !important;" )
+                    .AppendLine( "}" );
+            }
+        }
+    }
+
+    protected override void GenerateInputStyles( StringBuilder sb, Theme theme, ThemeInputOptions options )
+    {
+        if ( !string.IsNullOrEmpty( theme.ButtonOptions?.BoxShadowSize ) )
+        {
+            sb.Append( ".form-control" ).Append( "{" )
+                .Append( $"--bs-focus-ring-width: {theme.ButtonOptions.BoxShadowSize};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            var borderRadius = GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) );
+
+            sb.Append( ".form-control" ).Append( "{" )
+                .Append( $"border-radius: {borderRadius};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".input-group-text" ).Append( "{" )
+                .Append( $"border-radius: {borderRadius};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".form-select" ).Append( "{" )
+                .Append( $"border-radius: {borderRadius};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".form-check:not(.form-switch) .form-check-input[type=checkbox]" ).Append( "{" )
+                .Append( $"border-radius: {borderRadius};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( options?.Color ) )
+        {
+            sb.Append( ".form-control" ).Append( "{" )
+                .Append( $"color: {options.Color};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".input-group-text" ).Append( "{" )
+                .Append( $"color: {options.Color};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".form-select" ).Append( "{" )
+                .Append( $"color: {options.Color};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( options?.CheckColor ) )
+        {
+            GenerateInputCheckEditStyles( sb, theme, options );
+        }
+
+        if ( !string.IsNullOrEmpty( theme.ColorOptions?.Primary ) )
+        {
+            var focusColor = ToHex( Lighten( Var( ThemeVariables.Color( "primary" ) ), 75f ) );
+
+            sb
+                .Append( ".form-control:focus," )
+                .Append( ".form-select:focus," )
+                .Append( ".b-is-autocomplete.b-is-autocomplete-multipleselection.focus" )
+                .Append( "{" )
+                .Append( $"border-color: {focusColor};" )
+                .Append( $"box-shadow: 0 0 0 {theme.ButtonOptions?.BoxShadowSize ?? ".2rem"} {focusColor};" )
+                .AppendLine( "}" );
+        }
+
+        var validationShadowSize = theme.ButtonOptions?.BoxShadowSize ?? ".2rem";
+        var validationSuccessColor = Var( ThemeVariables.Color( "success" ) );
+        var validationDangerColor = Var( ThemeVariables.Color( "danger" ) );
+
+        if ( !string.IsNullOrEmpty( validationSuccessColor ) )
+        {
+            var validationSuccessShadow = ToHexRGBA( Transparency( validationSuccessColor, 64 ) );
+            var validationSuccessTextColor = ToHex( GetContrastColor( theme, validationSuccessColor ) );
+
+            sb.Append( ".form-control.is-valid," )
+                .Append( ".form-select.is-valid" )
+                .Append( "{" )
+                .Append( $"border-color: {validationSuccessColor};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".form-control.is-valid:focus," )
+                .Append( ".form-select.is-valid:focus" )
+                .Append( "{" )
+                .Append( $"border-color: {validationSuccessColor};" )
+                .Append( $"box-shadow: 0 0 0 {validationShadowSize} {validationSuccessShadow};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".valid-feedback" ).Append( "{" )
+                .Append( $"color: {validationSuccessColor};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".valid-tooltip" ).Append( "{" )
+                .Append( $"color: {validationSuccessTextColor};" )
+                .Append( $"background-color: {validationSuccessColor};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".b-is-autocomplete.is-valid" ).Append( "{" )
+                .Append( $"border-color: {validationSuccessColor};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".b-is-autocomplete.is-valid.focus" ).Append( "{" )
+                .Append( $"border-color: {validationSuccessColor};" )
+                .Append( $"box-shadow: 0 0 0 {validationShadowSize} {validationSuccessShadow};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( validationDangerColor ) )
+        {
+            var validationDangerShadow = ToHexRGBA( Transparency( validationDangerColor, 64 ) );
+            var validationDangerTextColor = ToHex( GetContrastColor( theme, validationDangerColor ) );
+
+            sb.Append( ".form-control.is-invalid," )
+                .Append( ".form-select.is-invalid" )
+                .Append( "{" )
+                .Append( $"border-color: {validationDangerColor};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".form-control.is-invalid:focus," )
+                .Append( ".form-select.is-invalid:focus" )
+                .Append( "{" )
+                .Append( $"border-color: {validationDangerColor};" )
+                .Append( $"box-shadow: 0 0 0 {validationShadowSize} {validationDangerShadow};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".invalid-feedback" ).Append( "{" )
+                .Append( $"color: {validationDangerColor};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".invalid-tooltip" ).Append( "{" )
+                .Append( $"color: {validationDangerTextColor};" )
+                .Append( $"background-color: {validationDangerColor};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".b-is-autocomplete.is-invalid" ).Append( "{" )
+                .Append( $"border-color: {validationDangerColor};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".b-is-autocomplete.is-invalid.focus" ).Append( "{" )
+                .Append( $"border-color: {validationDangerColor};" )
+                .Append( $"box-shadow: 0 0 0 {validationShadowSize} {validationDangerShadow};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( theme.ColorOptions?.Primary ) )
+        {
+            sb.Append( $".form-range::-webkit-slider-thumb" )
+                .Append( "{" )
+                .Append( $"background-color: {Var( ThemeVariables.Color( "primary" ) )};" )
+                .AppendLine( "}" );
+
+            sb.Append( $".form-range:focus::-webkit-slider-thumb" )
+                .Append( "{" )
+                .Append( $"box-shadow: 0 0 0 1px #fff, 0 0 0 0.25rem {ToHex( Lighten( Var( ThemeVariables.Color( "primary" ) ), 75f ) )};" )
+                .AppendLine( "}" );
+
+            sb.Append( $".form-range::-webkit-slider-thumb:active" )
+                .Append( "{" )
+                .Append( $"background-color: {ToHex( Lighten( Var( ThemeVariables.Color( "primary" ) ), 70f ) )};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( options?.SliderColor ) )
+        {
+            GenerateInputSliderStyles( sb, theme, options );
+        }
+    }
+
+    protected virtual void GenerateInputCheckEditStyles( StringBuilder sb, Theme theme, ThemeInputOptions options )
+    {
+        var focusBorderColor = ToHex( Lighten( options.CheckColor, 50f ) );
+        var focusShadowColor = ToHexRGBA( Transparency( options.CheckColor, 64 ) );
+
+        // Exclude validation states without increasing specificity over explicit switch colors.
+        sb
+            .Append( ".form-check-input:focus:where(:not(.is-valid, .is-invalid, .was-validated *))" ).Append( "{" )
+            .Append( $"border-color: {focusBorderColor};" )
+            .Append( $"box-shadow: 0 0 0 {theme.ButtonOptions?.BoxShadowSize ?? ".25rem"} {focusShadowColor};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( ".form-check-input.is-valid:checked, .was-validated .form-check-input:valid:checked" ).Append( "{" )
+            .Append( $"background-color: {options.CheckColor};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( ".form-check-input[type=checkbox].is-valid:indeterminate, .was-validated .form-check-input[type=checkbox]:valid:indeterminate" ).Append( "{" )
+            .Append( $"background-color: {options.CheckColor};" )
+            .Append( $"border-color: {options.CheckColor};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( ".form-check-input.is-valid, .was-validated .form-check-input:valid" ).Append( "{" )
+            .Append( $"border-color: {options.CheckColor};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( ".form-check-input:checked" ).Append( "{" )
+            .Append( $"background-color: {options.CheckColor};" )
+            .Append( $"border-color: {options.CheckColor};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( ".form-check-input[type=checkbox]:indeterminate" ).Append( "{" )
+            .Append( $"background-color: {options.CheckColor};" )
+            .Append( $"border-color: {options.CheckColor};" )
+            .AppendLine( "}" );
+    }
+
+    protected virtual void GenerateInputSliderStyles( StringBuilder sb, Theme theme, ThemeInputOptions options )
+    {
+        _ = theme;
+
+        if ( string.IsNullOrEmpty( options?.SliderColor ) )
+            return;
+
+        var activeSliderColor = ToHex( Lighten( options.SliderColor, 70f ) );
+        var focusColor = ToHex( Lighten( options.SliderColor, 75f ) );
+
+        sb.Append( ".form-range" ).Append( "{" )
+            .Append( $"accent-color: {options.SliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".form-range::-webkit-slider-thumb" ).Append( "{" )
+            .Append( $"background-color: {options.SliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".form-range:focus::-webkit-slider-thumb" ).Append( "{" )
+            .Append( $"box-shadow: 0 0 0 1px #fff, 0 0 0 0.25rem {focusColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".form-range::-webkit-slider-thumb:active" ).Append( "{" )
+            .Append( $"background-color: {activeSliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".form-range::-moz-range-thumb" ).Append( "{" )
+            .Append( $"background-color: {options.SliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".form-range:focus::-moz-range-thumb" ).Append( "{" )
+            .Append( $"box-shadow: 0 0 0 1px #fff, 0 0 0 0.25rem {focusColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".form-range::-moz-range-thumb:active" ).Append( "{" )
+            .Append( $"background-color: {activeSliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".range-slider > .range-slider-range" ).Append( "{" )
+            .Append( $"background-color: {options.SliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".range-slider > .range-slider-input" ).Append( "{" )
+            .Append( $"accent-color: {options.SliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".range-slider > .range-slider-input::-webkit-slider-thumb" ).Append( "{" )
+            .Append( $"background-color: {options.SliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".range-slider > .range-slider-input:focus::-webkit-slider-thumb" ).Append( "{" )
+            .Append( $"box-shadow: 0 0 0 1px #fff, 0 0 0 0.25rem {focusColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".range-slider > .range-slider-input::-webkit-slider-thumb:active" ).Append( "{" )
+            .Append( $"background-color: {activeSliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".range-slider > .range-slider-input::-moz-range-thumb" ).Append( "{" )
+            .Append( $"background-color: {options.SliderColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".range-slider > .range-slider-input:focus::-moz-range-thumb" ).Append( "{" )
+            .Append( $"box-shadow: 0 0 0 1px #fff, 0 0 0 0.25rem {focusColor};" )
+            .AppendLine( "}" );
+
+        sb.Append( ".range-slider > .range-slider-input::-moz-range-thumb:active" ).Append( "{" )
+            .Append( $"background-color: {activeSliderColor};" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateBadgeVariantStyles( StringBuilder sb, Theme theme, string variant, string inBackgroundColor )
+    {
+        var backgroundColor = ParseColor( inBackgroundColor );
+
+        if ( backgroundColor.IsEmpty )
+            return;
+
+        var yiqBackgroundColor = GetContrastColor( theme, backgroundColor );
+
+        var hexBackgroundColor = ToHex( backgroundColor );
+        var hexYiqBackgroundColor = ToHex( yiqBackgroundColor );
+
+        sb
+            .Append( $".badge.text-bg-{variant}," )
+            .Append( $".badge-close.text-bg-{variant}" )
+            .Append( "{" )
+            .Append( $"color: {hexYiqBackgroundColor} !important;" )
+            .Append( $"background-color: {hexBackgroundColor} !important;" )
+            .AppendLine( "}" );
+
+        // Subtle variant
+
+        var hexBackgroundColorSubtle = Var( ThemeVariables.BackgroundSubtleColor( variant ) );
+        var hexBorderColorSubtle = Var( ThemeVariables.BorderSubtleColor( variant ) );
+        var hexTextColorEmphasis = Var( ThemeVariables.TextEmphasisColor( variant ) );
+
+        sb.Append( $".badge.text-bg-{variant}-subtle," )
+            .Append( $".badge-close.text-bg-{variant}-subtle" )
+            .Append( "{" )
+            .Append( $"color: {hexTextColorEmphasis};" )
+            .Append( $"background-color: {hexBackgroundColorSubtle};" )
+            .Append( $"border-color: {hexBorderColorSubtle};" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateSwitchVariantStyles( StringBuilder sb, Theme theme, string variant, string inBackgroundColor, ThemeSwitchOptions options )
+    {
+        var backgroundColor = ParseColor( inBackgroundColor );
+
+        if ( backgroundColor.IsEmpty )
+            return;
+
+        var boxShadowColor = Lighten( backgroundColor, options?.BoxShadowLightenColor ?? 25 );
+        var disabledBackgroundColor = Lighten( backgroundColor, options?.DisabledLightenColor ?? 50 );
+
+        var background = ToHex( backgroundColor );
+        var boxShadow = ToHex( boxShadowColor );
+        var disabledBackground = ToHex( disabledBackgroundColor );
+
+        sb
+            .Append( $".form-check.form-switch .form-check-input.form-check-input-{variant}:checked" ).Append( "{" )
+            .Append( $"background-color: {background};" )
+            .Append( $"border-color: {background};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( $".form-check.form-switch .form-check-input.form-check-input-{variant}:focus" ).Append( "{" )
+            .Append( $"border-color: {background};" )
+            .Append( $"box-shadow: 0 0 0 0.25rem rgba({backgroundColor.R},{backgroundColor.G},{backgroundColor.B},.25);" )
+            .AppendLine( "}" );
+
+        //sb
+        //    .Append( $".custom-switch .custom-control-input.custom-control-input-{variant}:focus ~ .custom-control-label::before" ).Append( "{" )
+        //    .Append( $"box-shadow: {boxShadow};" )
+        //    .Append( $"border-color: {background};" )
+        //    .AppendLine( "}" );
+
+        //sb
+        //    .Append( $".custom-switch .custom-control-input:disabled.custom-control-input-{variant}:checked ~ .custom-control-label::before" ).Append( "{" )
+        //    .Append( $"background-color: {disabledBackground};" )
+        //    .AppendLine( "}" );
+    }
+
+    protected override void GenerateStepsStyles( StringBuilder sb, Theme theme, ThemeStepsOptions stepsOptions )
+    {
+        var textColor = "var(--bs-body-color)";
+
+        if ( stepsOptions is null )
+        {
+            return;
+        }
+
+        var completedColor = Var( ThemeVariables.StepsItemIconCompleted, Var( ThemeVariables.Color( "success" ) ) );
+        var activeColor = Var( ThemeVariables.StepsItemIconActive, Var( ThemeVariables.Color( "primary" ) ) );
+        var completedTextColor = Var( ThemeVariables.StepsItemTextCompleted, completedColor );
+        var activeTextColor = Var( ThemeVariables.StepsItemTextActive, activeColor );
+
+        sb
+            .Append( ".step-completed .step-circle" ).Append( "{" )
+            .Append( $"color: {ThemeColorLevelHex( theme, completedColor, theme.AlertOptions?.ColorLevel ?? 6 )};" )
+            .Append( $"background-color: {ThemeColorLevelHex( theme, completedColor, theme.AlertOptions?.BackgroundLevel ?? -10 )};" )
+            .Append( $"border-color: {ThemeColorLevelHex( theme, completedColor, theme.AlertOptions?.BorderLevel ?? -7 )};" )
+            .AppendLine( "}" )
+            .Append( ".step-completed > .step-connector::before" ).Append( "{" )
+            .Append( $"background-color: {completedColor};" )
+            .AppendLine( "}" )
+            .Append( ".step-completed .step-text" ).Append( "{" )
+            .Append( $"color: {ThemeColorLevelHex( theme, completedTextColor, theme.AlertOptions?.ColorLevel ?? 6 )};" )
+            .AppendLine( "}" )
+            .Append( ".step-active .step-circle" ).Append( "{" )
+            .Append( $"color: {Var( ThemeVariables.StepsItemIconActiveYiq, Var( ThemeVariables.White ) )};" )
+            .Append( $"background-color: {activeColor};" )
+            .Append( $"border-color: {activeColor};" )
+            .AppendLine( "}" )
+            .Append( ".step-active > .step-connector::before" ).Append( "{" )
+            .Append( $"background-color: {activeColor};" )
+            .AppendLine( "}" )
+            .Append( ".step-active .step-text" ).Append( "{" )
+            .Append( $"color: color-mix(in srgb, {activeTextColor} 40%, {textColor});" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateStepsVariantStyles( StringBuilder sb, Theme theme, string variant, string inBackgroundColor, ThemeStepsOptions stepsOptions )
+    {
+        var color = Var( ThemeVariables.VariantStepsItemIcon( variant ) );
+        var contrastColor = Var( ThemeVariables.VariantStepsItemIconYiq( variant ) );
+        var backgroundColor = "var(--bs-body-bg)";
+        var textColor = "var(--bs-body-color)";
+        var variantTextColor = Var( ThemeVariables.VariantStepsItemText( variant ) );
+
+        sb
+            .Append( $".step-{variant} .step-circle" ).Append( "{" )
+            .Append( $"color: color-mix(in srgb, {color} 40%, {textColor});" )
+            .Append( $"background-color: {backgroundColor};" )
+            .Append( $"border-color: {color};" )
+            .AppendLine( "}" )
+            .Append( $".step-{variant}.step-completed .step-circle" ).Append( "{" )
+            .Append( $"color: {ThemeColorLevelHex( theme, color, theme.AlertOptions?.ColorLevel ?? 6 )};" )
+            .Append( $"background-color: {ThemeColorLevelHex( theme, color, theme.AlertOptions?.BackgroundLevel ?? -10 )};" )
+            .Append( $"border-color: {ThemeColorLevelHex( theme, color, theme.AlertOptions?.BorderLevel ?? -7 )};" )
+            .AppendLine( "}" )
+            .Append( $".step-{variant}.step-active .step-circle" ).Append( "{" )
+            .Append( $"color: {contrastColor};" )
+            .Append( $"background-color: {color};" )
+            .Append( $"border-color: {color};" )
+            .AppendLine( "}" )
+            .Append( $".step-{variant}.step-completed > .step-connector::before, .step-{variant}.step-active > .step-connector::before" ).Append( "{" )
+            .Append( $"background-color: {color};" )
+            .AppendLine( "}" )
+            .Append( $".step-{variant}.step-completed .step-text" ).Append( "{" )
+            .Append( $"color: {ThemeColorLevelHex( theme, variantTextColor, theme.AlertOptions?.ColorLevel ?? 6 )};" )
+            .AppendLine( "}" )
+            .Append( $".step-{variant}.step-active .step-text" ).Append( "{" )
+            .Append( $"color: color-mix(in srgb, {variantTextColor} 40%, {textColor});" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateRatingStyles( StringBuilder sb, Theme theme, ThemeRatingOptions ratingOptions )
+    {
+        if ( ratingOptions?.HoverOpacity != null )
+        {
+            sb
+                .Append( ".rating .rating-item.rating-item-hover" ).Append( "{" )
+                .Append( $"opacity: {string.Format( CultureInfo.InvariantCulture, "{0:F1}", ratingOptions.HoverOpacity )};" )
+                .AppendLine( "}" );
+        }
+    }
+
+    protected override void GenerateRatingVariantStyles( StringBuilder sb, Theme theme, string variant, string inBackgroundColor, ThemeRatingOptions ratingOptions )
+    {
+        sb
+            .Append( $".rating .rating-item.rating-item-{variant}" ).Append( "{" )
+            .Append( $"color: {Var( ThemeVariables.VariantRatingColor( variant ) )};" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateAlertVariantStyles( StringBuilder sb, Theme theme, string variant, string inBackgroundColor, string inBorderColor, string inColor, ThemeAlertOptions options )
+    {
+        var backgroundColor = ParseColor( inBackgroundColor );
+        var borderColor = ParseColor( inBorderColor );
+        var textColor = ParseColor( inColor );
+
+        var alertLinkColor = Darken( textColor, 10f );
+
+        var background = ToHex( backgroundColor );
+        var border = ToHex( borderColor );
+        var text = ToHex( textColor );
+        var alertLink = ToHex( alertLinkColor );
+
+        sb.Append( $".alert.alert-{variant}" ).Append( "{" )
+            .Append( $"--bs-alert-color: {text};" )
+            .Append( $"--bs-alert-bg: {background};" )
+            .Append( $"--bs-alert-border-color: {border};" )
+            .Append( $"--bs-alert-link-color: {alertLink};" );
+
+        if ( theme.IsGradient )
+        {
+            sb.Append( GetGradientBg( theme, background, options?.GradientBlendPercentage ) );
+        }
+
+        sb.AppendLine( "}" );
+    }
+
+    protected override void GenerateTableVariantStyles( StringBuilder sb, Theme theme, string variant, string inBackgroundColor, string inBorderColor )
+    {
+        var backgroundColor = ParseColor( inBackgroundColor );
+        var stripedBackgroundColor = Darken( backgroundColor, 2.5f );
+        var hoverBackgroundColor = Darken( backgroundColor, 5 );
+        var activeBackgroundColor = Darken( backgroundColor, 5 );
+        var borderColor = ParseColor( inBorderColor );
+
+        var background = ToHex( backgroundColor );
+        var color = ToHex( GetContrastColor( theme, background ) );
+        var stripedBackground = ToHex( stripedBackgroundColor );
+        var stripedColor = ToHex( GetContrastColor( theme, stripedBackground ) );
+        var hoverBackground = ToHex( hoverBackgroundColor );
+        var hoverColor = ToHex( GetContrastColor( theme, hoverBackground ) );
+        var activeBackground = ToHex( activeBackgroundColor );
+        var activeColor = ToHex( GetContrastColor( theme, activeBackground ) );
+        var border = ToHex( borderColor );
+
+        sb.Append( $".table-{variant}" )
+            .Append( "{" )
+            .Append( $"--bs-table-color: {color};" )
+            .Append( $"--bs-table-bg: {background};" )
+            .Append( $"--bs-table-border-color: {border};" )
+            .Append( $"--bs-table-striped-bg: {stripedBackground};" )
+            .Append( $"--bs-table-striped-color: {stripedColor};" )
+            .Append( $"--bs-table-active-bg: {activeBackground};" )
+            .Append( $"--bs-table-active-color: {activeColor};" )
+            .Append( $"--bs-table-hover-bg: {hoverBackground};" )
+            .Append( $"--bs-table-hover-color: {hoverColor};" )
+            .Append( "color: var(--bs-table-color);" )
+            .Append( "border-color: var(--bs-table-border-color);" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateCardStyles( StringBuilder sb, Theme theme, ThemeCardOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            sb.Append( ".card" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) )};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( options?.ImageTopRadius ) )
+            sb.Append( ".card-img-top" ).Append( "{" )
+                .Append( $"border-top-left-radius: {options.ImageTopRadius};" )
+                .Append( $"border-top-right-radius: {options.ImageTopRadius};" )
+                .AppendLine( "}" );
+    }
+
+    protected override void GenerateModalStyles( StringBuilder sb, Theme theme, ThemeModalOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            sb.Append( ".modal-content" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) )};" )
+                .AppendLine( "}" );
+        }
+    }
+
+    protected override void GenerateTabsStyles( StringBuilder sb, Theme theme, ThemeTabsOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            var borderRadius = GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) );
+
+            sb.Append( ".nav-tabs .nav-link" ).Append( "{" )
+                .Append( $"border-top-left-radius: {borderRadius};" )
+                .Append( $"border-top-right-radius: {borderRadius};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".nav-pills .nav-link" ).Append( "{" )
+                .Append( $"border-radius: {borderRadius};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( theme.ColorOptions?.Primary ) )
+        {
+            sb
+                .Append( ".nav-pills .nav-link.active," )
+                .Append( ".nav-pills .show>.nav-link" )
+                .Append( "{" )
+                .Append( $"background-color: {Var( ThemeVariables.Color( "primary" ) )};" )
+                .AppendLine( "}" );
+
+            sb
+                .Append( ".nav.nav-tabs .nav-item a.nav-link:not(.active)" )
+                .Append( "{" )
+                .Append( $"color: {Var( ThemeVariables.Color( "primary" ) )};" )
+                .AppendLine( "}" );
+        }
+    }
+
+    protected override void GenerateProgressStyles( StringBuilder sb, Theme theme, ThemeProgressOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            sb.Append( ".progress" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) )};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( theme.ColorOptions?.Primary ) )
+        {
+            sb.Append( ".progress-bar" ).Append( "{" )
+                .Append( $"--bs-progress-bar-bg: {Var( ThemeVariables.Color( "primary" ) )};" )
+                .AppendLine( "}" );
+        }
+
+        base.GenerateProgressStyles( sb, theme, options );
+    }
+
+    protected override void GenerateAlertStyles( StringBuilder sb, Theme theme, ThemeAlertOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            sb.Append( ".alert" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) )};" )
+                .AppendLine( "}" );
+        }
+    }
+
+    protected override void GenerateBreadcrumbStyles( StringBuilder sb, Theme theme, ThemeBreadcrumbOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            sb.Append( ".breadcrumb" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) )};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( Var( ThemeVariables.BreadcrumbColor ) ) )
+        {
+            sb.Append( ".breadcrumb-item>a" ).Append( "{" )
+                .Append( $"color: {Var( ThemeVariables.BreadcrumbColor )};" )
+                .AppendLine( "}" );
+        }
+    }
+
+    protected override void GenerateBadgeStyles( StringBuilder sb, Theme theme, ThemeBadgeOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            sb.Append( ".badge:not(.rounded-pill)" ).Append( "{" )
+                .Append( $"border-radius: {GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) )};" )
+                .AppendLine( "}" );
+        }
+    }
+
+    protected override void GeneratePaginationStyles( StringBuilder sb, Theme theme, ThemePaginationOptions options )
+    {
+        if ( !string.IsNullOrEmpty( options?.BorderRadius ) )
+        {
+            var borderRadius = GetBorderRadius( theme, options?.BorderRadius, Var( ThemeVariables.BorderRadius ) );
+
+            sb.Append( ".page-item:first-child .page-link" ).Append( "{" )
+                .Append( $"border-top-left-radius: {borderRadius};" )
+                .Append( $"border-bottom-left-radius: {borderRadius};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".page-item:last-child .page-link" ).Append( "{" )
+                .Append( $"border-top-right-radius: {borderRadius};" )
+                .Append( $"border-bottom-right-radius: {borderRadius};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( options?.LargeBorderRadius ) )
+        {
+            var largeBorderRadius = GetBorderRadius( theme, options?.LargeBorderRadius, Var( ThemeVariables.BorderRadius ) );
+
+            sb.Append( ".pagination-lg .page-item:first-child .page-link" ).Append( "{" )
+                .Append( $"border-top-left-radius: {largeBorderRadius};" )
+                .Append( $"border-bottom-left-radius: {largeBorderRadius};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".pagination-lg .page-item:last-child .page-link" ).Append( "{" )
+                .Append( $"border-top-right-radius: {largeBorderRadius};" )
+                .Append( $"border-bottom-right-radius: {largeBorderRadius};" )
+                .AppendLine( "}" );
+        }
+
+        if ( !string.IsNullOrEmpty( theme.ColorOptions?.Primary ) )
+        {
+            var primary = Var( ThemeVariables.Color( "primary" ), NormalizeBootstrapColorOption( "primary", theme.ColorOptions.Primary ) );
+
+            sb.Append( ".page-link" ).Append( "{" )
+                .Append( $"color: {primary};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".page-link:hover" ).Append( "{" )
+                .Append( $"color: {ToHex( Darken( primary, 15f ) )};" )
+                .AppendLine( "}" );
+
+            sb.Append( ".page-item.active .page-link" ).Append( "{" )
+                .Append( $"color: {ToHex( GetContrastColor( theme, primary ) )};" )
+                .Append( $"background-color: {primary};" )
+                .Append( $"border-color: {primary};" )
+                .AppendLine( "}" );
+        }
+    }
+
+    protected override void GenerateBarStyles( StringBuilder sb, Theme theme, ThemeBarOptions options )
+    {
+        foreach ( var (variant, _) in theme.ValidBackgroundColors )
+        {
+            var yiqColor = Var( ThemeVariables.BackgroundYiqColor( variant ) );
+
+            if ( string.IsNullOrEmpty( yiqColor ) )
+            {
+                continue;
+            }
+
+            sb.Append( $".navbar.bg-{variant} .navbar-brand .nav-item .nav-link" ).Append( "{" )
+                .Append( $"color: {yiqColor};" )
+                .AppendLine( "}" );
+        }
+
+        if ( options is null )
+        {
+            return;
+        }
+
+        if ( options.ColorScope.HasFlag( ThemeBarColorScope.Horizontal ) )
+        {
+            GenerateHorizontalBarStyles( sb, theme, options.LightColors, "light" );
+            GenerateHorizontalBarStyles( sb, theme, options.DarkColors, "dark" );
+        }
+
+        if ( options.ColorScope.HasFlag( ThemeBarColorScope.Vertical ) )
+        {
+            GenerateCssRule( sb, ".navbar[data-mode^=vertical]",
+                (ThemeVariables.BarDarkBackground, Var( ThemeVariables.BarDarkBackground )),
+                (ThemeVariables.BarDarkColor, Var( ThemeVariables.BarDarkColor )),
+                (ThemeVariables.BarItemDarkActiveBackground, Var( ThemeVariables.BarItemDarkActiveBackground )),
+                (ThemeVariables.BarItemDarkActiveColor, Var( ThemeVariables.BarItemDarkActiveColor )),
+                (ThemeVariables.BarItemDarkHoverBackground, Var( ThemeVariables.BarItemDarkHoverBackground )),
+                (ThemeVariables.BarItemDarkHoverColor, Var( ThemeVariables.BarItemDarkHoverColor )),
+                (ThemeVariables.BarDropdownDarkBackground, Var( ThemeVariables.BarDropdownDarkBackground )),
+                (ThemeVariables.BarBrandDarkBackground, Var( ThemeVariables.BarBrandDarkBackground )),
+                (ThemeVariables.BarLightBackground, Var( ThemeVariables.BarLightBackground )),
+                (ThemeVariables.BarLightColor, Var( ThemeVariables.BarLightColor )),
+                (ThemeVariables.BarItemLightActiveBackground, Var( ThemeVariables.BarItemLightActiveBackground )),
+                (ThemeVariables.BarItemLightActiveColor, Var( ThemeVariables.BarItemLightActiveColor )),
+                (ThemeVariables.BarItemLightHoverBackground, Var( ThemeVariables.BarItemLightHoverBackground )),
+                (ThemeVariables.BarItemLightHoverColor, Var( ThemeVariables.BarItemLightHoverColor )),
+                (ThemeVariables.BarDropdownLightBackground, Var( ThemeVariables.BarDropdownLightBackground )),
+                (ThemeVariables.BarBrandLightBackground, Var( ThemeVariables.BarBrandLightBackground )) );
+
+            GenerateVerticalBarActiveStyles(
+                sb,
+                theme,
+                ".navbar[data-mode^=vertical].navbar-light",
+                options.LightColors?.ItemColorOptions );
+
+            GenerateVerticalBarActiveStyles(
+                sb,
+                theme,
+                ".navbar[data-mode^=vertical].navbar-dark",
+                options.DarkColors?.ItemColorOptions );
+        }
+    }
+
+    private void GenerateHorizontalBarStyles( StringBuilder sb, Theme theme, ThemeBarColorOptions colors, string contrast )
+    {
+        if ( colors is null )
+        {
+            return;
+        }
+
+        var selector = $".navbar[data-mode=horizontal].navbar-{contrast}";
+        var itemColors = colors.ItemColorOptions;
+
+        GenerateCssRule( sb, selector,
+            ("background", string.IsNullOrEmpty( colors.BackgroundColor ) ? null : GetGradientBgValue( theme, colors.BackgroundColor, colors.GradientBlendPercentage )),
+            ("color", colors.Color),
+            ("--bs-navbar-color", colors.Color),
+            ("--bs-navbar-brand-color", colors.Color),
+            ("--bs-navbar-brand-hover-color", colors.Color),
+            ("--bs-navbar-hover-color", itemColors?.HoverColor),
+            ("--bs-navbar-active-color", itemColors?.ActiveColor) );
+
+        var linkSelector = $"{selector} .navbar-nav .nav-item:not(.disabled) .nav-link:not(.disabled):not([aria-disabled=true])";
+
+        GenerateCssRule( sb, $"{linkSelector}:hover, {linkSelector}:focus",
+            ("background-color", itemColors?.HoverBackgroundColor) );
+
+        GenerateCssRule( sb, $"{linkSelector}.active, {selector} .navbar-nav .nav-item.active:not(.disabled) .nav-link:not(.disabled):not([aria-disabled=true])",
+            ("color", string.IsNullOrEmpty( itemColors?.ActiveColor ) ? null : "var(--bs-navbar-active-color)"),
+            ("background-color", itemColors?.ActiveBackgroundColor) );
+
+        GenerateCssRule( sb, $"{selector} .navbar-brand", ("background-color", colors.BrandColorOptions?.BackgroundColor) );
+        GenerateCssRule( sb, $"{selector} .navbar-brand .nav-link:not(.disabled)", ("color", colors.Color) );
+        GenerateCssRule( sb, $"{selector} .dropdown-menu",
+            ("--bs-dropdown-bg", colors.DropdownColorOptions?.BackgroundColor),
+            ("--bs-dropdown-link-color", colors.Color),
+            ("--bs-dropdown-link-hover-color", itemColors?.HoverColor),
+            ("--bs-dropdown-link-hover-bg", itemColors?.HoverBackgroundColor),
+            ("--bs-dropdown-link-active-color", itemColors?.ActiveColor),
+            ("--bs-dropdown-link-active-bg", itemColors?.ActiveBackgroundColor) );
+    }
+
+    private void GenerateVerticalBarActiveStyles(
+        StringBuilder sb,
+        Theme theme,
+        string selector,
+        ThemeBarItemColorOptions colors )
+    {
+        var activeBackground = string.IsNullOrEmpty( colors?.ActiveBackgroundColor )
+            ? Var( ThemeVariables.Color( "primary" ), "#0d6efd" )
+            : ToHex( ParseColor( colors.ActiveBackgroundColor ) );
+
+        var activeColor = string.IsNullOrEmpty( colors?.ActiveColor )
+            ? ToHex( GetContrastColor( theme, activeBackground ) )
+            : ToHex( ParseColor( colors.ActiveColor ) );
+
+        sb.Append( selector ).Append( " .dropdown[data-visible] > .dropdown-menu-container > .dropdown-menu .dropdown-item.active," )
+            .Append( selector ).Append( " .dropdown[data-visible] > .dropdown-menu-container > .dropdown-menu .dropdown-item:active," )
+            .Append( selector ).Append( " .navbar-collapse > .navbar-nav.nav-pills > .nav-item > .nav-link.active," )
+            .Append( selector ).Append( " .navbar-collapse > .navbar-nav.nav-pills > .nav-item > .dropdown[data-visible] > .nav-link.active" )
+            .Append( "{" )
+            .Append( $"color: {activeColor} !important;" )
+            .Append( $"background: {activeBackground} !important;" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateParagraphVariantStyles( StringBuilder sb, Theme theme, string variant, string inTextColor )
+    {
+        var textColor = variant == "body" && !string.IsNullOrEmpty( theme.BodyOptions?.TextColor )
+            ? ParseColor( theme.BodyOptions.TextColor )
+            : ParseColor( inTextColor );
+
+        var hexTextColor = ToHex( textColor );
+        var hexTextColorEmphasis = ToHex( ShadeColor( textColor, theme.TextColorOptions.EmphasisShadeWeight ?? 60 ) );
+
+        sb.Append( $".text-{variant}" )
+            .Append( "{" )
+            .Append( $"color: {hexTextColor} !important;" )
+            .AppendLine( "}" );
+
+        sb.Append( $".text-{variant}-emphasis" )
+            .Append( "{" )
+            .Append( $"color: {hexTextColorEmphasis} !important;" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateInputVariantStyles( StringBuilder sb, Theme theme, string variant, string inColor )
+    {
+        sb.Append( $".form-control-{variant}" )
+            .Append( "{" )
+            .Append( $"--bs-input-border-color: {inColor};" )
+            .AppendLine( "}" );
+    }
+
+    protected override void GenerateListGroupItemStyles( StringBuilder sb, Theme theme, ThemeListGroupItemOptions options )
+    {
+        if ( !string.IsNullOrEmpty( theme.ColorOptions?.Primary ) )
+        {
+            var white = Var( ThemeVariables.White );
+            var primary = Var( ThemeVariables.Color( "primary" ) );
+
+            sb
+                .Append( ".list-group-item.active" )
+                .Append( "{" )
+                .Append( $"color: {white};" )
+                .Append( GetGradientBg( theme, primary, options?.GradientBlendPercentage ) )
+                .Append( $"border-color: {primary};" )
+                .AppendLine( "}" );
+        }
+    }
+
+    protected override void GenerateListGroupItemVariantStyles( StringBuilder sb, Theme theme, string variant, string inBackgroundColor, string inColor, ThemeListGroupItemOptions options )
+    {
+        var backgroundColor = ParseColor( inBackgroundColor );
+        var hoverBackgroundColor = Darken( backgroundColor, 5 );
+
+        var background = ToHex( backgroundColor );
+        var hoverBackground = ToHex( hoverBackgroundColor );
+        var color = ToHex( ParseColor( inColor ) );
+
+        var border = ToHex( TintColor(
+            ParseColor( NormalizeBootstrapColorOption( variant, theme.ColorOptions[variant].Invoke() ) ),
+            theme.BorderOptions?.SubtleTintWeight ?? 60 ) );
+
+        var white = Var( ThemeVariables.White );
+
+        sb
+            .Append( $".list-group-item-{variant}" )
+            .Append( "{" )
+            .Append( $"color: {color};" )
+            .Append( GetGradientBg( theme, background, options?.GradientBlendPercentage ) )
+            .Append( $"--bs-list-group-border-color: {border};" )
+            .AppendLine( "}" );
+
+        sb
+            .Append( $".list-group-item-{variant}.list-group-item-action:focus," )
+            .Append( $".list-group-item-{variant}.list-group-item-action:hover" )
+            .Append( "{" )
+            .Append( $"color: {color};" )
+            .Append( GetGradientBg( theme, hoverBackground, options?.GradientBlendPercentage ) )
+            .AppendLine( "}" );
+
+        sb
+            .Append( $".list-group-item-{variant}.list-group-item-action.active" )
+            .Append( "{" )
+            .Append( $"color: {white};" )
+            .Append( GetGradientBg( theme, color, options?.GradientBlendPercentage ) )
+            .Append( $"border-color: {color};" )
+            .AppendLine( "}" );
+    }
+
+    private static string GetValidBreakpointName( string name ) => name switch
+    {
+        "mobile" => "xs",
+        "tablet" => "sm",
+        "desktop" => "md",
+        "widescreen" => "lg",
+        "fullhd" => "xl",
+        _ => "",
+    };
+
+    protected override void GenerateSpacingStyles( StringBuilder sb, Theme theme, ThemeSpacingOptions options )
+    {
+        if ( theme.BreakpointOptions == null || options == null )
+            return;
+
+        foreach ( var breakpoint in theme.BreakpointOptions )
+        {
+            var breakpointName = GetValidBreakpointName( breakpoint.Key );
+            var breakpointMin = breakpoint.Value();
+
+            var hasMinMedia = !string.IsNullOrEmpty( breakpointMin ) && breakpointMin != "0";
+
+            if ( hasMinMedia )
+            {
+                sb.Append( $"@media (min-width: {breakpointMin})" ).Append( "{" );
+            }
+
+            var infix = string.IsNullOrEmpty( breakpointMin ) || breakpointMin == "0"
+                ? ""
+                : $"-{breakpointName}";
+
+            foreach ( (string prop, string abbrev) in new[] { ("margin", "m"), ("padding", "p") } )
+            {
+                foreach ( (string size, Func<string> lenghtFunc) in options )
+                {
+                    var length = lenghtFunc.Invoke();
+
+                    sb
+                        .Append( $".{abbrev}{infix}-{size}" )
+                        .Append( "{" ).Append( $"{prop}: {length} !important;" ).Append( "}" );
+
+                    sb
+                        .Append( $".{abbrev}t{infix}-{size}," )
+                        .Append( $".{abbrev}y{infix}-{size}" )
+                        .Append( "{" ).Append( $"{prop}-top: {length} !important;" ).Append( "}" );
+
+                    sb
+                        .Append( $".{abbrev}e{infix}-{size}," )
+                        .Append( $".{abbrev}x{infix}-{size}" )
+                        .Append( "{" ).Append( $"{prop}-right: {length} !important;" ).Append( "}" );
+
+                    sb
+                        .Append( $".{abbrev}b{infix}-{size}," )
+                        .Append( $".{abbrev}y{infix}-{size}" )
+                        .Append( "{" ).Append( $"{prop}-bottom: {length} !important;" ).Append( "}" );
+
+                    sb
+                        .Append( $".{abbrev}s{infix}-{size}," )
+                        .Append( $".{abbrev}x{infix}-{size}" )
+                        .Append( "{" ).Append( $"{prop}-left: {length} !important;" ).Append( "}" );
+                }
+            }
+
+            foreach ( (string size, Func<string> lenghtFunc) in options )
+            {
+                if ( string.IsNullOrEmpty( size ) || size == "0" )
+                    continue;
+
+                var length = lenghtFunc.Invoke();
+
+                sb
+                    .Append( $".m{infix}-n{size}" )
+                    .Append( "{" ).Append( $"margin: -{length} !important;" ).Append( "}" );
+
+                sb
+                    .Append( $".mt{infix}-n{size}," )
+                    .Append( $".my{infix}-n{size}" )
+                    .Append( "{" ).Append( $"margin-top: -{length} !important;" ).Append( "}" );
+
+                sb
+                    .Append( $".me{infix}-n{size}," )
+                    .Append( $".mx{infix}-n{size}" )
+                    .Append( "{" ).Append( $"margin-right: -{length} !important;" ).Append( "}" );
+
+                sb
+                    .Append( $".mb{infix}-n{size}," )
+                    .Append( $".my{infix}-n{size}" )
+                    .Append( "{" ).Append( $"margin-bottom: -{length} !important;" ).Append( "}" );
+
+                sb
+                    .Append( $".ms{infix}-n{size}," )
+                    .Append( $".mx{infix}-n{size}" )
+                    .Append( "{" ).Append( $"margin-left: -{length} !important;" ).Append( "}" );
+            }
+
+            if ( hasMinMedia )
+            {
+                sb.Append( "}" );
+            }
+        }
+    }
+
+    protected override System.Drawing.Color GetContrastColor( Theme theme, string hexColor )
+    {
+        return GetBootstrapContrastColor( theme, ParseColor( hexColor ) );
+    }
+
+    protected override System.Drawing.Color GetContrastColor( Theme theme, System.Drawing.Color color )
+    {
+        return GetBootstrapContrastColor( theme, color );
+    }
+
+    private static string NormalizeBootstrapColorOption( string variant, string value )
+    {
+        if ( !IsDefaultColorOption( variant, value ) )
+            return value;
+
+        return variant switch
+        {
+            "primary" => "#0D6EFD",
+            "secondary" => "#6C757D",
+            "success" => "#198754",
+            "info" => "#0DCAF0",
+            "warning" => "#FFC107",
+            "danger" => "#DC3545",
+            "light" => "#F8F9FA",
+            "dark" => "#212529",
+            "link" => "#0D6EFD",
+            _ => value,
+        };
+    }
+
+    private static bool IsDefaultColorOption( string variant, string value )
+    {
+        var defaultValue = variant switch
+        {
+            "primary" => ThemeColors.Blue.Shades["500"].Value,
+            "secondary" => ThemeColors.Gray.Shades["600"].Value,
+            "success" => ThemeColors.Green.Shades["500"].Value,
+            "info" => ThemeColors.Cyan.Shades["500"].Value,
+            "warning" => ThemeColors.Yellow.Shades["500"].Value,
+            "danger" => ThemeColors.Red.Shades["500"].Value,
+            "light" => ThemeColors.Gray.Shades["100"].Value,
+            "dark" => ThemeColors.Gray.Shades["800"].Value,
+            "link" => ThemeColors.Blue.Shades["500"].Value,
+            _ => null,
+        };
+
+        return string.Equals( value?.Trim(), defaultValue, StringComparison.OrdinalIgnoreCase );
+    }
+
+    private static bool IsThemeVariant( string variant )
+    {
+        return variant is "primary"
+            or "secondary"
+            or "success"
+            or "info"
+            or "warning"
+            or "danger"
+            or "light"
+            or "dark";
+    }
+
+    private void SetBootstrapVariable( string name, string value )
+    {
+        if ( string.IsNullOrWhiteSpace( name ) || string.IsNullOrWhiteSpace( value ) )
+            return;
+
+        Variables[$"--bs-{name}"] = value;
+    }
+
+    private void SetBootstrapColorVariable( string name, string value )
+    {
+        if ( string.IsNullOrWhiteSpace( name ) || string.IsNullOrWhiteSpace( value ) )
+            return;
+
+        var color = ParseColor( value );
+
+        if ( color.IsEmpty )
+        {
+            SetBootstrapVariable( name, value );
+
+            return;
+        }
+
+        SetBootstrapVariable( name, ToHex( color ) );
+        SetBootstrapVariable( $"{name}-rgb", ToRgbChannels( color ) );
+    }
+
+    private static string ToRgbChannels( System.Drawing.Color color )
+    {
+        return string.Join(
+            ", ",
+            color.R.ToString( CultureInfo.InvariantCulture ),
+            color.G.ToString( CultureInfo.InvariantCulture ),
+            color.B.ToString( CultureInfo.InvariantCulture ) );
+    }
+
+    /// <summary>
+    /// Resolves the contrast color by first honoring Blazorise's <see cref="Theme.LuminanceThreshold"/>,
+    /// then falling back to the highest WCAG contrast candidate when the preferred color does not meet
+    /// Bootstrap's minimum contrast ratio.
+    /// </summary>
+    /// <param name="theme">Theme settings used for the preferred white and black colors.</param>
+    /// <param name="background">Background color to contrast against.</param>
+    /// <returns>The preferred threshold-based contrast color, or the best WCAG fallback.</returns>
+    private static System.Drawing.Color GetBootstrapContrastColor( Theme theme, System.Drawing.Color background )
+    {
+        return GetAccessibleContrastColor( theme, background );
+    }
+
+    #endregion
+}

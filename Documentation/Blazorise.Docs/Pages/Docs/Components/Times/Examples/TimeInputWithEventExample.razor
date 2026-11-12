@@ -1,0 +1,16 @@
+﻿@namespace Blazorise.Docs.Docs.Examples
+
+<Field>
+    <TimeInput TValue="TimeSpan?" Value="@selectedTime" ValueChanged="@OnValueChanged" />
+</Field>
+
+@code{
+    TimeSpan? selectedTime;
+
+    Task OnValueChanged(TimeSpan? Time)
+    {
+        selectedTime = Time;
+
+        return Task.CompletedTask;
+    }
+}

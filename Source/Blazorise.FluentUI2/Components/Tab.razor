@@ -1,0 +1,19 @@
+﻿@inherits Blazorise.Tab
+<button @ref="@ElementRef" id="@ElementId" type="button" class="@ClassNames" style="@StyleNames" value="@Name" disabled="@DisabledString" role="tab" tabindex="@TabIndex" aria-labelledby="@AriaLabelledBy" aria-controls="@AriaControls" aria-selected="@AriaSelected" @onclick="@ClickHandler" @attributes="@Attributes">
+    <span class="@LinkClassNames" style="@Styles?.Link">
+        @ChildContent
+    </span>
+    @if ( !Active )
+    {
+        <span class="fui-Tab__content--reserved-space">
+            @ChildContent
+        </span>
+    }
+</button>
+@code {
+    protected internal override string TabElementId => ElementId;
+
+    string AriaSelected => Active ? "true" : "false";
+
+    string DisabledString => Disabled ? "true" : null;
+}

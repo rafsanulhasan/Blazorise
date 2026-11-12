@@ -1,0 +1,24 @@
+@typeparam TValue
+@inherits Blazorise.Radio<TValue>
+@if ( AsButton )
+{
+    <label for="@ElementId" aria-disabled="@(IsDisabled ? "true" : "false")" class="@ButtonLabelClassNames" style="@ButtonLabelStyleNames">
+        @ChildContent
+        <input @ref="@ElementRef" id="@ElementId" type="radio" class="@ClassNames" style="@ButtonInputStyleNames" disabled="@IsDisabled" readonly="@ReadOnly" checked="@IsActive" value="@Value" tabindex="@TabIndex" aria-invalid="@AriaInvalid" aria-required="@ResolvedAriaRequired" aria-describedby="@AriaDescribedBy" aria-labelledby="@AriaLabelledBy" @onchange="@OnChangeHandler" @onkeydown="@OnKeyDownHandler" @onkeypress="@OnKeyPressHandler" @onkeyup="@OnKeyUpHandler" @onblur="@OnBlurHandler" @onfocus="@OnFocusHandler" @onfocusin="@OnFocusInHandler" @onfocusout="@OnFocusOutHandler" name="@Group" @attributes="@Attributes" />
+    </label>
+    @Feedback
+}
+else
+{
+    <Control Role="ControlRole.Radio" Inline="@(ParentRadioGroup?.Inline ?? Inline)">
+        @RadioFragment
+    </Control>
+}
+@code {
+    protected RenderFragment RadioFragment => __builder =>
+    {
+        <input @ref="@ElementRef" id="@ElementId" type="radio" class="@ClassNames" style="@StyleNames" disabled="@IsDisabled" readonly="@ReadOnly" checked="@IsActive" value="@Value" tabindex="@TabIndex" aria-invalid="@AriaInvalid" aria-required="@ResolvedAriaRequired" aria-describedby="@AriaDescribedBy" aria-labelledby="@AriaLabelledBy" @onchange="@OnChangeHandler" @onkeydown="@OnKeyDownHandler" @onkeypress="@OnKeyPressHandler" @onkeyup="@OnKeyUpHandler" @onblur="@OnBlurHandler" @onfocus="@OnFocusHandler" @onfocusin="@OnFocusInHandler" @onfocusout="@OnFocusOutHandler" name="@Group" @attributes="@Attributes" />
+        <Label Type="LabelType.Radio" For="@ElementId" Style="@Style" Cursor="@Cursor">@ChildContent</Label>
+        @Feedback
+    };
+}

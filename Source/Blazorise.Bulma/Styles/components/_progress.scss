@@ -1,0 +1,175 @@
+﻿.b-page-progress {
+    .b-page-progress-indicator {
+        @each $name, $color in $theme-colors {
+            &.b-page-progress-indicator-#{$name} {
+                background-color: $color;
+            }
+        }
+    }
+}
+
+
+@-webkit-keyframes animate-stripes {
+    100% {
+        background-position: -40px 0px;
+    }
+}
+
+@keyframes animate-stripes {
+    100% {
+        background-position: -40px 0px;
+    }
+}
+
+.progress-wrapper {
+    position: relative;
+    display: flex;
+
+    .progress {
+        &.is-extra-small {
+            height: $size-extra-small;
+        }
+
+        &.is-extra-large {
+            height: $size-extra-large;
+        }
+
+        &[value].progress-animated::-webkit-progress-value {
+            -webkit-animation: animate-stripes 5s linear infinite;
+            animation: animate-stripes 5s linear infinite;
+        }
+
+        &[value].progress-striped::-webkit-progress-value {
+            @include gradient-striped();
+            background-size: 1rem 1rem;
+        }
+    }
+}
+
+$progress-bar-background-color: $border-weak !default;
+$progress-value-background-color: $text !default;
+$progress-border-radius: $radius-rounded !default;
+
+$progress-indeterminate-duration: 1.5s !default;
+
+@mixin progress-size() {
+    @each $name, $size in $component-sizes {
+        &.is-#{$name} {
+            + .progress-value,
+            .progress-value {
+                font-size: calc(#{$size} / 1.5);
+                line-height: $size;
+            }
+        }
+    }
+}
+
+.progress-bars-wrapper {
+    position: relative;
+    overflow: hidden;
+
+    &:not(:last-child) {
+        margin-bottom: 1.5rem;
+    }
+
+    .progress-value {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: calc(#{$size-normal} / 1.5);
+        line-height: $size-normal;
+        font-weight: $weight-bold;
+        color: findColorInvert($progress-bar-background-color);
+        white-space: nowrap;
+    }
+
+    .progress-bar {
+        margin-bottom: 0;
+
+        @include progress-size();
+
+        &::-webkit-progress-value {
+            transition: width 0.5s ease;
+        }
+
+        &.is-more-than-half {
+            + .progress-value {
+                color: findColorInvert($progress-value-background-color);
+            }
+
+            @each $name, $color in $theme-colors {
+                $color-invert: color-yiq($color);
+
+                &.is-#{$name} {
+                    + .progress-value {
+                        color: $color-invert;
+                    }
+                }
+            }
+        }
+    }
+
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    border-radius: $progress-border-radius;
+    display: block;
+    height: $size-normal;
+    overflow: hidden;
+    padding: 0;
+    width: 100%;
+
+    &::-webkit-progress-bar {
+        background-color: $progress-bar-background-color;
+    }
+
+    &::-webkit-progress-value {
+        background-color: $progress-value-background-color;
+    }
+
+    &::-moz-progress-bar {
+        background-color: $progress-value-background-color;
+    }
+
+    &::-ms-fill {
+        background-color: $progress-value-background-color;
+        border: none;
+    }
+
+    white-space: nowrap;
+    background-color: $progress-bar-background-color;
+    border-radius: $progress-border-radius;
+
+    .progress-bar {
+        position: relative;
+        display: inline-block;
+        vertical-align: top;
+        height: 100%;
+        background-color: var(--bulma-progress-value-background-color, #{$progress-value-background-color});
+        color: findColorInvert($progress-value-background-color);
+
+        @supports (color: contrast-color(red)) {
+            &.is-custom {
+                color: contrast-color(var(--bulma-progress-value-background-color));
+            }
+        }
+
+        .progress-value {
+            color: inherit;
+        }
+
+        @each $name, $color in $theme-colors {
+            $color-invert: color-yiq($color);
+
+            &.is-#{$name} {
+                background-color: $color;
+                color: $color-invert;
+            }
+        }
+    }
+}
+
+.b-page-progress .b-page-progress-indicator.is-custom {
+    background-color: var(--bulma-page-progress-background-color);
+}

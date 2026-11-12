@@ -1,0 +1,133 @@
+﻿.fui-Accordion {
+    .fui-AccordionItem {
+        .fui-AccordionHeader {
+            margin-bottom: 0px;
+            margin-inline: 0;
+            margin-top: 0px;
+            border-radius: var(--borderRadiusMedium);
+            background-color: var(--colorTransparentBackground);
+            color: var(--colorNeutralForeground1);
+
+            .fui-AccordionHeader__button {
+                box-sizing: border-box;
+                min-height: 44px;
+                padding-inline: var(--spacingHorizontalMNudge) var(--spacingHorizontalM);
+                border-bottom-style: solid;
+                border-left-style: solid;
+                border-right-style: solid;
+                border-top-style: solid;
+                border-bottom-width: 1px;
+                border-left-width: 1px;
+                border-right-width: 1px;
+                border-top-width: 1px;
+                position: relative;
+                text-align: unset;
+                appearance: button;
+                padding-bottom: 0px;
+                padding-top: 0px;
+                overflow-y: visible;
+                overflow-x: visible;
+                color: inherit;
+                background-color: inherit;
+                cursor: pointer;
+                width: 100%;
+                align-items: center;
+                border-bottom-color: transparent;
+                border-left-color: transparent;
+                border-right-color: transparent;
+                border-top-color: transparent;
+                display: flex;
+                line-height: var(--lineHeightBase300);
+                font-weight: var(--fontWeightRegular);
+                font-size: var(--fontSizeBase300);
+                font-family: var(--fontFamilyBase);
+                transition: background-color var(--durationFaster) var(--curveEasyEase), color var(--durationFaster) var(--curveEasyEase);
+
+                &:hover {
+                    background-color: var(--colorSubtleBackgroundHover);
+                    color: var(--colorNeutralForeground1Hover);
+                }
+
+                &:active {
+                    background-color: var(--colorSubtleBackgroundPressed);
+                    color: var(--colorNeutralForeground1Pressed);
+                }
+
+                .fui-AccordionHeader__expandIcon {
+                    height: 100%;
+                    font-size: var(--fontSizeBase500);
+                    line-height: var(--lineHeightBase500);
+                    align-items: center;
+                    padding-inline-end: var(--spacingHorizontalS);
+                    display: flex;
+
+
+                    > svg {
+                        display: inline;
+                        line-height: 0;
+                        transition: transform var(--durationGentle) ease-out;
+                    }
+                }
+
+                &[aria-expanded="true"] {
+                    .fui-AccordionHeader__expandIcon {
+
+                        > svg {
+                            transform: rotate(90deg);
+                        }
+                    }
+                }
+            }
+        }
+
+        .fui-AccordionPanel {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows var(--durationGentle) var(--curveEasyEase);
+            margin-inline: var(--spacingHorizontalM);
+            margin-bottom: 0px;
+            margin-top: 0px;
+
+            .fui-AccordionPanel__content {
+                overflow: hidden;
+            }
+        }
+
+        &-active {
+            .fui-AccordionPanel {
+                grid-template-rows: 1fr;
+            }
+        }
+    }
+}
+
+.fui-Accordion[data-animation-duration] > .fui-AccordionItem {
+    &,
+    > .fui-AccordionPanel,
+    > .fui-AccordionPanel > .fui-AccordionPanel__content,
+    > .fui-AccordionHeader,
+    > .fui-AccordionHeader .fui-AccordionHeader__button,
+    > .fui-AccordionHeader .fui-AccordionHeader__button::after,
+    > .fui-AccordionHeader .fui-AccordionHeader__expandIcon > svg {
+        transition-duration: var(--fui-accordion-animation-duration);
+        transition-delay: 0s;
+
+        @media (prefers-reduced-motion: reduce) {
+            transition-duration: 0s;
+        }
+    }
+}
+
+.fui-AccordionItem[data-animation-duration] {
+    > .fui-AccordionPanel,
+    > .fui-AccordionPanel > .card-body,
+    > .fui-AccordionHeader,
+    > .fui-AccordionHeader .fui-AccordionHeader__expandIcon > svg {
+        transition-duration: var(--fui-collapse-animation-duration);
+        transition-delay: 0s;
+
+        @media (prefers-reduced-motion: reduce) {
+            transition-duration: 0s;
+        }
+    }
+}

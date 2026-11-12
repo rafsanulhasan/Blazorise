@@ -1,0 +1,36 @@
+﻿.ant-position {
+    &-static {
+        position: static !important;
+    }
+
+    &-relative {
+        position: relative !important;
+    }
+
+    &-absolute {
+        position: absolute !important;
+    }
+
+    &-fixed {
+        position: fixed !important;
+    }
+
+    &-sticky {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+    }
+}
+
+@each $name, $value in $position-values {
+    @each $side in $position-sides {
+        .ant-#{$side}-#{$name} {
+            #{$side}: $value !important;
+        }
+    }
+}
+
+@each $name, $value in $translate-values {
+    .ant-translate-#{$name} {
+        transform: $value !important;
+    }
+}

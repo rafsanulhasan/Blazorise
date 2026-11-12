@@ -1,0 +1,79 @@
+.ant-checkbox-root {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    > .ant-form-item-explain,
+    > .valid-feedback {
+        display: block;
+        margin-inline-start: calc(var(--ant-control-interactive-size) + var(--ant-padding-xs));
+    }
+}
+
+.ant-checkbox-wrapper {
+    cursor: pointer;
+
+    &.ant-checkbox-block {
+        display: flex;
+        width: fit-content;
+    }
+
+    &.ant-checkbox-inline {
+        display: inline-flex;
+    }
+
+    &.ant-checkbox-wrapper-disabled {
+        cursor: not-allowed;
+    }
+
+    &.ant-checkbox-block + .ant-checkbox-block {
+        margin-top: var(--ant-margin-xs);
+    }
+
+    &:not(.ant-checkbox-wrapper-disabled):hover {
+        cursor: pointer;
+    }
+}
+
+.ant-form-item-has-error {
+    .ant-checkbox:not(.ant-checkbox-checked):not(.ant-checkbox-disabled) {
+        background-color: var(--ant-color-bg-container);
+        border-color: var(--ant-color-error);
+
+        &:hover {
+            border-color: var(--ant-color-error-hover);
+        }
+    }
+}
+
+@mixin checkbox($size, $width) {
+    .ant-checkbox-wrapper.ant-checkbox-#{$size} {
+        .ant-checkbox {
+            width: $width;
+            height: $width;
+
+            &::after {
+                top: calc(#{$width} / 2 - var(--ant-line-width));
+                inset-inline-start: calc(#{$width} / 4 - var(--ant-line-width));
+                width: calc(#{$width} / 14 * 5);
+                height: calc(#{$width} / 14 * 8);
+            }
+        }
+    }
+
+    .ant-checkbox.ant-checkbox-#{$size} {
+        width: $width;
+        height: $width;
+
+        &::after {
+            top: calc(#{$width} / 2 - var(--ant-line-width));
+            inset-inline-start: calc(#{$width} / 4 - var(--ant-line-width));
+            width: calc(#{$width} / 14 * 5);
+            height: calc(#{$width} / 14 * 8);
+        }
+    }
+}
+
+@each $name, $size in $checkbox-sizes {
+    @include checkbox($name, $size);
+}

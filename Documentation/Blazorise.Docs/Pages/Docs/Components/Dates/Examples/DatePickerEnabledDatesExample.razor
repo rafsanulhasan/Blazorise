@@ -1,0 +1,12 @@
+﻿@namespace Blazorise.Docs.Docs.Examples
+
+<Field>
+    <DatePicker TValue="DateTime?" EnabledDates="@enabledDates" />
+</Field>
+
+@code {
+    DateTime?[] enabledDates = new DateTime?[]{
+        DateTime.Now.AddDays(-1),
+        DateTime.Now.AddDays(2),
+    };
+}

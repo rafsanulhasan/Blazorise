@@ -1,46 +1,91 @@
-﻿$enable-grid-classes: true !default;
-$enable-pointer-cursor-for-buttons: true !default;
-$enable-print-styles: true !default;
-//$enable-responsive-font-sizes: false !default; // TODO
-$enable-validation-icons: true !default;
-$enable-deprecation-messages: true !default;
-
-//$enable-negative-margins:  true !default; // Include negative margin/padding utilities
-$enable-validation-valid: true !default; // Apply Success color to valid inputs (not recommended)
-$secondary-color-for-controls: false !default; // Use secondary color for selection/inputs (primary color otherwise, not recommended)
-$enable-smooth-scroll: true !default;
-$enable-form-ripple: true !default; // Animate bottom line of inputs/forms
-$enable-ripple: true !default; // Enable ripple effect on components (Buttons, menus)
-
 @import "colors";
 @import "functions";
 @import "variables";
 @import "variables-material";
 @import "mixins";
-@import "animations";
+@import "mixins/animation";
+@import "mixins/breakpoints";
 
-@import "bar";
-@import "badge";
-@import "buttons";
-@import "card";
-@import "dropdown";
-@import "extensions";
-@import "form";
-@import "grid";
-@import "jumbotron";
-@import "layout";
-@import "list";
-@import "modal";
-@import "pagination";
-@import "progress";
-@import "rating";
-@import "spinner";
-@import "steps";
-@import "switch";
-@import "table";
-@import "tabs";
-@import "typography";
+@import "mixins/border-radius";
+@import "mixins/selection";
 
-@import "utilities";
+@import "fonts";
+@import "reset";
+@import "reboot";
 
-@import "vendor/flatpickr";
+@import "components/addon";
+@import "components/accordion";
+@import "components/alert";
+@import "components/badge";
+@import "components/bar";
+@import "components/kbd";
+@import "components/breadcrumb";
+@import "components/button";
+@import "components/button-group";
+@import "components/card";
+@import "components/carousel";
+@import "components/container";
+@import "components/context-menu";
+@import "components/date-picker";
+@import "components/time-picker";
+@import "components/dropdown";
+@import "components/divider";
+@import "components/dock-layout";
+@import "components/field";
+@import "components/figure";
+@import "components/image";
+@import "components/input";
+@import "components/numeric-picker";
+@import "components/file-input";
+@import "components/layout";
+@import "components/link";
+@import "components/list-group";
+@import "components/offcanvas";
+@import "components/modal";
+@import "components/pagination";
+@import "components/property-grid";
+@import "components/progress";
+@import "components/rating";
+@import "components/selection";
+@import "components/skeleton";
+@import "components/slider";
+@import "components/range-slider";
+@import "components/resizer";
+@import "components/steps";
+@import "components/table";
+@import "components/tabs";
+@import "components/toast";
+@import "components/tooltip";
+@import "components/ripple";
+@import "extensions/autocomplete";
+@import "extensions/one-time-input";
+@import "extensions/password-strength";
+@import "extensions/markdown";
+@import "extensions/cropper";
+@import "extensions/richtextedit";
+@import "extensions/scheduler";
+@import "extensions/snackbar";
+@import "extensions/reporting";
+
+@import "components/color-picker";
+
+@import "utilities/background-color";
+@import "utilities/border";
+@import "utilities/clearfix";
+@import "utilities/custom";
+@import "utilities/cursor";
+@import "utilities/display";
+@import "utilities/flex";
+@import "utilities/float";
+@import "utilities/grid";
+@import "utilities/object-fit";
+@import "utilities/overflow";
+@import "utilities/position";
+@import "utilities/shadow";
+@import "utilities/sizing";
+@import "utilities/spacing";
+@import "utilities/text";
+@import "utilities/typography";
+@import "utilities/vertical-alignment";
+@import "utilities/visibility";
+@import "utilities/z-index";

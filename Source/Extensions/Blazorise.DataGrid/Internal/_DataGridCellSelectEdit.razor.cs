@@ -1,0 +1,224 @@
+#region Using directives
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Blazorise.Modules;
+using Microsoft.AspNetCore.Components;
+#endregion
+
+namespace Blazorise.DataGrid.Internal;
+
+/// <summary>
+/// Internal component for editing the row item cell value.
+/// </summary>
+/// <typeparam name="TItem"></typeparam>
+public partial class _DataGridCellSelectEdit<TItem> : ComponentBase
+{
+    #region Members
+
+    /// <summary>
+    /// Element Id identifying content in the data grid cell select edit.
+    /// </summary>
+    protected string elementId;
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        elementId = IdGenerator.Generate;
+
+        base.OnInitialized();
+    }
+
+    private Task OnSelectedValueChangedHandler( object value )
+    {
+        if ( Column?.Data is null )
+        {
+            return CellValueChanged.InvokeAsync( value );
+        }
+
+        // Select<object> returns a string; resolve it to the original option value.
+        var valueString = value?.ToString() ?? string.Empty;
+
+        foreach ( var item in Column.Data )
+        {
+            var itemValue = Column.ValueField?.Invoke( item );
+
+            if ( string.Equals( itemValue?.ToString() ?? string.Empty, valueString, StringComparison.Ordinal ) )
+            {
+                return CellValueChanged.InvokeAsync( itemValue );
+            }
+        }
+
+        return CellValueChanged.InvokeAsync( null );
+    }
+
+    private async Task OnSelectedValuesChanged( IReadOnlyList<object> values )
+    {
+        var columnType = Column.GetValueType( default );
+
+        if ( columnType.IsArray )
+        {
+            var valueType = columnType.GetElementType();
+            if ( valueType == typeof( int ) )
+            {
+                await CellValueChanged.InvokeAsync( values?.Select( x => int.Parse( x.ToString() ) )?.ToArray() );
+            }
+            else if ( valueType == typeof( short ) )
+            {
+                await CellValueChanged.InvokeAsync( values?.Select( x => short.Parse( x.ToString() ) )?.ToArray() );
+            }
+            else if ( valueType == typeof( decimal ) )
+            {
+                await CellValueChanged.InvokeAsync( values?.Select( x => decimal.Parse( x.ToString() ) )?.ToArray() );
+            }
+            else if ( valueType == typeof( double ) )
+            {
+                await CellValueChanged.InvokeAsync( values?.Select( x => double.Parse( x.ToString() ) )?.ToArray() );
+            }
+            else if ( valueType == typeof( float ) )
+            {
+                await CellValueChanged.InvokeAsync( values?.Select( x => float.Parse( x.ToString() ) )?.ToArray() );
+            }
+            else
+            {
+                await CellValueChanged.InvokeAsync( values?.Select( x => x.ToString() )?.ToArray() );
+            }
+            return;
+        }
+
+        await CellValueChanged.InvokeAsync( values?.Select( x => x.ToString() )?.ToArray() );
+    }
+
+    /// <summary>
+    /// Returns selected values.
+    /// </summary>
+    public object[] GetSelectedValues()
+    {
+        var columnType = Column.GetValueType( default );
+
+        if ( CellValue is not null && columnType.IsArray )
+        {
+            var valueType = columnType.GetElementType();
+            if ( valueType == typeof( int ) )
+            {
+                return ( CellValue as int[] )?.Select( x => (object)x )?.ToArray();
+            }
+            else if ( valueType == typeof( short ) )
+            {
+                return ( CellValue as short[] )?.Select( x => (object)x )?.ToArray();
+            }
+            else if ( valueType == typeof( decimal ) )
+            {
+                return ( CellValue as decimal[] )?.Select( x => (object)x )?.ToArray();
+            }
+            else if ( valueType == typeof( double ) )
+            {
+                return ( CellValue as double[] )?.Select( x => (object)x )?.ToArray();
+            }
+            else if ( valueType == typeof( float ) )
+            {
+                return ( CellValue as float[] )?.Select( x => (object)x )?.ToArray();
+            }
+        }
+        return CellValue as object[];
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync( bool firstRender )
+    {
+        if ( ParentDataGrid.IsCellEdit && Column.CellEditing )
+        {
+            var shouldRestoreFocus = ParentDataGrid.ConsumePendingCellEditFocusRestore();
+
+            if ( firstRender || shouldRestoreFocus )
+            {
+                var cellValue = ParentDataGrid.ReadCellEditValue( Column.Field )?.ToString();
+                var columnValue = Column.GetValue( ParentDataGrid.editItem )?.ToString();
+                var valueHasChanged = cellValue != columnValue;
+
+                await Task.Yield();
+
+                if ( shouldRestoreFocus )
+                {
+                    await Focus();
+                }
+                else if ( ParentDataGrid.IsCellEditSelectTextOnEdit && !valueHasChanged )
+                {
+                    await Select();
+                }
+                else
+                {
+                    await Focus();
+                }
+            }
+        }
+        await base.OnAfterRenderAsync( firstRender );
+    }
+
+    /// <summary>
+    /// Moves keyboard focus to the cell editor.
+    /// </summary>
+    public async Task Focus()
+    {
+        await JSUtilitiesModule.Focus( default, elementId, true );
+    }
+
+    /// <summary>
+    /// Selects the cell editor contents.
+    /// </summary>
+    public async Task Select()
+    {
+        await JSUtilitiesModule.Select( default, elementId, true );
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Parent Data Grid identifying content in the data grid cell select edit.
+    /// </summary>
+    [CascadingParameter] public DataGrid<TItem> ParentDataGrid { get; set; }
+
+    /// <summary>
+    /// Creates the DOM identifier used by the select editor.
+    /// </summary>
+    [Inject] public IIdGenerator IdGenerator { get; set; }
+
+    /// <summary>
+    /// Specifies the <see cref="IJSUtilitiesModule"/> instance.
+    /// </summary>
+    [Inject] public IJSUtilitiesModule JSUtilitiesModule { get; set; }
+
+    /// <summary>
+    /// Column that this cell belongs to.
+    /// </summary>
+    [Parameter] public DataGridSelectColumn<TItem> Column { get; set; }
+
+    /// <summary>
+    /// Currently editing cell value.
+    /// </summary>
+    [Parameter] public object CellValue { get; set; }
+
+    /// <summary>
+    /// Raises when cell value changes.
+    /// </summary>
+    [Parameter] public EventCallback<object> CellValueChanged { get; set; }
+
+    /// <summary>
+    /// Indicates whether to display validation feedback to the user.
+    /// </summary>
+    [Parameter] public bool ShowValidationFeedback { get; set; }
+
+    /// <summary>
+    /// Determines the area where the cell is located.
+    /// </summary>
+    [Parameter] public DataGridCellSection CellSection { get; set; }
+
+    #endregion
+}

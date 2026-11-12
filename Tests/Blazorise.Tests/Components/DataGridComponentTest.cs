@@ -1,109 +1,1005 @@
-﻿#region Using directives
+#region Using directives
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using BasicTestApp.Client;
+using System.Threading;
+using System.Threading.Tasks;
+using Blazorise.Bootstrap;
 using Blazorise.DataGrid;
-using Blazorise.Tests.Helpers;
+using Blazorise.Extensions;
+using Blazorise.Tests.TestServices;
 using Bunit;
 using Xunit;
+using Employee = BasicTestApp.Client.DataGridComponent.Employee;
 #endregion
 
-namespace Blazorise.Tests.Components
+namespace Blazorise.Tests.Components;
+
+public class DataGridComponentTest : BunitContext
 {
-    public class DataGridComponentTest : TestContext
+    public DataGridComponentTest()
     {
-        public DataGridComponentTest()
+        Services.AddBlazoriseTests().AddBootstrapProviders().AddEmptyIconProvider().AddTestData();
+        JSInterop.AddBlazoriseDataGrid();
+    }
+
+
+    [Fact]
+    public async Task OnSelection_Should_Render_EmptyTemplate()
+    {
+        var comp = Render<DataGridComponent>();
+
+        var rowsFraction = comp.FindAll( "tbody tr.table-row-selectable" );
+        await rowsFraction[0].ClickAsync( new() { Detail = 1 } );
+
+        comp.WaitForAssertion( () =>
         {
-            BlazoriseConfig.AddBootstrapProviders( Services );
-            BlazoriseConfig.JSInterop.AddDataGrid( this.JSInterop );
-        }
+            Assert.Equal( 5, comp.FindAll( "tbody tr.table-row-selectable" ).Count );
+            Assert.DoesNotContain( "No Records...", comp.Markup );
+        } );
+    }
 
-        [Fact]
-        public void SortByField_Should_CorrectlySortRows()
+    [Fact]
+    public void NoData_Should_Render_EmptyTemplate()
+    {
+        // setup
+        var expectedEmptyTemplate = "No Records...";
+
+        // test
+        var comp = Render<DataGridComponent>( parameters =>
+            parameters.Add( x => x.Data, null ) );
+
+        // validate
+        var emptyTemplateValue = comp.Find( "tbody tr td" ).TextContent;
+
+        Assert.Contains( expectedEmptyTemplate, emptyTemplateValue );
+    }
+
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public void EmptyTemplate_Should_UseVisibleColumnSpan_WhenColumnIsNotDisplayable( DataGridEditMode editMode )
+    {
+        // setup & test
+        var comp = Render<DataGrid<Employee>>( parameters =>
         {
-            // setup
-            var expectedOrderedValues = new[] { "1/8", "1/4", "1/2", "3/4" };
+            parameters.Add( x => x.Data, Array.Empty<Employee>() );
+            parameters.Add( x => x.Editable, true );
+            parameters.Add( x => x.EditMode, editMode );
+            parameters.Add( x => x.DataGridColumns, CreateColumnSpanColumns() );
+            parameters.Add( x => x.EmptyTemplate, (Microsoft.AspNetCore.Components.RenderFragment)( builder => builder.AddContent( 0, "No Records..." ) ) );
+        } );
 
-            // test
-            var comp = RenderComponent<DataGridComponent>();
-            var rows = comp.FindAll( "tbody tr td:nth-child(2)" );
+        // validate
+        var emptyTemplateCell = comp.Find( "tbody tr td" );
 
-            // validate
-            var count = 0;
-            foreach ( var item in rows )
+        Assert.Equal( "2", emptyTemplateCell.GetAttribute( "colspan" ) );
+    }
+
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public void EmptyFilterTemplate_Should_UseVisibleColumnSpan_WhenColumnIsNotDisplayable( DataGridEditMode editMode )
+    {
+        // setup & test
+        var comp = Render<DataGrid<Employee>>( parameters =>
+        {
+            parameters.Add( x => x.Data, new[] { new Employee { Name = "John", Fraction = "1/2" } } );
+            parameters.Add( x => x.Editable, true );
+            parameters.Add( x => x.EditMode, editMode );
+            parameters.Add( x => x.DataGridColumns, CreateColumnSpanColumns( "Missing" ) );
+            parameters.Add( x => x.EmptyFilterTemplate, (Microsoft.AspNetCore.Components.RenderFragment)( builder => builder.AddContent( 0, "No Filtered Records..." ) ) );
+        } );
+
+        // validate
+        var emptyFilterTemplateCell = comp.Find( "tbody tr td" );
+
+        Assert.Equal( "2", emptyFilterTemplateCell.GetAttribute( "colspan" ) );
+    }
+
+    [Theory]
+    [InlineData( 15, 2 )]
+    [InlineData( 45, 5 )]
+    [InlineData( 0, 1 )]
+    public async Task FilterChange_Should_ReloadOnlyWhenPageExceedsUpdatedTotal( int filteredTotal, int expectedPage )
+    {
+        var requestedPages = new List<int>();
+        var changedPages = new List<int>();
+
+        var comp = Render<DataGrid<Employee>>( parameters =>
+        {
+            parameters.Add( x => x.Data, new[] { new Employee { Name = "John", Fraction = "1/2" } } );
+            parameters.Add( x => x.DataGridColumns, CreateColumnSpanColumns() );
+            parameters.Add( x => x.Filterable, true );
+            parameters.Add( x => x.ShowPager, true );
+            parameters.Add( x => x.Page, 5 );
+            parameters.Add( x => x.PageSize, 10 );
+            parameters.Add( x => x.TotalItems, 50 );
+            parameters.Add( x => x.EmptyTemplate, (Microsoft.AspNetCore.Components.RenderFragment)( builder => builder.AddContent( 0, "No Records..." ) ) );
+            parameters.Add( x => x.ReadData, args => requestedPages.Add( args.Page ) );
+            parameters.Add( x => x.PageChanged, page => changedPages.Add( page ) );
+        } );
+
+        comp.WaitForAssertion( () =>
+        {
+            Assert.Equal( new[] { 5 }, requestedPages );
+            Assert.False( comp.Instance.IsLoading );
+        } );
+
+        requestedPages.Clear();
+
+        var column = comp.FindComponents<DataGridColumn<Employee>>()
+            .Single( x => x.Instance.Field == nameof( Employee.Name ) ).Instance;
+
+        await comp.InvokeAsync( () => column.Filter.TriggerFilterChange( "John" ) );
+
+        comp.WaitForAssertion( () =>
+        {
+            Assert.Equal( new[] { 5 }, requestedPages );
+            Assert.False( comp.Instance.IsLoading );
+        } );
+
+        // Apply the filtered backend response; an empty page must not prevent recovery.
+        comp.Render( parameters =>
+        {
+            parameters.Add( x => x.Data, Array.Empty<Employee>() );
+            parameters.Add( x => x.TotalItems, filteredTotal );
+        } );
+
+        comp.WaitForAssertion( () =>
+        {
+            Assert.Equal( expectedPage, comp.Instance.Page );
+            Assert.Equal( expectedPage == 5 ? new[] { 5 } : new[] { 5, expectedPage }, requestedPages );
+            Assert.Equal( expectedPage == 5 ? Array.Empty<int>() : new[] { expectedPage }, changedPages );
+            Assert.False( comp.Instance.IsLoading );
+        } );
+    }
+
+    [Fact]
+    public void SortByField_Should_CorrectlySortRows()
+    {
+        // setup
+        var expectedOrderedValues = new[] { "1/8", "1/4", "1/3", "1/2", "3/4" };
+
+        // test
+        var comp = Render<DataGridComponent>();
+
+        // validate
+        comp.FindAll( "tbody tr td:nth-child(2)" )
+            .Select( x => x.TextContent )
+            .Should()
+            .BeEquivalentTo( expectedOrderedValues );
+    }
+
+    [Fact]
+    public async Task SortByField_Should_CorrectlyReorderRows()
+    {
+        // setup
+        var expectedOrderedValues = new[] { "3/4", "1/2", "1/3", "1/4", "1/8" };
+        var comp = Render<DataGridComponent>();
+
+        // test
+        await comp.Find( "thead tr th:nth-child(2)" )
+            .ClickAsync(); // change sort order to descending
+
+        // validate
+        comp.FindAll( "tbody tr td:nth-child(2)" )
+            .Select( x => x.TextContent )
+            .Should()
+            .BeEquivalentTo( expectedOrderedValues );
+    }
+
+    [Fact]
+    public async Task SortByMultipleSelectColumn_Should_NotThrowAndShould_ReorderRows()
+    {
+        // setup
+        string[] expectedOrderedValues = ["CODE, TEST", "MEET", "TRAIN"];
+        IRenderedComponent<DataGridSelectColumnMultipleSortComponent> comp = Render<DataGridSelectColumnMultipleSortComponent>();
+
+        // test
+        await comp.Find( "thead tr th:first-child" ).ClickAsync();
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            comp.FindAll( "tbody tr td" )
+                .Select( x => x.TextContent )
+                .Should()
+                .Equal( expectedOrderedValues );
+        } );
+    }
+
+    [Fact]
+    public async Task SortByField_Should_RaiseSortChangedEvent()
+    {
+        // setup
+        var sortChanged = new List<DataGridSortChangedEventArgs>();
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            parameters.Add(
+                parameterSelector: x => x.SortChanged,
+                callback: e => sortChanged.Add( e ) );
+        } );
+
+        // test
+        await Task.Factory.StartNew(
+            // Note: event handling was implemented using Fire & Forget (async call without await keyword!)
+            () => comp.Find( "thead tr th:nth-child(2)" ).ClickAsync(), // change sort order to descending
+            cancellationToken: CancellationToken.None,
+            creationOptions: TaskCreationOptions.None,
+            scheduler: new CurrentThreadTaskScheduler()
+        );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            sortChanged
+            .Should().HaveCount( 1 )
+            .And
+            .OnlyContain( e => e.ColumnFieldName == "Fraction" &&
+                               e.FieldName == "FractionValue" &&
+                               e.SortDirection == SortDirection.Descending );
+        } );
+
+    }
+
+    [Fact]
+    public async Task SortByField_Should_RaiseSortingChangedEvent()
+    {
+        // setup
+        var sortingChanged = new List<DataGridSortChangedEventArgs>();
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            parameters.Add(
+                parameterSelector: x => x.SortChanged,
+                callback: e => sortingChanged.Add( e ) );
+        } );
+
+        // test
+        await Task.Factory.StartNew(
+            // Note: event handling was implemented using Fire & Forget (async call without await keyword!)
+            action: () => comp.Find( "thead tr th:nth-child(2)" ).ClickAsync(), // change sort order to descending
+            cancellationToken: CancellationToken.None,
+            creationOptions: TaskCreationOptions.None,
+            scheduler: new CurrentThreadTaskScheduler()
+        );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            sortingChanged
+            .Should().HaveCount( 1 )
+            .And
+            .ContainEquivalentOf( new DataGridSortChangedEventArgs(
+                 fieldName: nameof( Employee.FractionValue ),
+                 columnFieldName: nameof( Employee.Fraction ),
+                 sortDirection: SortDirection.Descending
+            ) );
+        } );
+    }
+
+    [Fact]
+    public async Task Sort_Should_CorrectlyReorderWhenUsingFieldName()
+    {
+        // setup
+        var expectedOrderedValues = new[] { "3/4", "1/2", "1/3", "1/4", "1/8" };
+        var comp = Render<DataGridComponent>();
+        var dataGrid = comp.FindComponent<DataGrid<Employee>>();
+
+        // test
+        await Task.Factory.StartNew(
+            action: async () => await dataGrid.Instance.Sort( nameof( Employee.Fraction ), SortDirection.Descending ),
+            cancellationToken: CancellationToken.None,
+            creationOptions: TaskCreationOptions.None,
+            scheduler: new CurrentThreadTaskScheduler()
+        );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            comp.FindAll( "tbody tr td:nth-child(2)" )
+                .Select( x => x.TextContent )
+                .Should()
+                .BeEquivalentTo( expectedOrderedValues );
+        } );
+    }
+
+    [Fact]
+    public async Task ApplySorting_Multiple_Should_ReorderCorrectlyWhenSortingWithMultipleColumns()
+    {
+        // setup
+        var expectedOrderedValues = new[] { "3/4", "1/3", "1/2", "1/8", "1/4" };
+        var comp = Render<DataGridComponent>();
+        var dataGrid = comp.FindComponent<DataGrid<Employee>>();
+
+        // test
+        await dataGrid.Instance.ApplySorting(
+            new DataGridSortColumnInfo(
+                field: nameof( Employee.Name ),
+                sortDirection: SortDirection.Ascending ),
+            new DataGridSortColumnInfo(
+                field: nameof( Employee.Fraction ),
+                sortDirection: SortDirection.Ascending )
+        );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            comp.FindAll( "tbody tr td:nth-child(2)" )
+                .Select( x => x.TextContent )
+                .Should()
+                .BeEquivalentTo( expectedOrderedValues );
+        } );
+    }
+
+    [Fact]
+    public async Task ApplySorting_Multiple_Should_RaiseSortingChangedEvent()
+    {
+        // setup
+        var sortingChanged = new List<DataGridSortChangedEventArgs>();
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            parameters.Add(
+                parameterSelector: x => x.SortChanged,
+                callback: e => sortingChanged.Add( e ) );
+        } );
+
+        var dataGrid = comp.FindComponent<DataGrid<Employee>>();
+
+        // test
+        await dataGrid.Instance.ApplySorting(
+            new DataGridSortColumnInfo(
+                field: nameof( Employee.Name ),
+                sortDirection: SortDirection.Ascending ),
+            new DataGridSortColumnInfo(
+                field: nameof( Employee.Fraction ),
+                sortDirection: SortDirection.Descending )
+        );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            sortingChanged
+                .Should().HaveCount( 2 )
+                .And
+                .ContainEquivalentOf( new DataGridSortChangedEventArgs(
+                 fieldName: nameof( Employee.FractionValue ),
+                 columnFieldName: nameof( Employee.Fraction ),
+                 sortDirection: SortDirection.Descending
+                ) );
+
+            sortingChanged.Should().ContainEquivalentOf( new DataGridSortChangedEventArgs(
+                             fieldName: nameof( Employee.Name ),
+                             columnFieldName: nameof( Employee.Name ),
+                             sortDirection: SortDirection.Ascending
+                        ) );
+        } );
+    }
+
+    [Fact]
+    public async Task ApplySorting_Multiple_Should_RestoreTheDefaultOrderIfNoSortColumnsAreSpecified()
+    {
+        // setup
+        var expectedOrderedValues = new[] { "1/2", "1/4", "1/8", "3/4", "1/3" };
+        var comp = Render<DataGridComponent>();
+        var dataGrid = comp.FindComponent<DataGrid<Employee>>();
+
+        // test
+        await dataGrid.Instance.ApplySorting( Array.Empty<DataGridSortColumnInfo>() );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            comp.FindAll( "tbody tr td:nth-child(2)" )
+                .Select( x => x.TextContent )
+                .Should()
+                .BeEquivalentTo( expectedOrderedValues );
+        } );
+    }
+
+    [Fact]
+    public async Task ApplySorting_Single_Should_ReorderCorrectlyWhenSortingASingleColumn()
+    {
+        // setup
+        var expectedOrderedValues = new[] { "3/4", "1/2", "1/3", "1/8", "1/4" };
+        var comp = Render<DataGridComponent>( p => p.Add( x => x.SortMode, DataGridSortMode.Single ) );
+        var dataGrid = comp.FindComponent<DataGrid<Employee>>();
+
+        // test
+        await dataGrid.Instance.ApplySorting(
+            new DataGridSortColumnInfo(
+                field: nameof( Employee.Name ),
+                sortDirection: SortDirection.Ascending )
+        );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            comp.FindAll( "tbody tr td:nth-child(2)" )
+                .Select( x => x.TextContent )
+                .Should()
+                .BeEquivalentTo( expectedOrderedValues );
+        } );
+    }
+
+    [Fact]
+    public async Task ApplySorting_Single_Should_RestoreTheDefaultOrderIfNoSortColumnIsSpecified()
+    {
+        // setup
+        var expectedOrderedValues = new[] { "1/2", "1/4", "1/8", "3/4", "1/3" };
+        var comp = Render<DataGridComponent>( p => p.Add( x => x.SortMode, DataGridSortMode.Single ) );
+        var dataGrid = comp.FindComponent<DataGrid<Employee>>();
+
+        // test
+        await dataGrid.Instance.ApplySorting( Array.Empty<DataGridSortColumnInfo>() );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            comp.FindAll( "tbody tr td:nth-child(2)" )
+                .Select( x => x.TextContent )
+                .Should()
+                .BeEquivalentTo( expectedOrderedValues );
+        } );
+    }
+
+    [Fact]
+    public async Task ApplySorting_Single_Should_RaiseSortingChangedEvent()
+    {
+        // setup
+        var sortingChanged = new List<DataGridSortChangedEventArgs>();
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            parameters.Add( x => x.SortMode, DataGridSortMode.Single );
+            parameters.Add(
+                parameterSelector: x => x.SortChanged,
+                callback: e => sortingChanged.Add( e ) );
+        } );
+
+        var dataGrid = comp.FindComponent<DataGrid<Employee>>();
+
+        // test
+        await dataGrid.Instance.ApplySorting(
+            new DataGridSortColumnInfo(
+                field: nameof( Employee.Name ),
+                sortDirection: SortDirection.Descending )
+        );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            sortingChanged
+                .Should().HaveCount( 1 )
+                .And
+                .ContainEquivalentOf( new DataGridSortChangedEventArgs(
+                     fieldName: nameof( Employee.Name ),
+                     columnFieldName: nameof( Employee.Name ),
+                     sortDirection: SortDirection.Descending
+                ) );
+        } );
+    }
+
+    [Fact]
+    public async Task RemoveColumn_Should_RaiseSortingChanged()
+    {
+        // setup
+        var sortingChanged = new List<DataGridSortChangedEventArgs>();
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            parameters.Add(
+                parameterSelector: x => x.SortChanged,
+                callback: e => sortingChanged.Add( e ) );
+        } );
+        var dataGrid = comp.FindComponent<DataGrid<Employee>>();
+        var column = dataGrid
+            .FindComponents<DataGridColumn<Employee>>()
+            .Single( x => x.Instance.Field == nameof( Employee.Fraction ) );
+
+        // test
+        await Task.Factory.StartNew(
+            // Note: event handling was implemented using Fire & Forget (async call without await keyword!)
+            function: () => dataGrid.Instance.RemoveColumn( column.Instance ),
+            cancellationToken: CancellationToken.None,
+            creationOptions: TaskCreationOptions.None,
+            scheduler: new CurrentThreadTaskScheduler()
+        );
+
+        // validate
+        comp.WaitForAssertion( () =>
+        {
+            sortingChanged
+                .Should().HaveCount( 1 )
+                .And
+                .ContainEquivalentOf( new DataGridSortChangedEventArgs(
+                     fieldName: nameof( Employee.FractionValue ),
+                     columnFieldName: nameof( Employee.Fraction ),
+                     sortDirection: SortDirection.Default
+                ) );
+        } );
+    }
+
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task New_Should_AddNewItem( DataGridEditMode editMode )
+    {
+        // setup
+        var comp = Render<DataGridComponent>( parameters =>
+            parameters.Add( x => x.DataGridEditMode, editMode ) );
+        var startingDataCount = comp.Instance.Data.Count();
+
+        // test
+        await comp.Click( "#btnNew" );
+        await comp.Click( "#btnSave" );
+
+        var currentDataCount = comp.Instance.Data.Count();
+
+        // validate
+        var expectedResult = startingDataCount + 1;
+        comp.WaitForAssertion( () => Assert.Equal( expectedResult, comp.Instance.Data.Count() ), System.TimeSpan.FromSeconds( 3 ) );
+    }
+
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task New_Should_Invoke_RowInsert_Callbacks( DataGridEditMode editMode )
+    {
+        // setup
+        var newName = "RaulFromNew";
+        var data = new List<Employee>();
+        var rowInsertingCount = 0;
+        var rowInsertedCount = 0;
+
+        Employee EmployeeInsertingOld = null;
+        Employee EmployeeInsertingNew = null;
+        Employee EmployeeInsertedOld = null;
+        Employee EmployeeInsertedNew = null;
+
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            //Avoid mutating the original Item
+            parameters.Add( x => x.UseInternalEditing, false );
+            parameters.Add( x => x.Data, data );
+            parameters.Add( x => x.DataGridEditMode, editMode );
+            parameters.Add( x => x.RowInserted, ( e ) =>
             {
-                Assert.Equal( item.TextContent, expectedOrderedValues[count] );
-                count++;
+                rowInsertedCount++;
+                EmployeeInsertedOld = e.OldItem;
+                EmployeeInsertedNew = e.NewItem;
+
+                data.Add( e.NewItem );
+            } );
+            parameters.Add( x => x.RowInserting, ( e ) =>
+            {
+                rowInsertingCount++;
+                EmployeeInsertingOld = e.OldItem;
+                EmployeeInsertingNew = e.NewItem;
+
+                //We are asserting here, because the reference will be mutated with the newName value when inserted.
+                Assert.Equal( default, EmployeeInsertingOld.Name );
+            } );
+        } );
+
+        var startingDataCount = comp.Instance.Data.Count();
+
+        // test
+        await comp.Click( "#btnNew" );
+        await comp.Input( "input", newName, ( firstInput ) => firstInput.SetAttribute( "value", newName ) );
+        await comp.Click( "#btnSave" );
+        var currentDataCount = comp.Instance.Data.Count();
+
+        // validate
+        var expectedCountResult = startingDataCount + 1;
+        comp.WaitForAssertion( () => Assert.Equal( expectedCountResult, comp.Instance.Data.Count() ), System.TimeSpan.FromSeconds( 3 ) );
+
+        Assert.Equal( newName, comp.Instance.Data.ElementAt( expectedCountResult - 1 ).Name );
+
+        Assert.False( object.ReferenceEquals( EmployeeInsertingOld, EmployeeInsertingNew ) );
+        Assert.False( object.ReferenceEquals( EmployeeInsertedOld, EmployeeInsertedNew ) );
+
+
+        Assert.Equal( newName, EmployeeInsertingNew.Name );
+
+        Assert.Equal( newName, EmployeeInsertedOld.Name );
+        Assert.Equal( newName, EmployeeInsertedNew.Name );
+
+        Assert.Equal( 1, rowInsertingCount );
+        Assert.Equal( 1, rowInsertedCount );
+    }
+
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task Edit_Should_Invoke_RowUpdate_Callbacks( DataGridEditMode editMode )
+    {
+        // setup
+        var updatedName = "RaulFromEdit";
+        var data = new List<Employee>() {
+            new Employee()
+            {
+                Name = "Paul"
+            },
+            new Employee()
+            {
+                Name = "John"
+            },
+        };
+
+        var rowUpdatingCount = 0;
+        var rowUpdatedCount = 0;
+
+        Employee EmployeeUpdatingOld = null;
+        Employee EmployeeUpdatingNew = null;
+        Employee EmployeeUpdatedOld = null;
+        Employee EmployeeUpdatedNew = null;
+
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            //Avoid mutating the original Item
+            parameters.Add( x => x.UseInternalEditing, false );
+            parameters.Add( x => x.Data, data );
+            parameters.Add( x => x.DataGridEditMode, editMode );
+            parameters.Add( x => x.RowUpdated, ( e ) =>
+            {
+                rowUpdatedCount++;
+                EmployeeUpdatedOld = e.OldItem;
+                EmployeeUpdatedNew = e.NewItem;
+
+                var idx = data.FindIndex( x => x.Name == e.OldItem.Name );
+                data[idx] = e.NewItem;
+            } );
+            parameters.Add( x => x.RowUpdating, ( e ) =>
+            {
+                rowUpdatingCount++;
+                EmployeeUpdatingOld = e.OldItem;
+                EmployeeUpdatingNew = e.NewItem;
+            } );
+        } );
+
+        // test
+        await comp.Click( "#btnEdit" );
+
+        await comp.Input( "input", updatedName,
+            ( firstInput ) => firstInput.SetAttribute( "value", updatedName ) );
+
+        await comp.Click( "#btnSave" );
+
+        var dataGridRef = comp.FindComponent<DataGrid<Employee>>();
+        await dataGridRef.Instance.Reload();
+
+
+        // validate
+        comp.WaitForAssertion( () => Assert.Contains( comp.Instance.Data, x => x.Name == updatedName ), System.TimeSpan.FromSeconds( 3 ) );
+
+        var currentName = comp.Find( "tbody tr.table-row-selectable:first-child td:nth-child(3)" ).TextContent;
+        Assert.Equal( updatedName, currentName );
+
+        Assert.False( object.ReferenceEquals( EmployeeUpdatingOld, EmployeeUpdatingNew ) );
+        Assert.False( object.ReferenceEquals( EmployeeUpdatedOld, EmployeeUpdatedNew ) );
+
+        Assert.Equal( "Paul", EmployeeUpdatingOld.Name );
+        Assert.Equal( updatedName, EmployeeUpdatingNew.Name );
+
+        Assert.Equal( "Paul", EmployeeUpdatedOld.Name );
+        Assert.Equal( updatedName, EmployeeUpdatedNew.Name );
+
+        Assert.Equal( 1, rowUpdatingCount );
+        Assert.Equal( 1, rowUpdatedCount );
+    }
+
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task Edit_Should_Update_ItemAndUI_WhenObservable( DataGridEditMode editMode )
+    {
+        // setup
+        var updatedName = "RaulFromEdit";
+        var data = new ObservableCollection<Employee>() {
+        new Employee()
+        {
+            Name = "Paul"
+        },
+        new Employee()
+        {
+            Name = "John"
+        },
+    };
+
+        var rowUpdatingCount = 0;
+        var rowUpdatedCount = 0;
+
+        Employee EmployeeUpdatingOld = null;
+        Employee EmployeeUpdatingNew = null;
+        Employee EmployeeUpdatedOld = null;
+        Employee EmployeeUpdatedNew = null;
+
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            //Avoid mutating the original Item
+            parameters.Add( x => x.UseInternalEditing, false );
+            parameters.Add( x => x.Data, data );
+            parameters.Add( x => x.DataGridEditMode, editMode );
+            parameters.Add( x => x.RowUpdated, ( e ) =>
+            {
+                rowUpdatedCount++;
+                EmployeeUpdatedOld = e.OldItem;
+                EmployeeUpdatedNew = e.NewItem;
+
+                var idx = data.ToList().FindIndex( x => x.Name == e.OldItem.Name );
+                data[idx] = e.NewItem;
+            } );
+            parameters.Add( x => x.RowUpdating, ( e ) =>
+            {
+                rowUpdatingCount++;
+                EmployeeUpdatingOld = e.OldItem;
+                EmployeeUpdatingNew = e.NewItem;
+            } );
+        } );
+
+        // test
+        await comp.Click( "#btnEdit" );
+
+        await comp.Input( "input", updatedName,
+            ( firstInput ) => firstInput.SetAttribute( "value", updatedName ) );
+
+        await comp.Click( "#btnSave" );
+
+
+
+        // validate
+        comp.WaitForAssertion( () => Assert.Contains( comp.Instance.Data, x => x.Name == updatedName ), System.TimeSpan.FromSeconds( 3 ) );
+
+        var currentName = comp.Find( "tbody tr.table-row-selectable:first-child td:nth-child(3)" ).TextContent;
+        Assert.Equal( updatedName, currentName );
+
+        Assert.False( object.ReferenceEquals( EmployeeUpdatingOld, EmployeeUpdatingNew ) );
+        Assert.False( object.ReferenceEquals( EmployeeUpdatedOld, EmployeeUpdatedNew ) );
+
+        Assert.Equal( "Paul", EmployeeUpdatingOld.Name );
+        Assert.Equal( updatedName, EmployeeUpdatingNew.Name );
+
+        Assert.Equal( "Paul", EmployeeUpdatedOld.Name );
+        Assert.Equal( updatedName, EmployeeUpdatedNew.Name );
+
+        Assert.Equal( 1, rowUpdatingCount );
+        Assert.Equal( 1, rowUpdatedCount );
+    }
+
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task Remove_Should_Invoke_RowRemove_Callbacks( DataGridEditMode editMode )
+    {
+        // setup
+
+        var rowRemovingCount = 0;
+        var rowRemovedCount = 0;
+
+        Employee EmployeeRemovingOld = null;
+        Employee EmployeeRemovingNew = null;
+        Employee EmployeeRemoved = null;
+
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            parameters.Add( x => x.DataGridEditMode, editMode );
+            parameters.Add( x => x.RowRemoved, ( e ) =>
+            {
+                rowRemovedCount++;
+                EmployeeRemoved = e;
+            } );
+            parameters.Add( x => x.RowRemoving, ( e ) =>
+            {
+                rowRemovingCount++;
+                EmployeeRemovingOld = e.OldItem;
+                EmployeeRemovingNew = e.NewItem;
+            } );
+        } );
+
+        var startingDataCount = comp.Instance.Data.Count();
+
+        // test
+        await comp.Click( "#btnDelete" );
+
+        var currentDataCount = comp.Instance.Data.Count();
+
+        // validate
+        var expectedResult = startingDataCount - 1;
+        comp.WaitForAssertion( () => Assert.Equal( expectedResult, currentDataCount ), System.TimeSpan.FromSeconds( 3 ) );
+
+        Assert.DoesNotContain( EmployeeRemoved, comp.Instance.Data );
+        Assert.True( object.ReferenceEquals( EmployeeRemovingNew, EmployeeRemovingOld ) );
+
+        Assert.Equal( 1, rowRemovingCount );
+        Assert.Equal( 1, rowRemovedCount );
+    }
+
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task Edit_Should_UpdateItem( DataGridEditMode editMode )
+    {
+        // setup
+        var updatedName = "RaulFromEdit";
+        var comp = Render<DataGridComponent>( parameters =>
+            parameters.Add( x => x.DataGridEditMode, editMode ) );
+
+        // test
+        await comp.Find( "#btnEdit" ).ClickAsync();
+
+        await comp.Input( "input", updatedName,
+            ( firstInput ) => firstInput.SetAttribute( "value", updatedName ) );
+
+        await comp.Click( "#btnSave" );
+
+        var currentName = comp.Instance.Data.ElementAt( 0 ).Name;
+
+        // validate
+        comp.WaitForAssertion( () => Assert.Contains( comp.Instance.Data, x => x.Name == updatedName ), System.TimeSpan.FromSeconds( 3 ) );
+    }
+
+    [Fact]
+    public async Task BatchCellEdit_Should_SaveMultipleColumnsForSameOriginalRow()
+    {
+        // setup
+        var data = new List<BatchEditEmployee>
+        {
+            new()
+            {
+                FirstName = "Gerald",
+                LastName = "Pollich",
+                Email = "gerald@yahoo.com",
+            },
+        };
+
+        var comp = Render<TestDataGrid<BatchEditEmployee>>( parameters =>
+        {
+            parameters.Add( x => x.Data, data );
+            parameters.Add( x => x.Editable, true );
+            parameters.Add( x => x.BatchEdit, true );
+            parameters.Add( x => x.EditMode, DataGridEditMode.Cell );
+            parameters.Add( x => x.DataGridColumns, CreateBatchEditColumns() );
+        } );
+
+        var dataGrid = comp.Instance;
+
+        // test
+        await dataGrid.Edit( data[0] );
+        dataGrid.UpdateCellEditValue( nameof( BatchEditEmployee.FirstName ), "Geraldine" );
+        await dataGrid.SaveCurrentBatchItem();
+
+        await dataGrid.Edit( data[0] );
+        dataGrid.UpdateCellEditValue( nameof( BatchEditEmployee.LastName ), "Pollack" );
+        await dataGrid.SaveCurrentBatchItem();
+
+        await dataGrid.Edit( data[0] );
+        dataGrid.UpdateCellEditValue( nameof( BatchEditEmployee.Email ), "gerald@gmail.com" );
+        await dataGrid.SaveCurrentBatchItem();
+
+        Assert.Single( dataGrid.BatchChanges );
+
+        await dataGrid.SaveAllBatch();
+
+        // validate
+        Assert.Equal( "Geraldine", data[0].FirstName );
+        Assert.Equal( "Pollack", data[0].LastName );
+        Assert.Equal( "gerald@gmail.com", data[0].Email );
+    }
+
+    [Fact]
+    public async Task EditTemplate_Should_NotClip_CustomEditor()
+    {
+        // setup
+        var comp = Render<DataGridComponent>( parameters =>
+        {
+            parameters.Add( x => x.DataGridEditMode, DataGridEditMode.Inline );
+            parameters.Add( x => x.UseNameEditTemplate, true );
+        } );
+
+        // test
+        await comp.Click( "#btnEdit" );
+
+        var autocomplete = comp.Find( ".b-is-autocomplete" );
+        var wrapper = autocomplete.ParentElement;
+        var cell = wrapper;
+
+        while ( cell is not null && cell.TagName != "TD" )
+        {
+            cell = cell.ParentElement;
+        }
+
+        // validate
+        Assert.NotNull( wrapper );
+        Assert.NotNull( cell );
+        Assert.DoesNotContain( "overflow:hidden", wrapper.GetAttribute( "style" ) );
+        Assert.DoesNotContain( "overflow:hidden", cell.GetAttribute( "style" ) );
+    }
+
+    [Theory]
+    [InlineData( DataGridEditMode.Form )]
+    [InlineData( DataGridEditMode.Inline )]
+    [InlineData( DataGridEditMode.Popup )]
+    public async Task Delete_Should_DeleteItem( DataGridEditMode editMode )
+    {
+        // setup
+        var comp = Render<DataGridComponent>( parameters =>
+            parameters.Add( x => x.DataGridEditMode, editMode ) );
+        var startingDataCount = comp.Instance.Data.Count();
+
+        // test
+        await comp.Click( "#btnDelete" );
+
+        var currentDataCount = comp.Instance.Data.Count();
+
+        // validate
+        var expectedResult = startingDataCount - 1;
+        comp.WaitForAssertion( () => Assert.Equal( expectedResult, currentDataCount ), System.TimeSpan.FromSeconds( 3 ) );
+    }
+
+    private static Microsoft.AspNetCore.Components.RenderFragment CreateBatchEditColumns()
+        => builder =>
+        {
+            builder.OpenComponent<DataGridColumn<BatchEditEmployee>>( 0 );
+            builder.AddAttribute( 1, nameof( DataGridColumn<BatchEditEmployee>.Field ), nameof( BatchEditEmployee.FirstName ) );
+            builder.AddAttribute( 2, nameof( DataGridColumn<BatchEditEmployee>.Editable ), true );
+            builder.CloseComponent();
+
+            builder.OpenComponent<DataGridColumn<BatchEditEmployee>>( 3 );
+            builder.AddAttribute( 4, nameof( DataGridColumn<BatchEditEmployee>.Field ), nameof( BatchEditEmployee.LastName ) );
+            builder.AddAttribute( 5, nameof( DataGridColumn<BatchEditEmployee>.Editable ), true );
+            builder.CloseComponent();
+
+            builder.OpenComponent<DataGridColumn<BatchEditEmployee>>( 6 );
+            builder.AddAttribute( 7, nameof( DataGridColumn<BatchEditEmployee>.Field ), nameof( BatchEditEmployee.Email ) );
+            builder.AddAttribute( 8, nameof( DataGridColumn<BatchEditEmployee>.Editable ), true );
+            builder.CloseComponent();
+        };
+
+    private static Microsoft.AspNetCore.Components.RenderFragment CreateColumnSpanColumns( string nameFilterValue = null )
+        => builder =>
+        {
+            builder.OpenComponent<DataGridCommandColumn<Employee>>( 0 );
+            builder.CloseComponent();
+
+            builder.OpenComponent<DataGridColumn<Employee>>( 1 );
+            builder.AddAttribute( 2, nameof( DataGridColumn<Employee>.Field ), nameof( Employee.Fraction ) );
+            builder.AddAttribute( 3, nameof( DataGridColumn<Employee>.Displayable ), false );
+            builder.CloseComponent();
+
+            builder.OpenComponent<DataGridColumn<Employee>>( 4 );
+            builder.AddAttribute( 5, nameof( DataGridColumn<Employee>.Field ), nameof( Employee.Name ) );
+
+            if ( nameFilterValue is not null )
+            {
+                builder.AddAttribute( 6, nameof( DataGridColumn<Employee>.Filter ), new FilterContext<Employee> { SearchValue = nameFilterValue } );
             }
-        }
 
-        [Theory]
-        [InlineData( DataGridEditMode.Form )]
-        [InlineData( DataGridEditMode.Inline )]
-        [InlineData( DataGridEditMode.Popup )]
-        public void New_Should_AddNewItem( DataGridEditMode editMode )
-        {
-            // setup
-            var comp = RenderComponent<DataGridComponent>( parameters =>
-                parameters.Add( x => x.DataGridEditMode, editMode ) );
-            var startingDataCount = comp.Instance.InMemoryData.Count;
+            builder.CloseComponent();
+        };
 
-            // test
-            comp.Find( "#btnNew" ).Click();
-            comp.Find( "#btnSave" ).Click();
+    private class TestDataGrid<TItem> : DataGrid<TItem>
+    {
+        public Task SaveCurrentBatchItem()
+            => SaveBatchItem();
 
+        public Task SaveAllBatch()
+            => SaveBatch();
+    }
 
-            var currentDataCount = comp.Instance.InMemoryData.Count;
+    private class BatchEditEmployee
+    {
+        public string FirstName { get; set; }
 
-            // validate
-            Assert.Equal( startingDataCount + 1, currentDataCount );
-        }
+        public string LastName { get; set; }
 
-        [Theory]
-        [InlineData( DataGridEditMode.Form )]
-        [InlineData( DataGridEditMode.Inline )]
-        [InlineData( DataGridEditMode.Popup )]
-        public void Edit_Should_UpdateItem( DataGridEditMode editMode )
-        {
-            // setup
-            var updatedName = "RaulFromEdit";
-            var comp = RenderComponent<DataGridComponent>( parameters =>
-                parameters.Add( x => x.DataGridEditMode, editMode ) );
-
-            // test
-            comp.Find( "#btnEdit" ).Click();
-
-            var firstInput = comp.Find( "input" );
-            firstInput.SetAttribute( "value", updatedName );
-            firstInput.Input( updatedName );
-            
-            var btnSave = comp.Find( "#btnSave" );
-            btnSave.Click();
-
-            var currentName = comp.Instance.InMemoryData[0].Name;
-
-            // validate
-            Assert.Contains( comp.Instance.InMemoryData, x => x.Name == updatedName );
-        }
-
-        [Theory]
-        [InlineData( DataGridEditMode.Form )]
-        [InlineData( DataGridEditMode.Inline )]
-        [InlineData( DataGridEditMode.Popup )]
-        public void Delete_Should_DeleteItem( DataGridEditMode editMode )
-        {
-            // setup
-            var comp = RenderComponent<DataGridComponent>( parameters =>
-                parameters.Add( x => x.DataGridEditMode, editMode ) );
-            var startingDataCount = comp.Instance.InMemoryData.Count;
-
-            // test
-            comp.Find( "#btnDelete" ).Click();
-
-            var currentDataCount = comp.Instance.InMemoryData.Count;
-
-            // validate
-            Assert.Equal( startingDataCount - 1, currentDataCount );
-        }
-
+        public string Email { get; set; }
     }
 }

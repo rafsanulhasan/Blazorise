@@ -1,0 +1,14 @@
+﻿<Div Display="Display.InlineFlex" Flex="Flex.JustifyContent.Center.Wrap" Background="Background.Light" Border="Border.Rounded" Padding="Padding.Is1" Gap="Gap.Is1" role="group" aria-label="Billing frequency">
+    <Button Color="@( SelectedValue == "monthly" ? Color.Primary : Color.Light )"
+            Padding="Padding.Is2.OnY.Is4.OnX"
+            Clicked="@(() => OnClicked( "monthly" ))"
+            aria-pressed="@( SelectedValue == "monthly" ? "true" : "false" )">
+        Monthly
+    </Button>
+    <Button Color="@( SelectedValue == "annually" ? Color.Primary : Color.Light )"
+            Padding="Padding.Is2.OnY.Is4.OnX"
+            Clicked="@(() => OnClicked( "annually" ))"
+            aria-pressed="@( SelectedValue == "annually" ? "true" : "false" )">
+        Annually
+    </Button>
+</Div>

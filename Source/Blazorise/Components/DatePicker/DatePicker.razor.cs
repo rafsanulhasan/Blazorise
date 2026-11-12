@@ -1,516 +1,2192 @@
-﻿#region Using directives
+#region Using directives
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Blazorise.Extensions;
 using Blazorise.Localization;
 using Blazorise.Modules;
 using Blazorise.Utilities;
+using Blazorise.Vendors;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 #endregion
 
-namespace Blazorise
+namespace Blazorise;
+
+/// <summary>
+/// An editor that displays a date value and allows a user to edit the value.
+/// </summary>
+/// <typeparam name="TValue">Data-type to be binded by the <see cref="DatePicker{TValue}"/> property.</typeparam>
+public partial class DatePicker<TValue> : BaseTextInput<TValue, DatePickerClasses, DatePickerStyles>, IAsyncDisposable, IDatePicker
 {
+    #region Events
+
+    internal event Action CalendarStateChanged;
+
+    #endregion
+
+    #region Members
+
     /// <summary>
-    /// An editor that displays a date value and allows a user to edit the value.
+    /// Captured Min parameter snapshot.
     /// </summary>
-    /// <typeparam name="TValue">Data-type to be binded by the <see cref="DatePicker{TValue}"/> property.</typeparam>
-    public partial class DatePicker<TValue> : BaseTextInput<IReadOnlyList<TValue>>, IAsyncDisposable
+    protected ComponentParameterInfo<DateTimeOffset?> paramMin;
+
+    /// <summary>
+    /// Captured Max parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<DateTimeOffset?> paramMax;
+
+    /// <summary>
+    /// Captured FirstDayOfWeek parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<DayOfWeek> paramFirstDayOfWeek;
+
+    /// <summary>
+    /// Captured DisplayFormat parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<string> paramDisplayFormat;
+
+    /// <summary>
+    /// Captured InputFormat parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<string> paramInputFormat;
+
+    /// <summary>
+    /// Captured TimeAs24hr parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<bool> paramTimeAs24hr;
+
+    /// <summary>
+    /// Captured Disabled parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<bool> paramDisabled;
+
+    /// <summary>
+    /// Captured ReadOnly parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<bool> paramReadOnly;
+
+    /// <summary>
+    /// Captured DisabledDates parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<IEnumerable> paramDisabledDates;
+
+    /// <summary>
+    /// Captured EnabledDates parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<IEnumerable> paramEnabledDates;
+
+    /// <summary>
+    /// Captured DisabledDays parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<IEnumerable<DayOfWeek>> paramDisabledDays;
+
+    /// <summary>
+    /// Captured SelectionMode parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<DateInputSelectionMode> paramSelectionMode;
+
+    /// <summary>
+    /// Captured InputMode parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<DateInputMode> paramInputMode;
+
+    /// <summary>
+    /// Captured RangeSeparator parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<string> paramRangeSeparator;
+
+    /// <summary>
+    /// Captured Inline parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<bool> paramInline;
+
+    /// <summary>
+    /// Captured DisableMobile parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<bool> paramDisableMobile;
+
+    /// <summary>
+    /// Captured Placeholder parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<string> paramPlaceholder;
+
+    /// <summary>
+    /// Captured StaticPicker parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<bool> paramStaticPicker;
+
+    /// <summary>
+    /// Captured ShowWeekNumbers parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<bool> paramShowWeekNumbers;
+
+    /// <summary>
+    /// Captured ShowTodayButton parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<bool> paramShowTodayButton;
+
+    /// <summary>
+    /// Captured ShowClearButton parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<bool> paramShowClearButton;
+
+    /// <summary>
+    /// Captured DefaultHour parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<int> paramDefaultHour;
+
+    /// <summary>
+    /// Captured DefaultMinute parameter snapshot.
+    /// </summary>
+    protected ComponentParameterInfo<int> paramDefaultMinute;
+
+    /// <summary>
+    /// The internal value used to separate dates.
+    /// </summary>
+    protected const string MULTIPLE_DELIMITER = ", ";
+
+    /// <summary>
+    /// The default format presented by date-time inputs.
+    /// </summary>
+    protected const string DEFAULT_DATETIME_DISPLAY_FORMAT = "yyyy-MM-dd HH:mm";
+
+    private bool stateInitialized;
+
+    private bool calendarOpen;
+
+    private bool focusCalendarOnOpen;
+
+    private string inputText;
+
+    private DateTime visibleMonth;
+
+    private DateTime focusedDate;
+
+    private readonly DatePickerCalendarNavigation calendarNavigation = new();
+
+    private DateTime? pendingRangeStart;
+
+    private DateTime? hoveredRangeEnd;
+
+    private DateTime? hoveredWeekStart;
+
+    private DatePickerInputMask inputMask;
+
+    private bool inputFocused;
+
+    private bool pointerInteraction;
+
+    private bool? mobileDevice;
+
+    private PickerObserverCoordinator observerCoordinator;
+
+    private DatePickerCalendarContext<TValue> calendarContext;
+
+    private readonly ClassBuilder pickerContainerClassBuilder;
+
+    private readonly StyleBuilder pickerContainerStyleBuilder;
+
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// A default <see cref="DatePicker{TValue}"/> constructor.
+    /// </summary>
+    public DatePicker()
     {
-        #region Methods
+        pickerContainerClassBuilder = new( BuildPickerContainerClasses, builder => builder.Append( Classes?.Wrapper ) );
+        pickerContainerStyleBuilder = new( BuildPickerContainerStyles, builder => builder.Append( Styles?.Wrapper ) );
+    }
 
-        /// <inheritdoc/>
-        public override async Task SetParametersAsync( ParameterView parameters )
+    #endregion
+
+    #region Methods
+
+    /// <summary>
+    /// Builds the class names for the picker container.
+    /// </summary>
+    /// <param name="builder">Class builder used to append the class names.</param>
+    private void BuildPickerContainerClasses( ClassBuilder builder )
+    {
+        AppendWrapperUtilities( builder );
+    }
+
+    /// <summary>
+    /// Builds the styles for the picker container.
+    /// </summary>
+    /// <param name="builder">Style builder used to append the styles.</param>
+    private void BuildPickerContainerStyles( StyleBuilder builder )
+    {
+        AppendWrapperUtilities( builder );
+    }
+
+    /// <inheritdoc/>
+    protected internal override void DirtyClasses()
+    {
+        pickerContainerClassBuilder.Dirty();
+
+        base.DirtyClasses();
+    }
+
+    /// <inheritdoc/>
+    protected internal override void DirtyStyles()
+    {
+        pickerContainerStyleBuilder.Dirty();
+
+        base.DirtyStyles();
+    }
+
+    /// <inheritdoc/>
+    protected override void CaptureParameters( ParameterView parameters )
+    {
+        base.CaptureParameters( parameters );
+
+        parameters.TryGetParameter( Min, out paramMin );
+        parameters.TryGetParameter( Max, out paramMax );
+        parameters.TryGetParameter( FirstDayOfWeek, out paramFirstDayOfWeek );
+        parameters.TryGetParameter( DisplayFormat, out paramDisplayFormat );
+        parameters.TryGetParameter( InputFormat, out paramInputFormat );
+        parameters.TryGetParameter( TimeAs24hr, out paramTimeAs24hr );
+        parameters.TryGetParameter( Disabled, out paramDisabled );
+        parameters.TryGetParameter( ReadOnly, out paramReadOnly );
+        parameters.TryGetParameter( DisabledDates, out paramDisabledDates );
+        parameters.TryGetParameter( EnabledDates, out paramEnabledDates );
+        parameters.TryGetParameter( DisabledDays, out paramDisabledDays );
+        parameters.TryGetParameter( SelectionMode, out paramSelectionMode );
+        parameters.TryGetParameter( InputMode, out paramInputMode );
+        parameters.TryGetParameter( RangeSeparator, out paramRangeSeparator );
+        parameters.TryGetParameter( Inline, out paramInline );
+        parameters.TryGetParameter( DisableMobile, out paramDisableMobile );
+        parameters.TryGetParameter( Placeholder, out paramPlaceholder );
+        parameters.TryGetParameter( StaticPicker, out paramStaticPicker );
+        parameters.TryGetParameter( ShowWeekNumbers, out paramShowWeekNumbers );
+        parameters.TryGetParameter( ShowTodayButton, out paramShowTodayButton );
+        parameters.TryGetParameter( ShowClearButton, out paramShowClearButton );
+        parameters.TryGetParameter( DefaultHour, out paramDefaultHour );
+        parameters.TryGetParameter( DefaultMinute, out paramDefaultMinute );
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterSetParametersAsync( ParameterView parameters )
+    {
+        await base.OnAfterSetParametersAsync( parameters );
+
+        bool formatChanged = ( paramDisplayFormat.Defined && paramDisplayFormat.Changed )
+            || ( paramInputFormat.Defined && paramInputFormat.Changed )
+            || ( paramSelectionMode.Defined && paramSelectionMode.Changed )
+            || ( paramInputMode.Defined && paramInputMode.Changed )
+            || ( paramRangeSeparator.Defined && paramRangeSeparator.Changed );
+
+        bool navigationDefaultsChanged = ( paramMin.Defined && paramMin.Changed )
+            || ( paramMax.Defined && paramMax.Changed )
+            || ( paramDefaultHour.Defined && paramDefaultHour.Changed )
+            || ( paramDefaultMinute.Defined && paramDefaultMinute.Changed );
+
+        bool resetEmptyNavigation = navigationDefaultsChanged && GetSelectedDates().Count == 0;
+
+        if ( !stateInitialized || paramValue.Changed || formatChanged || resetEmptyNavigation )
         {
-            var dateChanged = parameters.TryGetValue<TValue>( nameof( Date ), out var paramDate ) && !Date.Equals( paramDate );
-            var datesChanged = parameters.TryGetValue( nameof( Dates ), out IEnumerable<TValue> paramDates ) && !Dates.AreEqual( paramDates );
-            var minChanged = parameters.TryGetValue( nameof( Min ), out DateTimeOffset? paramMin ) && !Min.IsEqual( paramMin );
-            var maxChanged = parameters.TryGetValue( nameof( Max ), out DateTimeOffset? paramMax ) && !Max.IsEqual( paramMax );
-            var firstDayOfWeekChanged = parameters.TryGetValue( nameof( FirstDayOfWeek ), out DayOfWeek paramFirstDayOfWeek ) && !FirstDayOfWeek.IsEqual( paramFirstDayOfWeek );
-            var displayFormatChanged = parameters.TryGetValue( nameof( DisplayFormat ), out string paramDisplayFormat ) && DisplayFormat != paramDisplayFormat;
-            var timeAs24hrChanged = parameters.TryGetValue( nameof( TimeAs24hr ), out bool paramTimeAs24hr ) && TimeAs24hr != paramTimeAs24hr;
-            var disabledChanged = parameters.TryGetValue( nameof( Disabled ), out bool paramDisabled ) && Disabled != paramDisabled;
-            var readOnlyChanged = parameters.TryGetValue( nameof( ReadOnly ), out bool paramReadOnly ) && ReadOnly != paramReadOnly;
-            var disabledDatesChanged = parameters.TryGetValue( nameof( DisabledDates ), out IEnumerable<TValue> paramDisabledDates ) && !DisabledDates.AreEqual( paramDisabledDates );
-            var selectionModeChanged = parameters.TryGetValue( nameof( SelectionMode ), out DateInputSelectionMode paramSelectionMode ) && !SelectionMode.IsEqual( paramSelectionMode );
-            var inlineChanged = parameters.TryGetValue( nameof( Inline ), out bool paramInline ) && Inline != paramInline;
+            SynchronizeStateFromValue( resetVisibleMonth: !stateInitialized || paramValue.Changed || resetEmptyNavigation );
+        }
 
-            if ( dateChanged || datesChanged )
+        if ( paramInputMode.Defined && paramInputMode.Changed )
+        {
+            calendarNavigation.Reset();
+        }
+
+        if ( paramInline.Defined && paramInline.Changed )
+        {
+            calendarOpen = Inline;
+            focusCalendarOnOpen = false;
+            await SynchronizeOutsidePointerSubscriptionAsync();
+        }
+
+        bool inputMaskConfigurationChanged = ( paramInputFormat.Defined && paramInputFormat.Changed )
+            || ( paramInputMode.Defined && paramInputMode.Changed );
+
+        if ( Rendered && inputMaskConfigurationChanged )
+        {
+            if ( inputFocused && !UseNativeMobilePicker && !string.IsNullOrWhiteSpace( InputFormat ) )
             {
-                var formatedDateString = SelectionMode != DateInputSelectionMode.Single
-                    ? FormatValueAsString( paramDates?.ToArray() )
-                    : FormatValueAsString( new TValue[] { paramDate } );
-
-                await CurrentValueHandler( formatedDateString );
-
-                if ( Rendered )
-                {
-                    ExecuteAfterRender( async () => await JSModule.UpdateValue( ElementRef, ElementId, formatedDateString ) );
-                }
-            }
-
-            if ( Rendered && ( minChanged
-                || maxChanged
-                || firstDayOfWeekChanged
-                || displayFormatChanged
-                || timeAs24hrChanged
-                || disabledChanged
-                || readOnlyChanged
-                || disabledDatesChanged
-                || selectionModeChanged
-                || inlineChanged ) )
-            {
-                ExecuteAfterRender( async () => await JSModule.UpdateOptions( ElementRef, ElementId, new
-                {
-                    FirstDayOfWeek = new { Changed = firstDayOfWeekChanged, Value = (int)paramFirstDayOfWeek },
-                    DisplayFormat = new { Changed = displayFormatChanged, Value = DateTimeFormatConverter.Convert( paramDisplayFormat ) },
-                    TimeAs24hr = new { Changed = timeAs24hrChanged, Value = paramTimeAs24hr },
-                    Min = new { Changed = minChanged, Value = paramMin?.ToString( DateFormat ) },
-                    Max = new { Changed = maxChanged, Value = paramMax?.ToString( DateFormat ) },
-                    Disabled = new { Changed = disabledChanged, Value = paramDisabled },
-                    ReadOnly = new { Changed = readOnlyChanged, Value = paramReadOnly },
-                    DisabledDates = new { Changed = disabledDatesChanged, Value = paramDisabledDates?.Select( x => FormatValueAsString( new TValue[] { x } ) ) },
-                    SelectionMode = new { Changed = selectionModeChanged, Value = paramSelectionMode },
-                    Inline = new { Changed = inlineChanged, Value = paramInline },
-                } ) );
-            }
-
-            // Let blazor do its thing!
-            await base.SetParametersAsync( parameters );
-
-            if ( ParentValidation != null )
-            {
-                if ( parameters.TryGetValue<Expression<Func<TValue>>>( nameof( DateExpression ), out var expression ) )
-                    await ParentValidation.InitializeInputExpression( expression );
-
-                if ( parameters.TryGetValue<string>( nameof( Pattern ), out var pattern ) )
-                {
-                    // make sure we get the newest value
-                    var value = parameters.TryGetValue<TValue>( nameof( Date ), out var inDate )
-                        ? new TValue[] { inDate }
-                        : InternalValue;
-
-                    await ParentValidation.InitializeInputPattern( pattern, value );
-                }
-
-                await InitializeValidation();
-            }
-        }
-
-        /// <inheritdoc/>
-        protected override void OnInitialized()
-        {
-            LocalizerService.LocalizationChanged += OnLocalizationChanged;
-
-            base.OnInitialized();
-        }
-
-        /// <inheritdoc/>
-        protected override async Task OnFirstAfterRenderAsync()
-        {
-            object defaultDate = null;
-
-            // for multiple mode default dates must be set as array
-            if ( SelectionMode != DateInputSelectionMode.Single )
-                defaultDate = Dates?.Select( x => FormatValueAsString( new TValue[] { x } ) )?.ToArray();
-            else
-                defaultDate = FormatValueAsString( new TValue[] { Date } );
-
-            await JSModule.Initialize( ElementRef, ElementId, new
-            {
-                InputMode,
-                SelectionMode = SelectionMode.ToDateInputSelectionMode(),
-                FirstDayOfWeek = (int)FirstDayOfWeek,
-                DisplayFormat = DateTimeFormatConverter.Convert( DisplayFormat ),
-                TimeAs24hr,
-                DefaultDate = defaultDate,
-                Min = Min?.ToString( DateFormat ),
-                Max = Max?.ToString( DateFormat ),
-                Disabled,
-                ReadOnly,
-                DisabledDates = DisabledDates?.Select( x => FormatValueAsString( new TValue[] { x } ) ),
-                Localization = GetLocalizationObject(),
-                Inline,
-            } );
-
-            await base.OnFirstAfterRenderAsync();
-        }
-
-        /// <inheritdoc/>
-        protected override async ValueTask DisposeAsync( bool disposing )
-        {
-            if ( disposing && Rendered )
-            {
-                await JSModule.SafeDestroy( ElementRef, ElementId );
-
-                LocalizerService.LocalizationChanged -= OnLocalizationChanged;
-            }
-
-            await base.DisposeAsync( disposing );
-        }
-
-        /// <inheritdoc/>
-        protected override void BuildClasses( ClassBuilder builder )
-        {
-            builder.Append( ClassProvider.DatePicker( Plaintext ) );
-            builder.Append( ClassProvider.DatePickerSize( ThemeSize ), ThemeSize != Blazorise.Size.Default );
-            builder.Append( ClassProvider.DatePickerColor( Color ), Color != Color.Default );
-            builder.Append( ClassProvider.DatePickerValidation( ParentValidation?.Status ?? ValidationStatus.None ), ParentValidation?.Status != ValidationStatus.None );
-
-            base.BuildClasses( builder );
-        }
-
-        /// <inheritdoc/>
-        protected override Task OnChangeHandler( ChangeEventArgs e )
-        {
-            return CurrentValueHandler( e?.Value?.ToString() );
-        }
-
-        /// <inheritdoc/>
-        protected async Task OnClickHandler( MouseEventArgs e )
-        {
-            if ( Disabled || ReadOnly )
-                return;
-
-            await JSModule.Activate( ElementRef, ElementId, DateFormat );
-        }
-
-        /// <inheritdoc/>
-        protected override Task OnInternalValueChanged( IReadOnlyList<TValue> value )
-        {
-            if ( SelectionMode != DateInputSelectionMode.Single )
-                return DatesChanged.InvokeAsync( value );
-            else
-                return DateChanged.InvokeAsync( value == null ? default : value.FirstOrDefault() );
-        }
-
-        /// <inheritdoc/>
-        protected override string FormatValueAsString( IReadOnlyList<TValue> values )
-        {
-            if ( values == null || values.Count == 0 )
-                return null;
-
-            if ( SelectionMode != DateInputSelectionMode.Single )
-            {
-                var results = new List<string>();
-
-                foreach ( var value in values )
-                {
-                    results.Add( Formaters.FormatDateValueAsString( value, DateFormat ) );
-                }
-
-                return String.Join( SelectionMode == DateInputSelectionMode.Multiple ? ", " : " to ", results );
+                inputText = FormatValueWithFormat( Value, PickerDateTimeFormat.Normalize( InputFormat ) );
+                ExecuteAfterRender( RefreshInputMaskAsync );
             }
             else
             {
-                if ( values[0] == null )
-                    return null;
-
-                return Formaters.FormatDateValueAsString( values[0], DateFormat );
+                ExecuteAfterRender( DestroyInputMaskAsync );
             }
         }
 
-        /// <inheritdoc/>
-        protected override Task<ParseValue<IReadOnlyList<TValue>>> ParseValueFromStringAsync( string value )
+        if ( Rendered && paramDisableMobile.Defined && paramDisableMobile.Changed && !DisableMobile )
         {
-            if ( SelectionMode != DateInputSelectionMode.Single )
+            ExecuteAfterRender( DetectMobileDeviceAsync );
+        }
+
+        if ( Rendered && UseNativeMobilePicker )
+        {
+            calendarOpen = false;
+            focusCalendarOnOpen = false;
+            await DisposeOutsidePointerSubscriptionAsync();
+
+            if ( InputMaskInitialized )
             {
-                var values = value?.Split( SelectionMode == DateInputSelectionMode.Multiple ? ", " : " to " );
-
-                if ( values?.Length > 0 )
-                {
-                    var result = new List<TValue>();
-
-                    foreach ( var part in values )
-                    {
-                        if ( Parsers.TryParseDate<TValue>( part, InputMode, out var resultValue ) )
-                        {
-                            result.Add( resultValue );
-                        }
-                    }
-
-                    return Task.FromResult( new ParseValue<IReadOnlyList<TValue>>( true, result.ToArray(), null ) );
-                }
-
-                return Task.FromResult( new ParseValue<IReadOnlyList<TValue>>( false, new TValue[] { default, default }, null ) );
+                ExecuteAfterRender( DestroyInputMaskAsync );
             }
-            else
+        }
+
+        NotifyCalendarStateChanged();
+        stateInitialized = true;
+    }
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        LocalizerService.LocalizationChanged += OnLocalizationChanged;
+
+        base.OnInitialized();
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnFirstAfterRenderAsync()
+    {
+        await base.OnFirstAfterRenderAsync();
+        await DetectMobileDeviceAsync();
+        await InitializeInputKeyDownSubscriptionAsync();
+    }
+
+    /// <inheritdoc/>
+    protected override async ValueTask DisposeAsync( bool disposing )
+    {
+        if ( disposing )
+        {
+            if ( inputMask is not null )
             {
-                if ( Parsers.TryParseDate<TValue>( value, InputMode, out var result ) )
+                await inputMask.DestroyAsync( ElementRef, ElementId );
+            }
+
+            if ( observerCoordinator is not null )
+            {
+                await observerCoordinator.DisposeAsync();
+            }
+
+            LocalizerService.LocalizationChanged -= OnLocalizationChanged;
+        }
+
+        await base.DisposeAsync( disposing );
+    }
+
+    /// <inheritdoc/>
+    protected override void BuildClasses( ClassBuilder builder )
+    {
+        builder.Append( ClassProvider.DatePicker( Plaintext ) );
+        builder.Append( ClassProvider.DatePickerSize( ThemeSize ) );
+        builder.Append( ClassProvider.DatePickerColor( Color ) );
+        builder.Append( ClassProvider.DatePickerValidation( ParentValidation?.Status ?? ValidationStatus.None ) );
+
+        base.BuildClasses( builder );
+    }
+
+    /// <inheritdoc/>
+    protected override void BuildStyles( StyleBuilder builder )
+    {
+        builder.Append( StyleProvider.DatePickerColor( Color ) );
+
+        base.BuildStyles( builder );
+    }
+
+    /// <summary>
+    /// Handles changes through input binding so rendering preserves the mask's caret position.
+    /// </summary>
+    /// <param name="value">Text reported by the input.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    protected Task OnInputTextChangedHandler( string value )
+        => OnChangeHandler( new ChangeEventArgs { Value = value } );
+
+    /// <inheritdoc/>
+    protected override Task OnChangeHandler( ChangeEventArgs eventArgs )
+    {
+        return ProcessInputTextAsync( eventArgs?.Value?.ToString(), formatParsedValue: true );
+    }
+
+    private async Task ProcessInputTextAsync( string value, bool formatParsedValue )
+    {
+        // A completed mask can still contain a suggested year that subsequent typing overwrites.
+        var isMaskedEditing = inputFocused && InputMaskInitialized;
+
+        inputText = value;
+
+        if ( string.IsNullOrWhiteSpace( inputText ) )
+        {
+            await CurrentValueHandler( null );
+            inputText = null;
+
+            if ( !isMaskedEditing )
+            {
+                await FinishMaskedEditingAsync();
+            }
+
+            pendingRangeStart = null;
+            hoveredRangeEnd = null;
+            hoveredWeekStart = null;
+            NotifyCalendarStateChanged();
+            return;
+        }
+
+        if ( TryNormalizeInputValue( inputText, out string normalizedValue ) )
+        {
+            await CurrentValueHandler( normalizedValue );
+            SynchronizeStateFromValue( resetVisibleMonth: true, updateInputText: formatParsedValue && !isMaskedEditing );
+
+            if ( !isMaskedEditing )
+            {
+                await FinishMaskedEditingAsync();
+            }
+        }
+        else if ( ParentValidation is not null )
+        {
+            await ParentValidation.NotifyInputChanged<TValue>( default );
+        }
+
+        NotifyCalendarStateChanged();
+    }
+
+    /// <summary>
+    /// Opens the calendar when the visible input is clicked.
+    /// </summary>
+    [JSInvokable]
+    protected async Task OnClickHandler( MouseEventArgs eventArgs )
+    {
+        if ( !OpenTrigger.HasFlag( PickerOpenTrigger.Click ) )
+            return;
+
+        if ( IsDisabled || ReadOnly || Plaintext )
+            return;
+
+        if ( UseNativeMobilePicker )
+            return;
+
+        await BeginMaskedEditingAsync();
+        await OpenAsync();
+    }
+
+    /// <summary>
+    /// Records that the input is receiving focus through a pointer interaction.
+    /// </summary>
+    /// <param name="eventArgs">Information about the pointer event.</param>
+    /// <returns>A completed task.</returns>
+    protected Task OnPointerDownHandler( PointerEventArgs eventArgs )
+    {
+        pointerInteraction = true;
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Clears the active pointer interaction when it finishes without focusing the input.
+    /// </summary>
+    /// <param name="eventArgs">Information about the pointer event.</param>
+    /// <returns>A completed task.</returns>
+    protected Task OnPointerInteractionEndedHandler( PointerEventArgs eventArgs )
+    {
+        pointerInteraction = false;
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    protected override string FormatValueAsString( TValue value )
+    {
+        return FormatValueWithFormat( value, EffectiveDisplayFormat );
+    }
+
+    private string FormatValueWithFormat( TValue value, string format, CultureInfo culture = null )
+    {
+        if ( value is null )
+        {
+            return null;
+        }
+
+        culture ??= Localizer.SelectedCulture ?? CultureInfo.CurrentCulture;
+
+        if ( SelectionMode != DateInputSelectionMode.Single )
+        {
+            var results = new List<string>();
+
+            if ( value is IEnumerable values )
+            {
+                foreach ( var item in values )
                 {
-                    return Task.FromResult( new ParseValue<IReadOnlyList<TValue>>( true, new TValue[] { result }, null ) );
+                    results.Add( FormatDateValue( item, format, culture ) );
                 }
-                else
+            }
+
+            if ( InputMode == DateInputMode.Week )
+            {
+                if ( SelectionMode == DateInputSelectionMode.Multiple )
                 {
-                    return Task.FromResult( new ParseValue<IReadOnlyList<TValue>>( false, new TValue[] { default }, null ) );
+                    results = results.Distinct().ToList();
                 }
+                else if ( SelectionMode == DateInputSelectionMode.Range
+                          && results.Count == 2
+                          && results[0] == results[1] )
+                {
+                    results.RemoveAt( 1 );
+                }
+            }
+
+            var delimiter = SelectionMode == DateInputSelectionMode.Multiple ? MULTIPLE_DELIMITER : CurrentRangeSeparator;
+
+            return string.Join( delimiter, results );
+        }
+
+        return FormatDateValue( value, format, culture );
+    }
+
+    private string FormatDateValue( object value, string format, CultureInfo culture )
+        => InputMode == DateInputMode.Week
+            ? WeekDateFormat.FormatValue( value, format, culture, Localizer )
+            : PickerDateTimeFormat.FormatDateValue( value, format, culture, Localizer );
+
+    /// <inheritdoc/>
+    protected override Task<ParseValue<TValue>> ParseValueFromStringAsync( string value )
+    {
+        if ( !TryNormalizeInputValue( value, out string normalizedValue ) )
+        {
+            return Task.FromResult( new ParseValue<TValue>( false, default, null ) );
+        }
+
+        if ( SelectionMode != DateInputSelectionMode.Single )
+        {
+            string delimiter = SelectionMode == DateInputSelectionMode.Multiple ? MULTIPLE_DELIMITER : CurrentRangeSeparator;
+
+            try
+            {
+                TValue readOnlyList = Parsers.ParseCsvDatesToReadOnlyList<TValue>( normalizedValue, delimiter, InputMode, GetCurrentDateTimeOffset() );
+
+                return Task.FromResult( new ParseValue<TValue>( true, readOnlyList, null ) );
+            }
+            catch ( ArgumentException )
+            {
+                return Task.FromResult( new ParseValue<TValue>( false, default, null ) );
             }
         }
 
-        /// <inheritdoc/>
-        protected override Task OnKeyPressHandler( KeyboardEventArgs eventArgs )
+        if ( Parsers.TryParseDate( normalizedValue, InputMode, GetCurrentDateTimeOffset(), out TValue result ) )
         {
-            // just call eventcallback without using debouncer in BaseTextInput
-            return KeyPress.InvokeAsync( eventArgs );
+            return Task.FromResult( new ParseValue<TValue>( true, result, null ) );
         }
 
-        /// <inheritdoc/>
-        protected override Task OnBlurHandler( FocusEventArgs eventArgs )
+        return Task.FromResult( new ParseValue<TValue>( false, default, null ) );
+    }
+
+    private TimeSpan? GetCurrentDateTimeOffset()
+    {
+        if ( Value is DateTimeOffset dateTimeOffset && dateTimeOffset != default )
+            return dateTimeOffset.Offset;
+
+        if ( Value is IEnumerable values )
         {
-            // just call eventcallback without using debouncer in BaseTextInput
-            return Blur.InvokeAsync( eventArgs );
+            foreach ( object item in values )
+            {
+                if ( item is DateTimeOffset dateTimeOffsetItem && dateTimeOffsetItem != default )
+                    return dateTimeOffsetItem.Offset;
+            }
         }
 
-        /// <summary>
-        /// Opens the calendar dropdown.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        public ValueTask OpenAsync()
+        return null;
+    }
+
+    /// <inheritdoc/>
+    [JSInvokable]
+    public new virtual async Task OnKeyDownHandler( KeyboardEventArgs eventArgs )
+    {
+        await KeyDown.InvokeAsync( eventArgs );
+
+        if ( IsDisabled || ReadOnly || eventArgs is null )
+            return;
+
+        if ( UseNativeMobilePicker )
+            return;
+
+        if ( CalendarVisible )
         {
-            return JSModule.Open( ElementRef, ElementId );
+            if ( focusCalendarOnOpen )
+            {
+                await OnCalendarKeyDownAsync( eventArgs );
+            }
+            else if ( eventArgs.Key is "ArrowDown" or "F4" )
+            {
+                await OpenCalendarAsync( focusCalendar: true );
+            }
+            else if ( eventArgs.Key == "Escape" )
+            {
+                await CloseCalendarAsync( focusInput: false );
+            }
+            else if ( eventArgs.Key == "Tab" )
+            {
+                await CloseCalendarAsync( focusInput: false );
+            }
         }
-
-        /// <summary>
-        /// Closes the calendar dropdown.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        public ValueTask CloseAsync()
+        else if ( OpenTrigger.HasFlag( PickerOpenTrigger.OpenKeys )
+                  && eventArgs.Key is "ArrowDown" or "F4" )
         {
-            return JSModule.Close( ElementRef, ElementId );
+            await OpenCalendarAsync( focusCalendar: true );
         }
+    }
 
-        /// <summary>
-        /// Shows/opens the calendar if its closed, hides/closes it otherwise.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        public ValueTask ToggleAsync()
+    /// <inheritdoc/>
+    [JSInvokable]
+    public new virtual Task OnKeyUpHandler( KeyboardEventArgs eventArgs )
+    {
+        return KeyUp.InvokeAsync( eventArgs );
+    }
+
+    /// <inheritdoc/>
+    [JSInvokable]
+    public new virtual async Task OnFocusHandler( FocusEventArgs eventArgs )
+    {
+        bool pointerInitiatedFocus = pointerInteraction;
+        pointerInteraction = false;
+        inputFocused = true;
+
+        await OnFocus.InvokeAsync( eventArgs );
+        await BeginMaskedEditingAsync();
+
+        if ( !pointerInitiatedFocus
+             && OpenTrigger.HasFlag( PickerOpenTrigger.Focus )
+             && !UseNativeMobilePicker )
         {
-            return JSModule.Toggle( ElementRef, ElementId );
+            await OpenCalendarAsync( focusCalendar: false );
         }
+    }
 
-        /// <inheritdoc/>
-        public override async Task Focus( bool scrollToElement = true )
+    /// <inheritdoc/>
+    [JSInvokable]
+    public new virtual async Task OnFocusInHandler( FocusEventArgs eventArgs )
+    {
+        await FocusIn.InvokeAsync( eventArgs );
+
+        if ( ShouldShowOnScreenKeyboardOnFocus )
         {
-            await JSModule.Focus( ElementRef, ElementId, scrollToElement );
+            await ShowOnScreenKeyboard( false );
         }
+    }
 
-        /// <inheritdoc/>
-        public override async Task Select( bool focus = true )
+    /// <inheritdoc/>
+    [JSInvokable]
+    public new virtual Task OnFocusOutHandler( FocusEventArgs eventArgs )
+    {
+        return FocusOut.InvokeAsync( eventArgs );
+    }
+
+    /// <inheritdoc/>
+    [JSInvokable]
+    public new virtual Task OnKeyPressHandler( KeyboardEventArgs eventArgs )
+    {
+        return KeyPress.InvokeAsync( eventArgs );
+    }
+
+    /// <inheritdoc/>
+    [JSInvokable]
+    public new virtual async Task OnBlurHandler( FocusEventArgs eventArgs )
+    {
+        inputFocused = false;
+
+        if ( InputMaskInitialized )
         {
-            await JSModule.Select( ElementRef, ElementId, focus );
-        }
+            inputText = FormatValueAsString( Value );
 
-        /// <summary>
-        /// Handles the localization changed event.
-        /// </summary>
-        /// <param name="sender">Object that raised the event.</param>
-        /// <param name="eventArgs">Data about the localization event.</param>
-        private async void OnLocalizationChanged( object sender, EventArgs eventArgs )
-        {
-            ExecuteAfterRender( async () => await JSModule.UpdateLocalization( ElementRef, ElementId, GetLocalizationObject() ) );
-
+            await DestroyInputMaskAsync();
+            await JSUtilitiesModule.SetTextValue( ElementRef, inputText );
             await InvokeAsync( StateHasChanged );
         }
 
-        private object GetLocalizationObject()
-        {
-            var strings = Localizer.GetStrings();
+        await base.OnBlurHandler( eventArgs );
+    }
 
-            return new
-            {
-                FirstDayOfWeek = (int)FirstDayOfWeek,
-                Weekdays = new
-                {
-                    Shorthand = new[]
-                    {
-                        Localizer["Sun"],
-                        Localizer["Mon"],
-                        Localizer["Tue"],
-                        Localizer["Wed"],
-                        Localizer["Thu"],
-                        Localizer["Fri"],
-                        Localizer["Sat"]
-                    },
-                    Longhand = new[]
-                    {
-                        Localizer["Sunday"],
-                        Localizer["Monday"],
-                        Localizer["Tuesday"],
-                        Localizer["Wednesday"],
-                        Localizer["Thurday"],
-                        Localizer["Friday"],
-                        Localizer["Saturday"]
-                    },
-                },
-                Months = new
-                {
-                    Shorthand = new[]
-                    {
-                        Localizer["Jan"],
-                        Localizer["Feb"],
-                        Localizer["Mar"],
-                        Localizer["Apr"],
-                        Localizer["May"],
-                        Localizer["Jun"],
-                        Localizer["Jul"],
-                        Localizer["Aug"],
-                        Localizer["Sep"],
-                        Localizer["Oct"],
-                        Localizer["Nov"],
-                        Localizer["Dec"]
-                    },
-                    Longhand = new[]
-                    {
-                        Localizer["January"],
-                        Localizer["February"],
-                        Localizer["March"],
-                        Localizer["April"],
-                        Localizer["May!"],
-                        Localizer["June"],
-                        Localizer["July"],
-                        Localizer["August"],
-                        Localizer["September"],
-                        Localizer["October"],
-                        Localizer["November"],
-                        Localizer["December"]
-                    }
-                },
-                amPM = new[] { Localizer["AM"], Localizer["PM"] }
-            };
+    /// <inheritdoc/>
+    protected override async Task OnScreenKeyboardValueChanged( string value )
+    {
+        await ProcessInputTextAsync( value, formatParsedValue: false );
+        await InvokeAsync( StateHasChanged );
+    }
+
+    /// <summary>
+    /// Opens the calendar dropdown.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public ValueTask OpenAsync()
+    {
+        if ( IsDisabled || ReadOnly || Plaintext )
+            return ValueTask.CompletedTask;
+
+        if ( UseNativeMobilePicker )
+            return JSUtilitiesModule.ShowPicker( ElementRef, ElementId );
+
+        return OpenCalendarAsync( focusCalendar: false );
+    }
+
+    private async ValueTask OpenCalendarAsync( bool focusCalendar )
+    {
+        if ( IsDisabled || ReadOnly || Plaintext )
+            return;
+
+        if ( UseNativeMobilePicker )
+        {
+            await JSUtilitiesModule.ShowPicker( ElementRef, ElementId );
+            return;
         }
 
-        #endregion
+        bool calendarWasVisible = CalendarVisible;
+        bool renderRequired = !calendarWasVisible || focusCalendarOnOpen != focusCalendar;
 
-        #region Properties
+        InitializeNavigationTarget();
 
-        /// <inheritdoc/>
-        protected override bool ShouldAutoGenerateId => true;
-
-        /// <inheritdoc/>
-        protected override IReadOnlyList<TValue> InternalValue
+        if ( !calendarWasVisible )
         {
-            get => SelectionMode != DateInputSelectionMode.Single ? Dates : new TValue[] { Date };
-            set
+            calendarNavigation.Reset();
+        }
+
+        focusCalendarOnOpen = focusCalendar;
+        calendarOpen = true;
+
+        if ( renderRequired )
+        {
+            NotifyCalendarStateChanged();
+            await InvokeAsync( StateHasChanged );
+
+            if ( focusCalendar )
             {
-                if ( SelectionMode != DateInputSelectionMode.Single )
-                {
-                    Dates = value;
-                }
-                else
-                {
-                    Date = value == null ? default : value.FirstOrDefault();
-                }
+                await JSUtilitiesModule.Focus( default, CalendarGridId, scrollToElement: false );
             }
         }
 
-        /// <summary>
-        /// Gets the string representation of the input mode.
-        /// </summary>
-        protected string Mode => InputMode.ToDateInputMode();
-
-        /// <summary>
-        /// Gets the date format based on the current <see cref="InputMode"/> settings.
-        /// </summary>
-        protected string DateFormat => Parsers.GetInternalDateFormat( InputMode );
-
-        /// <summary>
-        /// Gets or sets the <see cref="IJSDatePickerModule"/> instance.
-        /// </summary>
-        [Inject] public IJSDatePickerModule JSModule { get; set; }
-
-        /// <summary>
-        /// Gets or sets the DI registered <see cref="ITextLocalizerService"/>.
-        /// </summary>
-        [Inject] protected ITextLocalizerService LocalizerService { get; set; }
-
-        /// <summary>
-        /// Gets or sets the DI registered <see cref="ITextLocalizer{T}"/>.
-        /// </summary>
-        [Inject] protected ITextLocalizer<DatePicker<TValue>> Localizer { get; set; }
-
-        /// <summary>
-        /// Converts the supplied date format into the internal date format.
-        /// </summary>
-        [Inject] protected IDateTimeFormatConverter DateTimeFormatConverter { get; set; }
-
-        /// <summary>
-        /// Hints at the type of data that might be entered by the user while editing the element or its contents.
-        /// </summary>
-        [Parameter] public DateInputMode InputMode { get; set; } = DateInputMode.Date;
-
-        /// <summary>
-        /// Defines the mode in which the dates can be selected.
-        /// </summary>
-        [Parameter] public DateInputSelectionMode SelectionMode { get; set; } = DateInputSelectionMode.Single;
-
-        /// <summary>
-        /// Gets or sets the input date value.
-        /// </summary>
-        [Parameter] public TValue Date { get; set; }
-
-        /// <summary>
-        /// Occurs when the date has changed.
-        /// </summary>
-        [Parameter] public EventCallback<TValue> DateChanged { get; set; }
-
-        /// <summary>
-        /// Gets or sets an expression that identifies the date value.
-        /// </summary>
-        [Parameter] public Expression<Func<TValue>> DateExpression { get; set; }
-
-        /// <summary>
-        /// Gets or sets the input date value.
-        /// </summary>
-        [Parameter] public IReadOnlyList<TValue> Dates { get; set; }
-
-        /// <summary>
-        /// Occurs when the date has changed.
-        /// </summary>
-        [Parameter] public EventCallback<IReadOnlyList<TValue>> DatesChanged { get; set; }
-
-        /// <summary>
-        /// Gets or sets an expression that identifies the date value.
-        /// </summary>
-        [Parameter] public Expression<Func<IReadOnlyList<TValue>>> DatesExpression { get; set; }
-
-        /// <summary>
-        /// The earliest date to accept.
-        /// </summary>
-        [Parameter] public DateTimeOffset? Min { get; set; }
-
-        /// <summary>
-        /// The latest date to accept.
-        /// </summary>
-        [Parameter] public DateTimeOffset? Max { get; set; }
-
-        /// <summary>
-        /// Defines the first day of the week.
-        /// </summary>
-        [Parameter] public DayOfWeek FirstDayOfWeek { get; set; } = DayOfWeek.Monday;
-
-        /// <summary>
-        /// Defines the display format of the date input.
-        /// </summary>
-        [Parameter] public string DisplayFormat { get; set; }
-
-        /// <summary>
-        /// Displays time picker in 24 hour mode without AM/PM selection when enabled.
-        /// </summary>
-        [Parameter] public bool TimeAs24hr { get; set; }
-
-        /// <summary>
-        /// List of disabled dates that the user should not be able to pick.
-        /// </summary>
-        [Parameter] public IEnumerable<TValue> DisabledDates { get; set; }
-
-        /// <summary>
-        /// Display the calendar in an always-open state with the inline option.
-        /// </summary>
-        [Parameter] public bool Inline { get; set; }
-
-        #endregion
+        await SynchronizeOutsidePointerSubscriptionAsync();
     }
+
+    /// <summary>
+    /// Closes the calendar dropdown.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public ValueTask CloseAsync()
+    {
+        return CloseCalendarAsync( focusInput: false );
+    }
+
+    /// <summary>
+    /// Shows/opens the calendar if its closed, hides/closes it otherwise.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async ValueTask ToggleAsync()
+    {
+        if ( CalendarVisible && !Inline )
+        {
+            await CloseCalendarAsync( focusInput: false );
+        }
+        else
+        {
+            await OpenAsync();
+        }
+    }
+
+    /// <inheritdoc/>
+    public override Task Focus( bool scrollToElement = true )
+    {
+        return base.Focus( scrollToElement );
+    }
+
+    /// <inheritdoc/>
+    public override Task Select( bool focus = true )
+    {
+        return base.Select( focus );
+    }
+
+    private async ValueTask CloseCalendarAsync( bool focusInput )
+    {
+        if ( Inline )
+            return;
+
+        calendarOpen = false;
+        focusCalendarOnOpen = false;
+        pendingRangeStart = null;
+        hoveredRangeEnd = null;
+        hoveredWeekStart = null;
+
+        NotifyCalendarStateChanged();
+        await DisposeOutsidePointerSubscriptionAsync();
+
+        if ( focusInput )
+        {
+            ExecuteAfterRender( () => Focus() );
+        }
+
+        await InvokeAsync( StateHasChanged );
+    }
+
+    private void SynchronizeStateFromValue( bool resetVisibleMonth, bool updateInputText = true )
+    {
+        if ( updateInputText )
+        {
+            inputText = FormatValueAsString( Value );
+        }
+
+        IReadOnlyList<DateTime> selectedDates = GetSelectedDates();
+        DateTime navigationDate = selectedDates.FirstOrDefault();
+
+        if ( navigationDate == default )
+        {
+            navigationDate = GetInitialDate();
+        }
+
+        focusedDate = navigationDate;
+
+        if ( resetVisibleMonth || visibleMonth == default )
+        {
+            visibleMonth = new DateTime( navigationDate.Year, navigationDate.Month, 1 );
+        }
+    }
+
+    private void InitializeNavigationTarget()
+    {
+        if ( focusedDate == default )
+        {
+            focusedDate = GetSelectedDates().FirstOrDefault();
+        }
+
+        if ( focusedDate == default )
+        {
+            focusedDate = GetInitialDate();
+        }
+
+        if ( visibleMonth == default )
+        {
+            visibleMonth = new DateTime( focusedDate.Year, focusedDate.Month, 1 );
+        }
+    }
+
+    private DateTime GetInitialDate()
+    {
+        DateTime initialDate = DatePickerDateUtilities.GetInitialDate( DefaultHour, DefaultMinute, Min, Max );
+
+        return InputMode == DateInputMode.Week
+            ? WeekDateFormat.GetWeekStart( initialDate )
+            : initialDate;
+    }
+
+    private IReadOnlyList<DateTime> GetSelectedDates()
+    {
+        IReadOnlyList<DateTime> selectedDates = DatePickerDateUtilities.GetSelectedDates( Value, SelectionMode );
+
+        if ( InputMode != DateInputMode.Week )
+            return selectedDates;
+
+        IEnumerable<DateTime> normalizedDates = selectedDates.Select( WeekDateFormat.GetWeekStart );
+
+        if ( SelectionMode == DateInputSelectionMode.Multiple )
+        {
+            normalizedDates = normalizedDates.Distinct();
+        }
+
+        return normalizedDates.ToArray();
+    }
+
+    private bool TryNormalizeInputValue( string value, out string normalizedValue )
+    {
+        if ( !DatePickerInputParser.TryNormalize(
+            value,
+            SelectionMode,
+            SelectionMode == DateInputSelectionMode.Multiple ? MULTIPLE_DELIMITER : CurrentRangeSeparator,
+            UseNativeMobilePicker ? null : InputFormat,
+            UseNativeMobilePicker ? null : DisplayFormat,
+            DateFormat,
+            InputMode,
+            out normalizedValue,
+            UseNativeMobilePicker ? null : Localizer,
+            UseNativeMobilePicker ? CultureInfo.InvariantCulture : Localizer.SelectedCulture ) )
+        {
+            return false;
+        }
+
+        string delimiter = SelectionMode == DateInputSelectionMode.Multiple ? MULTIPLE_DELIMITER : CurrentRangeSeparator;
+
+        foreach ( string normalizedDate in normalizedValue.Split( delimiter, StringSplitOptions.None ) )
+        {
+            if ( !DateTime.TryParseExact( normalizedDate, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date ) )
+            {
+                return false;
+            }
+
+            bool disabled = InputMode switch
+            {
+                DateInputMode.Month => IsMonthDisabled( date ),
+                DateInputMode.Week => IsWeekDisabled( date ),
+                _ => IsDateDisabled( date ) || IsDateTimeOutsideRange( date ),
+            };
+
+            if ( disabled )
+                return false;
+        }
+
+        return true;
+    }
+
+    private Task RefreshInputMaskAsync()
+        => InputMask.RefreshAsync( ElementRef, ElementId, InputFormat, InputMode );
+
+    private Task DestroyInputMaskAsync()
+        => inputMask?.DestroyAsync( ElementRef, ElementId ) ?? Task.CompletedTask;
+
+    private async Task BeginMaskedEditingAsync()
+    {
+        if ( InputMaskInitialized
+             || !inputFocused
+             || UseNativeMobilePicker
+             || string.IsNullOrWhiteSpace( InputFormat )
+             || IsDisabled
+             || ReadOnly
+             || Plaintext )
+        {
+            return;
+        }
+
+        inputText = FormatValueWithFormat( Value, PickerDateTimeFormat.Normalize( InputFormat ) );
+
+        ExecuteAfterRender( RefreshInputMaskAsync );
+        await InvokeAsync( StateHasChanged );
+    }
+
+    private async Task DetectMobileDeviceAsync()
+    {
+        if ( DisableMobile || mobileDevice.HasValue )
+            return;
+
+        string userAgent = await JSUtilitiesModule.GetUserAgent();
+        bool detectedMobileDevice = MobileDeviceDetector.IsMobile( userAgent );
+
+        if ( mobileDevice != detectedMobileDevice )
+        {
+            mobileDevice = detectedMobileDevice;
+
+            if ( UseNativeMobilePicker )
+            {
+                calendarOpen = false;
+                focusCalendarOnOpen = false;
+                await DisposeOutsidePointerSubscriptionAsync();
+                await DestroyInputMaskAsync();
+            }
+
+            NotifyCalendarStateChanged();
+            await InvokeAsync( StateHasChanged );
+        }
+    }
+
+    private async Task FinishMaskedEditingAsync()
+    {
+        if ( !InputMaskInitialized )
+            return;
+
+        await DestroyInputMaskAsync();
+        await JSUtilitiesModule.SetTextValue( ElementRef, inputText );
+    }
+
+    private async Task CommitDatesAsync( IReadOnlyList<DateTime> dates )
+    {
+        if ( dates.Count == 0 )
+        {
+            await CurrentValueHandler( null );
+            inputText = null;
+            await FinishMaskedEditingAsync();
+            NotifyCalendarStateChanged();
+            await InvokeAsync( StateHasChanged );
+            return;
+        }
+
+        if ( InputMode == DateInputMode.Week )
+        {
+            dates = dates
+                .Select( WeekDateFormat.GetWeekStart )
+                .ToArray();
+        }
+
+        if ( SelectionMode == DateInputSelectionMode.Range
+             && InputMode != DateInputMode.DateTime
+             && dates.Count == 2
+             && dates[0].Date == dates[1].Date )
+        {
+            dates = new[] { dates[0] };
+        }
+
+        string delimiter = SelectionMode == DateInputSelectionMode.Multiple ? MULTIPLE_DELIMITER : CurrentRangeSeparator;
+
+        string normalizedValue = string.Join(
+            delimiter,
+            dates.Select( date => date.ToString( DateFormat, CultureInfo.InvariantCulture ) ) );
+
+        await CurrentValueHandler( normalizedValue );
+        inputText = FormatValueAsString( Value );
+        await FinishMaskedEditingAsync();
+        NotifyCalendarStateChanged();
+        await InvokeAsync( StateHasChanged );
+    }
+
+    internal async Task SelectDateAsync( DateTime selectedDate, DatePickerSelectionSource selectionSource = DatePickerSelectionSource.Calendar )
+    {
+        if ( CalendarInteractionDisabled
+             || ( InputMode == DateInputMode.Week ? IsWeekDisabled( selectedDate ) : IsDateDisabled( selectedDate ) ) )
+            return;
+
+        DateTime date = ApplyCurrentTime( InputMode == DateInputMode.Week
+            ? WeekDateFormat.GetWeekStart( selectedDate )
+            : selectedDate );
+
+        focusedDate = date;
+        visibleMonth = new DateTime( selectedDate.Year, selectedDate.Month, 1 );
+
+        if ( SelectionMode == DateInputSelectionMode.Single )
+        {
+            await CommitDatesAsync( new[] { date } );
+            await CloseCalendarAsync( focusInput: true );
+        }
+        else if ( SelectionMode == DateInputSelectionMode.Range )
+        {
+            if ( selectionSource == DatePickerSelectionSource.TodayButton )
+            {
+                pendingRangeStart = null;
+                hoveredRangeEnd = null;
+                hoveredWeekStart = null;
+
+                await CommitDatesAsync( new[] { date, date } );
+                await CloseCalendarAsync( focusInput: true );
+            }
+            else if ( !pendingRangeStart.HasValue )
+            {
+                pendingRangeStart = date;
+                hoveredRangeEnd = null;
+                hoveredWeekStart = null;
+                NotifyCalendarStateChanged();
+            }
+            else
+            {
+                DateTime start = pendingRangeStart.Value;
+                DateTime end = date;
+
+                if ( end < start )
+                {
+                    (start, end) = (end, start);
+                }
+
+                pendingRangeStart = null;
+                hoveredRangeEnd = null;
+                hoveredWeekStart = null;
+
+                await CommitDatesAsync( new[] { start, end } );
+                await CloseCalendarAsync( focusInput: true );
+            }
+        }
+        else
+        {
+            List<DateTime> selectedDates = GetSelectedDates().ToList();
+            int existingIndex = selectedDates.FindIndex( item => item.Date == date.Date );
+
+            if ( existingIndex >= 0 )
+            {
+                selectedDates.RemoveAt( existingIndex );
+            }
+            else
+            {
+                selectedDates.Add( date );
+            }
+
+            await CommitDatesAsync( selectedDates );
+        }
+    }
+
+    internal Task SelectMonthAsync( DateTime month )
+    {
+        if ( CalendarInteractionDisabled || IsMonthDisabled( month ) )
+            return Task.CompletedTask;
+
+        DateTime selectedMonth = new(
+            month.Year,
+            month.Month,
+            1,
+            CurrentHour,
+            CurrentMinute,
+            0,
+            DateTimeKind.Unspecified );
+
+        return SelectDateAsync( selectedMonth );
+    }
+
+    internal void PreviewRange( DateTime? date )
+    {
+        bool stateChanged = false;
+
+        if ( InputMode == DateInputMode.Week && date.HasValue )
+        {
+            date = WeekDateFormat.GetWeekStart( date.Value );
+        }
+
+        if ( InputMode == DateInputMode.Week && hoveredWeekStart != date )
+        {
+            hoveredWeekStart = date;
+            stateChanged = true;
+        }
+
+        if ( SelectionMode == DateInputSelectionMode.Range
+             && pendingRangeStart.HasValue
+             && hoveredRangeEnd != date )
+        {
+            hoveredRangeEnd = date;
+            stateChanged = true;
+        }
+
+        if ( stateChanged )
+        {
+            NotifyCalendarStateChanged();
+        }
+    }
+
+    internal async Task SelectTodayAsync()
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        DateTime today = DateTime.Today
+            .AddHours( CurrentHour )
+            .AddMinutes( CurrentMinute );
+
+        if ( InputMode == DateInputMode.Month )
+        {
+            today = new DateTime( today.Year, today.Month, 1, today.Hour, today.Minute, 0 );
+        }
+
+        await SelectDateAsync( today, DatePickerSelectionSource.TodayButton );
+    }
+
+    internal async Task ClearAsync()
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        pendingRangeStart = null;
+        hoveredRangeEnd = null;
+        hoveredWeekStart = null;
+        await CommitDatesAsync( Array.Empty<DateTime>() );
+
+        if ( !Inline )
+        {
+            await CloseCalendarAsync( focusInput: true );
+        }
+    }
+
+    internal void ShowPreviousPeriod()
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        if ( InputMode == DateInputMode.Month )
+        {
+            MoveFocusedMonth( calendarNavigation.GetNavigationMonths( -1 ) );
+        }
+        else
+        {
+            MoveFocusedMonth( -1 );
+        }
+    }
+
+    internal void ShowNextPeriod()
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        if ( InputMode == DateInputMode.Month )
+        {
+            MoveFocusedMonth( calendarNavigation.GetNavigationMonths( 1 ) );
+        }
+        else
+        {
+            MoveFocusedMonth( 1 );
+        }
+    }
+
+    internal void ShowPreviousYear()
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        MoveFocusedMonth( -12 );
+    }
+
+    internal void ShowNextYear()
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        MoveFocusedMonth( 12 );
+    }
+
+    internal void ChangeVisibleMonth( ChangeEventArgs eventArgs )
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        if ( int.TryParse( eventArgs?.Value?.ToString(), out int month ) && month is >= 1 and <= 12 )
+        {
+            MoveFocusedMonth( month - visibleMonth.Month );
+        }
+    }
+
+    internal void ChangeVisibleYear( int year )
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        year = Math.Clamp( year, DateTime.MinValue.Year, DateTime.MaxValue.Year );
+        DateTime targetMonth = new( year, visibleMonth.Month, 1 );
+
+        if ( Min.HasValue && targetMonth < Min.Value.Date )
+        {
+            targetMonth = new DateTime( Min.Value.Year, Min.Value.Month, 1 );
+        }
+
+        if ( Max.HasValue && targetMonth > Max.Value.Date )
+        {
+            targetMonth = new DateTime( Max.Value.Year, Max.Value.Month, 1 );
+        }
+
+        MoveFocusedMonth( ( targetMonth.Year - visibleMonth.Year ) * 12 + targetMonth.Month - visibleMonth.Month );
+    }
+
+    internal bool IsCalendarMonthNavigationDisabled( int month )
+        => !TryGetNavigationMonth( month - visibleMonth.Month, out _ );
+
+    /// <summary>
+    /// Advances the month-selection calendar from months to years or from years to decades.
+    /// </summary>
+    internal void ShowBroaderCalendarView()
+    {
+        if ( CalendarInteractionDisabled || InputMode != DateInputMode.Month )
+            return;
+
+        calendarNavigation.ShowBroaderView();
+
+        NotifyCalendarStateChanged();
+    }
+
+    /// <summary>
+    /// Selects an intermediate year or decade and returns to the next narrower calendar view.
+    /// </summary>
+    /// <param name="period">Calendar period to select.</param>
+    internal void SelectCalendarPeriod( DatePickerCalendarPeriod period )
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        if ( calendarNavigation.TrySelectPeriod(
+            period,
+            visibleMonth,
+            focusedDate,
+            out DateTime targetVisibleMonth,
+            out DateTime targetFocusedDate ) )
+        {
+            visibleMonth = targetVisibleMonth;
+            focusedDate = targetFocusedDate;
+            NotifyCalendarStateChanged();
+        }
+    }
+
+    internal async Task OnCalendarKeyDownAsync( KeyboardEventArgs eventArgs )
+    {
+        if ( eventArgs is null || CalendarInteractionDisabled )
+            return;
+
+        bool monthMode = InputMode == DateInputMode.Month;
+        bool weekMode = InputMode == DateInputMode.Week;
+
+        switch ( eventArgs.Key )
+        {
+            case "ArrowLeft":
+                MoveCalendarFocus( weekMode ? -7 : -1, monthMode );
+                break;
+            case "ArrowRight":
+                MoveCalendarFocus( weekMode ? 7 : 1, monthMode );
+                break;
+            case "ArrowUp":
+                MoveCalendarFocus( monthMode ? -calendarNavigation.GetColumnCount() : -7, monthMode );
+                break;
+            case "ArrowDown":
+                MoveCalendarFocus( monthMode ? calendarNavigation.GetColumnCount() : 7, monthMode );
+                break;
+            case "PageUp":
+                MoveFocusedMonth( monthMode ? calendarNavigation.GetNavigationMonths( -1 ) : eventArgs.ShiftKey ? -12 : -1 );
+                break;
+            case "PageDown":
+                MoveFocusedMonth( monthMode ? calendarNavigation.GetNavigationMonths( 1 ) : eventArgs.ShiftKey ? 12 : 1 );
+                break;
+            case "Home":
+                if ( monthMode )
+                {
+                    focusedDate = new DateTime( calendarNavigation.GetBoundaryYear( visibleMonth.Year, beginning: true ), CalendarView == DatePickerCalendarView.Month ? 1 : visibleMonth.Month, 1 );
+                    visibleMonth = new DateTime( focusedDate.Year, visibleMonth.Month, 1 );
+                    NotifyCalendarStateChanged();
+                }
+                else if ( weekMode )
+                {
+                    focusedDate = WeekDateFormat.GetWeekStart( visibleMonth );
+                    NotifyCalendarStateChanged();
+                }
+                else
+                {
+                    MoveFocusToWeekBoundary( beginning: true );
+                }
+                break;
+            case "End":
+                if ( monthMode )
+                {
+                    focusedDate = new DateTime( calendarNavigation.GetBoundaryYear( visibleMonth.Year, beginning: false ), CalendarView == DatePickerCalendarView.Month ? 12 : visibleMonth.Month, 1 );
+                    visibleMonth = new DateTime( focusedDate.Year, visibleMonth.Month, 1 );
+                    NotifyCalendarStateChanged();
+                }
+                else if ( weekMode )
+                {
+                    DateTime monthEnd = new(
+                        visibleMonth.Year,
+                        visibleMonth.Month,
+                        DateTime.DaysInMonth( visibleMonth.Year, visibleMonth.Month ) );
+
+                    focusedDate = WeekDateFormat.GetWeekStart( monthEnd );
+                    NotifyCalendarStateChanged();
+                }
+                else
+                {
+                    MoveFocusToWeekBoundary( beginning: false );
+                }
+                break;
+            case "Enter":
+            case " ":
+                if ( monthMode )
+                {
+                    if ( CalendarView == DatePickerCalendarView.Month )
+                    {
+                        await SelectMonthAsync( focusedDate );
+                    }
+                    else
+                    {
+                        SelectCalendarPeriod( calendarNavigation.GetFocusedPeriod( focusedDate, IsYearDisabled, IsPeriodDisabled ) );
+                    }
+                }
+                else
+                {
+                    await SelectDateAsync( focusedDate );
+                }
+                break;
+            case "Escape":
+                await CloseCalendarAsync( focusInput: true );
+                break;
+        }
+    }
+
+    internal Task OnCalendarControlKeyDownAsync( KeyboardEventArgs eventArgs )
+    {
+        return eventArgs?.Key is "Escape"
+            ? CloseCalendarAsync( focusInput: true ).AsTask()
+            : Task.CompletedTask;
+    }
+
+    private void MoveFocus( int amount, bool byMonth )
+    {
+        if ( !DatePickerDateUtilities.TryMoveDate( focusedDate, amount, byMonth, out DateTime candidate ) )
+            return;
+
+        int attempts = 0;
+
+        while ( ( byMonth
+            ? IsMonthDisabled( candidate )
+            : InputMode == DateInputMode.Week
+                ? IsWeekDisabled( candidate )
+                : IsDateDisabled( candidate ) ) && attempts++ < 3660 )
+        {
+            if ( !DatePickerDateUtilities.TryMoveDate( candidate, Math.Sign( amount ), byMonth, out candidate ) )
+                return;
+        }
+
+        focusedDate = candidate;
+        visibleMonth = new DateTime( candidate.Year, candidate.Month, 1 );
+        NotifyCalendarStateChanged();
+    }
+
+    private void MoveCalendarFocus( int amount, bool monthMode )
+    {
+        if ( !monthMode || CalendarView == DatePickerCalendarView.Month )
+        {
+            MoveFocus( amount, monthMode );
+            return;
+        }
+
+        if ( calendarNavigation.TryMoveFocus(
+            visibleMonth,
+            focusedDate,
+            amount,
+            IsYearDisabled,
+            IsPeriodDisabled,
+            out DateTime targetVisibleMonth,
+            out DateTime targetFocusedDate ) )
+        {
+            visibleMonth = targetVisibleMonth;
+            focusedDate = targetFocusedDate;
+            NotifyCalendarStateChanged();
+        }
+    }
+
+    private void MoveFocusedMonth( int months )
+    {
+        if ( !TryGetNavigationMonth( months, out DateTime targetMonth ) )
+            return;
+
+        visibleMonth = new DateTime( targetMonth.Year, targetMonth.Month, 1 );
+        focusedDate = DatePickerDateUtilities.MoveIntoMonth( focusedDate, visibleMonth );
+
+        if ( InputMode == DateInputMode.Week )
+        {
+            focusedDate = WeekDateFormat.GetWeekStart( focusedDate );
+        }
+
+        NotifyCalendarStateChanged();
+    }
+
+    private bool TryGetNavigationMonth( int months, out DateTime targetMonth )
+    {
+        targetMonth = visibleMonth;
+
+        if ( CalendarInteractionDisabled
+            || !DatePickerDateUtilities.TryMoveDate( visibleMonth, months, byMonth: true, out targetMonth ) )
+            return false;
+
+        DateTime periodStart = targetMonth;
+        DateTime periodEnd = new( targetMonth.Year, targetMonth.Month, DateTime.DaysInMonth( targetMonth.Year, targetMonth.Month ) );
+
+        if ( InputMode == DateInputMode.Month )
+        {
+            int startYear = CalendarView switch
+            {
+                DatePickerCalendarView.Year => DatePickerCalendarBuilder.GetDecadeStart( targetMonth.Year ),
+                DatePickerCalendarView.Decade => DatePickerCalendarBuilder.GetCenturyStart( targetMonth.Year ),
+                _ => targetMonth.Year,
+            };
+
+            int endYear = Math.Min( startYear + ( CalendarView switch
+            {
+                DatePickerCalendarView.Year => 9,
+                DatePickerCalendarView.Decade => 99,
+                _ => 0,
+            } ), DateTime.MaxValue.Year );
+
+            periodStart = new DateTime( startYear, 1, 1 );
+            periodEnd = new DateTime( endYear, 12, 31 );
+        }
+
+        return ( !Min.HasValue || periodEnd >= Min.Value.Date )
+            && ( !Max.HasValue || periodStart <= Max.Value.Date );
+    }
+
+    private void MoveFocusToWeekBoundary( bool beginning )
+    {
+        int offset = ( 7 + (int)focusedDate.DayOfWeek - (int)CalendarFirstDayOfWeek ) % 7;
+
+        focusedDate = beginning
+            ? focusedDate.AddDays( -offset )
+            : focusedDate.AddDays( 6 - offset );
+
+        visibleMonth = new DateTime( focusedDate.Year, focusedDate.Month, 1 );
+        NotifyCalendarStateChanged();
+    }
+
+    internal async Task ChangeHourAsync( ChangeEventArgs eventArgs )
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        if ( !int.TryParse( eventArgs?.Value?.ToString(), out int hour ) )
+            return;
+
+        if ( TimeAs24hr )
+        {
+            hour = Math.Clamp( hour, 0, 23 );
+        }
+        else
+        {
+            hour = Math.Clamp( hour, 1, 12 ) % 12;
+
+            if ( IsPostMeridiem )
+            {
+                hour += 12;
+            }
+        }
+
+        await CommitTimeAsync( hour, CurrentMinute );
+    }
+
+    internal async Task ChangeMinuteAsync( ChangeEventArgs eventArgs )
+    {
+        if ( CalendarInteractionDisabled )
+            return;
+
+        if ( int.TryParse( eventArgs?.Value?.ToString(), out int minute ) )
+        {
+            await CommitTimeAsync( CurrentHour, Math.Clamp( minute, 0, 59 ) );
+        }
+    }
+
+    internal Task ToggleMeridiemAsync()
+    {
+        if ( CalendarInteractionDisabled )
+            return Task.CompletedTask;
+
+        int hour = CurrentHour >= 12 ? CurrentHour - 12 : CurrentHour + 12;
+        return CommitTimeAsync( hour, CurrentMinute );
+    }
+
+    private async Task CommitTimeAsync( int hour, int minute )
+    {
+        IReadOnlyList<DateTime> selectedDates = GetSelectedDates();
+
+        if ( selectedDates.Count == 0 )
+        {
+            focusedDate = ClampDateTime( new DateTime(
+                focusedDate.Year,
+                focusedDate.Month,
+                focusedDate.Day,
+                hour,
+                minute,
+                0,
+                DateTimeKind.Unspecified ) );
+
+            if ( pendingRangeStart.HasValue )
+            {
+                pendingRangeStart = ClampDateTime( new DateTime(
+                    pendingRangeStart.Value.Year,
+                    pendingRangeStart.Value.Month,
+                    pendingRangeStart.Value.Day,
+                    hour,
+                    minute,
+                    0,
+                    DateTimeKind.Unspecified ) );
+            }
+
+            NotifyCalendarStateChanged();
+            return;
+        }
+
+        List<DateTime> updatedDates = selectedDates
+            .Select( date => ClampDateTime( new DateTime( date.Year, date.Month, date.Day, hour, minute, 0, date.Kind ) ) )
+            .ToList();
+
+        focusedDate = updatedDates[0];
+        await CommitDatesAsync( updatedDates );
+    }
+
+    private DateTime ApplyCurrentTime( DateTime date )
+    {
+        if ( InputMode != DateInputMode.DateTime )
+            return date.Date;
+
+        return ClampDateTime( new DateTime( date.Year, date.Month, date.Day, CurrentHour, CurrentMinute, 0, date.Kind ) );
+    }
+
+    private DateTime ClampDateTime( DateTime date )
+    {
+        if ( InputMode != DateInputMode.DateTime )
+            return date;
+
+        if ( Min.HasValue && date < Min.Value.DateTime )
+            date = Min.Value.DateTime;
+
+        if ( Max.HasValue && date > Max.Value.DateTime )
+            date = Max.Value.DateTime;
+
+        return date;
+    }
+
+    private bool IsDateTimeOutsideRange( DateTime date )
+        => InputMode == DateInputMode.DateTime && ClampDateTime( date ) != date;
+
+    private DateTime GetCurrentTimeSource()
+    {
+        DateTime selectedDate = GetSelectedDates().FirstOrDefault();
+
+        if ( selectedDate != default )
+            return selectedDate;
+
+        if ( pendingRangeStart.HasValue )
+            return pendingRangeStart.Value;
+
+        if ( focusedDate != default )
+            return focusedDate;
+
+        return DateTime.Today
+            .AddHours( Math.Clamp( DefaultHour, 0, 23 ) )
+            .AddMinutes( Math.Clamp( DefaultMinute, 0, 59 ) );
+    }
+
+    private int CurrentHour => GetCurrentTimeSource().Hour;
+
+    private int CurrentMinute => GetCurrentTimeSource().Minute;
+
+    private bool IsPostMeridiem => CurrentHour >= 12;
+
+    private bool IsDateDisabled( DateTime date )
+    {
+        if ( CalendarInteractionDisabled )
+            return true;
+
+        if ( InputMode == DateInputMode.Month )
+            return IsMonthDisabled( date );
+
+        DateTime day = date.Date;
+
+        if ( Min.HasValue && day < Min.Value.Date )
+            return true;
+
+        if ( Max.HasValue && day > Max.Value.Date )
+            return true;
+
+        if ( DatePickerDateUtilities.ContainsDate( DisabledDates, day ) )
+            return true;
+
+        if ( DisabledDays?.Contains( day.DayOfWeek ) == true )
+            return true;
+
+        if ( EnabledDates is not null && !DatePickerDateUtilities.ContainsDate( EnabledDates, day ) )
+            return true;
+
+        return false;
+    }
+
+    private bool IsWeekDisabled( DateTime date )
+    {
+        DateTime weekStart = WeekDateFormat.GetWeekStart( date );
+
+        for ( int dayOffset = 0; dayOffset < 7; dayOffset++ )
+        {
+            if ( !IsDateDisabled( weekStart.AddDays( dayOffset ) ) )
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool IsMonthDisabled( DateTime month )
+    {
+        if ( CalendarInteractionDisabled )
+            return true;
+
+        DateTime monthStart = new( month.Year, month.Month, 1 );
+        DateTime monthEnd = new( month.Year, month.Month, DateTime.DaysInMonth( month.Year, month.Month ) );
+
+        if ( Min.HasValue && monthEnd < Min.Value.Date )
+            return true;
+
+        if ( Max.HasValue && monthStart > Max.Value.Date )
+            return true;
+
+        if ( DatePickerDateUtilities.EnumerateDates( DisabledDates ).Any( date => date.Year == month.Year && date.Month == month.Month ) )
+            return true;
+
+        if ( EnabledDates is not null )
+        {
+            return !DatePickerDateUtilities.EnumerateDates( EnabledDates ).Any( date => date.Year == month.Year && date.Month == month.Month );
+        }
+
+        return false;
+    }
+
+    private bool IsYearDisabled( int year )
+    {
+        if ( year is < 1 or > 9999 )
+            return true;
+
+        for ( int month = 1; month <= 12; month++ )
+        {
+            if ( !IsMonthDisabled( new DateTime( year, month, 1 ) ) )
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool IsPeriodDisabled( int startYear, int endYear )
+    {
+        int validStartYear = Math.Max( startYear, DateTime.MinValue.Year );
+        int validEndYear = Math.Min( endYear, DateTime.MaxValue.Year );
+
+        for ( int year = validStartYear; year <= validEndYear; year++ )
+        {
+            if ( !IsYearDisabled( year ) )
+                return false;
+        }
+
+        return true;
+    }
+
+    internal IReadOnlyList<DatePickerCalendarWeek> BuildCalendarWeeks()
+        => DatePickerCalendarBuilder.BuildWeeks(
+            visibleMonth,
+            focusedDate,
+            CalendarFirstDayOfWeek,
+            InputMode,
+            SelectionMode,
+            GetSelectedDates(),
+            pendingRangeStart,
+            hoveredRangeEnd,
+            hoveredWeekStart,
+            IsDateDisabled );
+
+    internal IReadOnlyList<DatePickerCalendarMonth> BuildCalendarMonths()
+        => DatePickerCalendarBuilder.BuildMonths(
+            visibleMonth,
+            focusedDate,
+            GetSelectedDates(),
+            CalendarContext.MonthNames,
+            IsMonthDisabled );
+
+    /// <summary>
+    /// Builds the years displayed by the active month-selection calendar.
+    /// </summary>
+    /// <returns>The years in the active decade plus adjacent boundary years.</returns>
+    internal IReadOnlyList<DatePickerCalendarPeriod> BuildCalendarYears()
+        => DatePickerCalendarBuilder.BuildYears(
+            visibleMonth,
+            focusedDate,
+            GetSelectedDates(),
+            IsYearDisabled );
+
+    /// <summary>
+    /// Builds the decades displayed by the active month-selection calendar.
+    /// </summary>
+    /// <returns>The decades in the active century plus adjacent boundary decades.</returns>
+    internal IReadOnlyList<DatePickerCalendarPeriod> BuildCalendarDecades()
+        => DatePickerCalendarBuilder.BuildDecades(
+            visibleMonth,
+            focusedDate,
+            GetSelectedDates(),
+            IsPeriodDisabled );
+
+    private void OnLocalizationChanged( object sender, EventArgs eventArgs )
+    {
+        inputText = FormatValueAsString( Value );
+        NotifyCalendarStateChanged();
+        _ = InvokeAsync( StateHasChanged );
+    }
+
+    private void NotifyCalendarStateChanged()
+        => CalendarStateChanged?.Invoke();
+
+    private Task HandleOutsidePointerAsync( DocumentEventArgs eventArgs )
+    {
+        return CloseCalendarAsync( focusInput: false ).AsTask();
+    }
+
+    private ValueTask SynchronizeOutsidePointerSubscriptionAsync()
+        => ObserverCoordinator.SynchronizeOutsideSubscriptionAsync(
+            calendarOpen,
+            Inline,
+            ElementId,
+            PickerContainerId,
+            CalendarId,
+            HandleOutsidePointerAsync );
+
+    private ValueTask DisposeOutsidePointerSubscriptionAsync()
+        => ObserverCoordinator.DisposeOutsideSubscriptionAsync();
+
+    private ValueTask InitializeInputKeyDownSubscriptionAsync()
+        => ObserverCoordinator.InitializeInputKeyDownAsync( ElementId, ElementId );
+
+    /// <inheritdoc/>
+    protected override bool IsSameAsInternalValue( TValue value )
+    {
+        if ( value is IEnumerable<TValue> values1 && Value is IEnumerable<TValue> values2 )
+        {
+            return values1.AreEqual( values2 );
+        }
+
+        if ( value is IEnumerable objects1 && Value is IEnumerable objects2 )
+        {
+            return objects1.AreEqual( objects2 );
+        }
+
+        return value.IsEqual( Value );
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <inheritdoc/>
+    protected override bool ShouldAutoGenerateId => true;
+
+    internal bool CalendarVisible => !UseNativeMobilePicker && ( Inline || calendarOpen );
+
+    internal bool FocusCalendarOnOpen => focusCalendarOnOpen;
+
+    internal bool CalendarInteractionDisabled => IsDisabled || ReadOnly || Plaintext;
+
+    internal bool CalendarPreviousPeriodDisabled => !TryGetNavigationMonth( InputMode == DateInputMode.Month ? calendarNavigation.GetNavigationMonths( -1 ) : -1, out _ );
+
+    internal bool CalendarNextPeriodDisabled => !TryGetNavigationMonth( InputMode == DateInputMode.Month ? calendarNavigation.GetNavigationMonths( 1 ) : 1, out _ );
+
+    internal bool CalendarPreviousYearDisabled => !TryGetNavigationMonth( -12, out _ );
+
+    internal bool CalendarNextYearDisabled => !TryGetNavigationMonth( 12, out _ );
+
+    internal string CalendarId => $"{ElementId}-calendar";
+
+    internal string CalendarGridId => $"{CalendarId}-grid";
+
+    internal string PickerContainerId => $"{ElementId}-container";
+
+    internal DatePickerCalendarContext<TValue> CalendarContext
+        => calendarContext ??= new( this );
+
+    internal DateTime CalendarVisibleMonth => visibleMonth;
+
+    internal DateTime CalendarFocusedDate => focusedDate;
+
+    /// <summary>
+    /// Gets the active panel displayed by a month-selection calendar.
+    /// </summary>
+    internal DatePickerCalendarView CalendarView => calendarNavigation.View;
+
+    internal DateTime CalendarTimeSource => GetCurrentTimeSource();
+
+    internal DayOfWeek CalendarFirstDayOfWeek => FirstDayOfWeek;
+
+    internal bool CalendarShowsWeekNumbers => ShowWeekNumbers || InputMode == DateInputMode.Week;
+
+    internal IClassProvider PickerClassProvider => ClassProvider;
+
+    internal ITextLocalizer PickerLocalizer => Localizer;
+
+    private PickerObserverCoordinator ObserverCoordinator
+        => observerCoordinator ??= new( DocumentObserver );
+
+    private DatePickerInputMask InputMask
+        => inputMask ??= new( InputFormatConverter, InputMaskJSModule );
+
+    private bool InputMaskInitialized
+        => inputMask?.IsInitialized == true;
+
+    /// <inheritdoc/>
+    protected override OnScreenKeyboardInputType OnScreenKeyboardInputType => InputMode == DateInputMode.DateTime
+        ? OnScreenKeyboardInputType.Date | OnScreenKeyboardInputType.Time | OnScreenKeyboardInputType.Pickers
+        : OnScreenKeyboardInputType.Date | OnScreenKeyboardInputType.Pickers;
+
+    /// <summary>
+    /// Gets the range separator based on the current locale settings.
+    /// </summary>
+    protected string CurrentRangeSeparator => RangeSeparator ?? Localizer.GetString( "RangeSeparator" ) ?? " to ";
+
+    /// <summary>
+    /// Gets the string representation of the input mode.
+    /// </summary>
+    protected string Mode => InputMode.ToDateInputMode();
+
+    /// <summary>
+    /// Gets the date format based on the current <see cref="InputMode"/> settings.
+    /// </summary>
+    protected string DateFormat => Parsers.GetInternalDateFormat( InputMode );
+
+    /// <summary>
+    /// Gets the format presented in the visible input.
+    /// </summary>
+    protected string EffectiveDisplayFormat => PickerDateTimeFormat.Normalize(
+        DisplayFormat ?? ( InputMode switch
+        {
+            DateInputMode.DateTime => DEFAULT_DATETIME_DISPLAY_FORMAT,
+            DateInputMode.Week => WeekDateFormat.DefaultDisplayFormat,
+            _ => DateFormat,
+        } ) );
+
+    /// <summary>
+    /// Gets the text presented in the visible input.
+    /// </summary>
+    protected string InputText => inputText;
+
+    /// <summary>
+    /// Gets the input type rendered for the active picker mode.
+    /// </summary>
+    protected string InputType => UseNativeMobilePicker ? Mode : "text";
+
+    /// <summary>
+    /// Gets the value rendered by the visible input.
+    /// </summary>
+    protected string VisibleInputText => UseNativeMobilePicker
+        ? InputMode == DateInputMode.Week
+            ? WeekDateFormat.FormatNativeValue( Value )
+            : FormatValueWithFormat( Value, DateFormat, CultureInfo.InvariantCulture )
+        : InputText;
+
+    /// <summary>
+    /// Gets the minimum value rendered by the input.
+    /// </summary>
+    protected string InputMin => InputMode == DateInputMode.Week
+        ? WeekDateFormat.FormatNativeValue( Min )
+        : Min?.ToString( DateFormat, CultureInfo.InvariantCulture );
+
+    /// <summary>
+    /// Gets the maximum value rendered by the input.
+    /// </summary>
+    protected string InputMax => InputMode == DateInputMode.Week
+        ? WeekDateFormat.FormatNativeValue( Max )
+        : Max?.ToString( DateFormat, CultureInfo.InvariantCulture );
+
+    /// <summary>
+    /// Gets the step rendered by a native mobile input.
+    /// </summary>
+    protected string InputStep => UseNativeMobilePicker
+        ? InputMode == DateInputMode.Week ? "1" : "any"
+        : null;
+
+    /// <summary>
+    /// Gets the ARIA role used by the custom picker input.
+    /// </summary>
+    protected string InputRole => UseNativeMobilePicker ? null : "combobox";
+
+    /// <summary>
+    /// Gets the ARIA popup type used by the custom picker input.
+    /// </summary>
+    protected string InputAriaHasPopup => UseNativeMobilePicker ? null : "dialog";
+
+    /// <summary>
+    /// Gets the ARIA expanded state used by the custom picker input.
+    /// </summary>
+    protected string InputAriaExpanded => UseNativeMobilePicker ? null : CalendarVisible ? "true" : "false";
+
+    /// <summary>
+    /// Gets the ARIA control target used by the custom picker input.
+    /// </summary>
+    protected string InputAriaControls => UseNativeMobilePicker ? null : CalendarId;
+
+    /// <summary>
+    /// Gets whether keyboard opening keys are enabled for the visible input.
+    /// </summary>
+    protected bool InputKeyboardNavigationEnabled => !UseNativeMobilePicker
+        && !IsDisabled
+        && !ReadOnly
+        && !Plaintext
+        && OpenTrigger.HasFlag( PickerOpenTrigger.OpenKeys );
+
+    /// <summary>
+    /// Gets whether the browser's native mobile picker should be used.
+    /// </summary>
+    internal bool UseNativeMobilePicker => !DisableMobile
+        && mobileDevice == true
+        && !Plaintext
+        && !Inline
+        && SelectionMode == DateInputSelectionMode.Single
+        && !ShowWeekNumbers
+        && !DatePickerDateUtilities.HasItems( DisabledDates )
+        && EnabledDates is null
+        && DisabledDays is null;
+
+    private Func<MouseEventArgs, Task> NonRenderingClickHandler
+        => EventUtil.AsNonRenderingEventHandler<MouseEventArgs>( OnClickHandler );
+
+    private Func<KeyboardEventArgs, Task> NonRenderingKeyDownHandler
+        => EventUtil.AsNonRenderingEventHandler<KeyboardEventArgs>( OnKeyDownHandler );
+
+    private Func<KeyboardEventArgs, Task> NonRenderingKeyPressHandler
+        => EventUtil.AsNonRenderingEventHandler<KeyboardEventArgs>( OnKeyPressHandler );
+
+    private Func<KeyboardEventArgs, Task> NonRenderingKeyUpHandler
+        => EventUtil.AsNonRenderingEventHandler<KeyboardEventArgs>( OnKeyUpHandler );
+
+    private Func<FocusEventArgs, Task> NonRenderingBlurHandler
+        => EventUtil.AsNonRenderingEventHandler<FocusEventArgs>( OnBlurHandler );
+
+    private Func<FocusEventArgs, Task> NonRenderingFocusHandler
+        => EventUtil.AsNonRenderingEventHandler<FocusEventArgs>( OnFocusHandler );
+
+    private Func<FocusEventArgs, Task> NonRenderingFocusInHandler
+        => EventUtil.AsNonRenderingEventHandler<FocusEventArgs>( OnFocusInHandler );
+
+    private Func<FocusEventArgs, Task> NonRenderingFocusOutHandler
+        => EventUtil.AsNonRenderingEventHandler<FocusEventArgs>( OnFocusOutHandler );
+
+    /// <summary>
+    /// Gets the wrapper classes supplied by the active provider and component configuration.
+    /// </summary>
+    protected string PickerContainerClassNames
+    {
+        get
+        {
+            return string.Join(
+                " ",
+                new[] { CalendarContext.ContainerClassNames, pickerContainerClassBuilder.Class }
+                    .Where( value => !string.IsNullOrWhiteSpace( value ) ) );
+        }
+    }
+
+    /// <summary>
+    /// Gets the wrapper styles supplied by the component configuration.
+    /// </summary>
+    protected string PickerContainerStyleNames => pickerContainerStyleBuilder.Styles;
+
+    /// <summary>
+    /// Gets only the active provider's DatePicker container classes.
+    /// </summary>
+    protected string ProviderPickerContainerClassNames => CalendarContext.ContainerClassNames;
+
+    /// <summary>
+    /// Gets or sets the DI registered <see cref="ITextLocalizerService"/>.
+    /// </summary>
+    [Inject] protected ITextLocalizerService LocalizerService { get; set; }
+
+    /// <summary>
+    /// Specifies the DI registered <see cref="ITextLocalizer{T}"/>.
+    /// </summary>
+    [Inject] protected ITextLocalizer<DatePicker<TValue>> Localizer { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date input-mask format converter.
+    /// </summary>
+    [Inject] protected IInputMaskDateTimeInputFormatConverter InputFormatConverter { get; set; }
+
+    /// <summary>
+    /// Gets or sets the existing Blazorise input-mask module used when <see cref="InputFormat"/> is defined.
+    /// </summary>
+    [Inject] protected IJSInputMaskModule InputMaskJSModule { get; set; }
+
+    /// <summary>
+    /// Gets or sets the document observer used to detect pointer interactions outside of the picker.
+    /// </summary>
+    [Inject] protected IDocumentObserver DocumentObserver { get; set; }
+
+    /// <summary>
+    /// Hints at the type of data that might be entered by the user while editing the element or its contents.
+    /// </summary>
+    [Parameter] public DateInputMode InputMode { get; set; } = DateInputMode.Date;
+
+    /// <summary>
+    /// Specifies the mode in which the dates can be selected.
+    /// </summary>
+    [Parameter] public DateInputSelectionMode SelectionMode { get; set; } = DateInputSelectionMode.Single;
+
+    /// <summary>
+    /// Overrides the range separator that is used to separate date values when <see cref="SelectionMode"/> is set to <see cref="DateInputSelectionMode.Range"/>. Defaults to <c>" to "</c>.
+    /// </summary>
+    /// <remarks>When omitted, uses the localized range separator, falling back to " to ".</remarks>
+    [Parameter] public string RangeSeparator { get; set; }
+
+    /// <summary>
+    /// The earliest date to accept. Updating this value does not change the selected date, even if it falls below the new minimum.
+    /// </summary>
+    [Parameter] public DateTimeOffset? Min { get; set; }
+
+    /// <summary>
+    /// The latest date to accept. Updating this value does not change the selected date, even if it exceeds the new maximum.
+    /// </summary>
+    [Parameter] public DateTimeOffset? Max { get; set; }
+
+    /// <summary>
+    /// Specifies the first day of the week used for date calculations.
+    /// </summary>
+    /// <remarks>
+    /// In week mode this controls the visual calendar layout. Selected values continue to represent ISO Monday-to-Sunday weeks.
+    /// </remarks>
+    [Parameter] public DayOfWeek FirstDayOfWeek { get; set; } = DayOfWeek.Monday;
+
+    /// <summary>
+    /// Specifies the display format of the date input using the picker format syntax supported by earlier versions. Defaults to <c>yyyy-MM-dd</c>.
+    /// </summary>
+    /// <remarks>
+    /// Weekday names, month names, and <c>{day:ordinal}</c> use the selected DatePicker language's localization resources.
+    /// Missing ordinal translations use the day number without an affix. Quote the extension to display it literally.
+    /// Week mode additionally supports <c>w</c>, <c>ww</c>, and <c>wo</c> for the week number and its English ordinal form.
+    /// <para>When omitted, resolves the display format from InputMode and DateFormat.</para>
+    /// </remarks>
+    [Parameter] public string DisplayFormat { get; set; }
+
+    /// <summary>
+    /// Specifies the input format mask of the date input using Blazorise's InputMask integration.
+    /// </summary>
+    /// <remarks>
+    /// Week mode supports the <c>w</c> and <c>ww</c> week-number tokens.
+    /// </remarks>
+    [Parameter] public string InputFormat { get; set; }
+
+    /// <summary>
+    /// Displays time picker in 24 hour mode without AM/PM selection when enabled.
+    /// </summary>
+    [Parameter] public bool TimeAs24hr { get; set; }
+
+    /// <summary>
+    /// List of disabled dates that the user should not be able to pick.
+    /// </summary>
+    [Parameter] public IEnumerable DisabledDates { get; set; }
+
+    /// <summary>
+    /// List of enabled dates that the user should be able to pick.
+    /// </summary>
+    [Parameter] public IEnumerable EnabledDates { get; set; }
+
+    /// <summary>
+    /// List of disabled days in a week that the user should not be able to pick.
+    /// </summary>
+    [Parameter] public IEnumerable<DayOfWeek> DisabledDays { get; set; }
+
+    /// <summary>
+    /// Display the calendar in an always-open state with the inline option.
+    /// </summary>
+    [Parameter] public bool Inline { get; set; }
+
+    /// <summary>
+    /// Defines which interactions can open the calendar menu.
+    /// </summary>
+    [Parameter] public PickerOpenTrigger OpenTrigger { get; set; } = PickerOpenTrigger.All;
+
+    /// <summary>
+    /// Prevents the browser's native picker from being used on mobile devices.
+    /// </summary>
+    [Parameter] public bool DisableMobile { get; set; } = true;
+
+    /// <summary>
+    /// If enabled, the calendar menu will be positioned as static.
+    /// </summary>
+    [Parameter] public bool StaticPicker { get; set; } = true;
+
+    /// <summary>
+    /// Determines whether the calendar menu will show week numbers.
+    /// </summary>
+    /// <remarks>
+    /// Week numbers are always shown when <see cref="InputMode"/> is <see cref="DateInputMode.Week"/>.
+    /// </remarks>
+    [Parameter] public bool ShowWeekNumbers { get; set; }
+
+    /// <summary>
+    /// Determines whether to show the today button in the calendar menu.
+    /// </summary>
+    [Parameter] public bool ShowTodayButton { get; set; }
+
+    /// <summary>
+    /// Determines whether to show the clear button in the calendar menu.
+    /// </summary>
+    [Parameter] public bool ShowClearButton { get; set; }
+
+    /// <summary>
+    /// Specifies the initial value of the hour element.
+    /// </summary>
+    [Parameter] public int DefaultHour { get; set; } = 12;
+
+    /// <summary>
+    /// Specifies the initial value of the minute element.
+    /// </summary>
+    [Parameter] public int DefaultMinute { get; set; } = 0;
+
+    #endregion
 }

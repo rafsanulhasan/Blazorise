@@ -15,18 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\LICENSE.md" Pack="true" Visible="false" PackagePath="" />
-    <None Include="..\..\..\NuGet\Blazorise.png" Pack="true" Visible="false" PackagePath="" />
+    <EmbeddedResource Include="Resources\Localization\Video\*.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Video.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Update="wwwroot\video.js">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
+    <Content Update="wwwroot\vendors\videojs\**\*.map;wwwroot\vendors\videojs\**\*.map.br;wwwroot\vendors\videojs\**\*.map.gz" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
 </Project>

@@ -1,10 +1,13 @@
-﻿export function readFileData(element, fileEntryId, position, length) {
+﻿export async function readFileDataStream(elem, fileId) {
+    const file = getFileById(elem, fileId);
+    return file.blob;
+}
+
+export function readFileData(element, fileEntryId, position, length) {
     var readPromise = getArrayBufferFromFileAsync(element, fileEntryId);
 
     return readPromise.then(function (arrayBuffer) {
-        var uint8Array = new Uint8Array(arrayBuffer, position, length);
-        var base64 = uint8ToBase64(uint8Array);
-        return base64;
+        return new Uint8Array(arrayBuffer, position, length);
     });
 }
 
@@ -44,6 +47,18 @@ function getFileById(element, fileId) {
     }
 
     return file;
+}
+
+export function removeFileEntry(element, fileEntryId) {
+    delete element._blazorFilesById[fileEntryId];
+}
+
+export function removeAllFileEntries(element) {
+    if (element && element._blazorFilesById) {
+        for (var fileId in element._blazorFilesById) {
+            removeFileEntry(element, fileId);
+        }
+    }
 }
 
 function getArrayBufferFromFileAsync(element, fileId) {

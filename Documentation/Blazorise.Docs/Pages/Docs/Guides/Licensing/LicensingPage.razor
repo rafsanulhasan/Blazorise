@@ -1,0 +1,90 @@
+﻿@page "/docs/usage/licensing"
+
+<Seo Canonical="/docs/usage/licensing" Title="Blazorise License Key and ProductToken" Description="Understand the difference between a Blazorise License Key and ProductToken and where each value should be used." />
+
+<DocsPageTitle Path="Usage/Licensing">
+    Blazorise licensing
+</DocsPageTitle>
+
+<DocsPageLead>
+    Understand the difference between a License Key and ProductToken before configuring an application.
+</DocsPageLead>
+
+<DocsPageSectionTitle>
+    License Key and ProductToken
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A <Strong>License Key</Strong> identifies a purchased Blazorise license. Use it only for license and account management. Never embed a License Key in an application.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    A <Strong>ProductToken</Strong> is generated for use by an application. Blazorise validates it to apply the licensed functionality, limits, and notices for that application. A valid commercial ProductToken removes licensing warnings and the limitations that apply without a valid token. Unlike a License Key, a ProductToken is not considered secret data. ProductTokens have limited validity and can change over time.
+</DocsPageParagraph>
+
+<Table Responsive>
+    <TableHeader ThemeContrast="ThemeContrast.Light">
+        <TableRow>
+            <TableHeaderCell></TableHeaderCell>
+            <TableHeaderCell>License Key</TableHeaderCell>
+            <TableHeaderCell>ProductToken</TableHeaderCell>
+        </TableRow>
+    </TableHeader>
+    <TableBody>
+        <TableRow>
+            <TableRowHeader>Purpose</TableRowHeader>
+            <TableRowCell>Identifies the purchased Blazorise license</TableRowCell>
+            <TableRowCell>Enables licensed functionality in applications</TableRowCell>
+        </TableRow>
+        <TableRow>
+            <TableRowHeader>Used in application</TableRowHeader>
+            <TableRowCell>No</TableRowCell>
+            <TableRowCell>Yes</TableRowCell>
+        </TableRow>
+        <TableRow>
+            <TableRowHeader>Should be committed to source control</TableRowHeader>
+            <TableRowCell>No</TableRowCell>
+            <TableRowCell>Avoid when practical</TableRowCell>
+        </TableRow>
+        <TableRow>
+            <TableRowHeader>Can be exposed to the browser in Blazor WebAssembly</TableRowHeader>
+            <TableRowCell>No</TableRowCell>
+            <TableRowCell>Potentially yes</TableRowCell>
+        </TableRow>
+        <TableRow>
+            <TableRowHeader>Recommended storage</TableRowHeader>
+            <TableRowCell>Blazorise account and secure internal records</TableRowCell>
+            <TableRowCell>Server configuration; application code or build output for WebAssembly</TableRowCell>
+        </TableRow>
+    </TableBody>
+</Table>
+
+<Alert Color="Color.Warning" Visible>
+    <AlertDescription>
+        <Strong>Never use a License Key as the value of <Code>ProductToken</Code> or place a License Key in application code, configuration, deployment files, or client-side assets.</Strong>
+    </AlertDescription>
+</Alert>
+
+<DocsPageParagraph>
+    See <Anchor To="docs/usage/licensing/register-product-token#protecting-your-producttoken" Title="Protecting your ProductToken">Protecting your ProductToken</Anchor> for storage, local development, production, CI/CD, and Blazor WebAssembly guidance.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    License behavior
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A valid commercial ProductToken removes licensing warnings and licensed component limits. A Community ProductToken applies the Community license and displays a compact <Strong>Community License</Strong> button in the bottom-right corner. Select the button to open the full license notice.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    A missing or invalid ProductToken is treated as unlicensed and displays the applicable warning and component limits. An expired token displays the applicable expired-license notice.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Get a ProductToken
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Follow the <Anchor To="docs/usage/licensing/register-product-token" Title="Configure a ProductToken">ProductToken configuration guide</Anchor> to get a ProductToken from your Blazorise account and configure your application.
+</DocsPageParagraph>

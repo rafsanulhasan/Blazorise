@@ -1,0 +1,39 @@
+@each $position in $mui-positions {
+    .mui-position-#{$position} {
+        position: #{$position} !important;
+    }
+}
+
+@each $name, $value in $mui-position-values {
+    .mui-top-#{$name} {
+        top: #{$value} !important;
+    }
+
+    .mui-bottom-#{$name} {
+        bottom: #{$value} !important;
+    }
+
+    .mui-start-#{$name} {
+        left: #{$value} !important;
+        inset-inline-start: #{$value} !important;
+    }
+
+    .mui-end-#{$name} {
+        right: #{$value} !important;
+        inset-inline-end: #{$value} !important;
+    }
+}
+
+.mui-translate {
+    &-middle {
+        transform: translate(-50%, -50%) !important;
+    }
+
+    &-middle-x {
+        transform: translateX(-50%) !important;
+    }
+
+    &-middle-y {
+        transform: translateY(-50%) !important;
+    }
+}

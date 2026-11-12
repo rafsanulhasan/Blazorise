@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Blazorise.Generator.Features;
 #endregion
 
 namespace Blazorise
@@ -9,7 +10,8 @@ namespace Blazorise
     /// <summary>
     /// Holds the options for the theme.
     /// </summary>
-    public record Theme
+    [GenerateEquality]
+    public partial record Theme
     {
         /// <summary>
         /// Globaly enable or disable the theme.
@@ -19,6 +21,7 @@ namespace Blazorise
         /// <summary>
         /// Event raised after the theme options has changed.
         /// </summary>
+        [GenerateIgnoreEquality]
         public event EventHandler<EventArgs> Changed;
 
         /// <summary>
@@ -108,6 +111,11 @@ namespace Blazorise
         /// Used to override default background colors.
         /// </summary>
         public ThemeBackgroundOptions BackgroundOptions { get; set; }
+
+        /// <summary>
+        /// Used to override default border styles.
+        /// </summary>
+        public ThemeBorderOptions BorderOptions { get; set; }
 
         /// <summary>
         /// Used to override default background colors.
@@ -213,6 +221,11 @@ namespace Blazorise
         /// Theme options to override the <see cref="Divider"/> component styles.
         /// </summary>
         public ThemeDividerOptions DividerOptions { get; set; }
+
+        /// <summary>
+        /// Theme options to override the <see cref="DockLayout"/> component styles.
+        /// </summary>
+        public ThemeDockLayoutOptions DockLayoutOptions { get; set; }
 
         /// <summary>
         /// Theme options to override the <see cref="Tooltip"/> component styles.

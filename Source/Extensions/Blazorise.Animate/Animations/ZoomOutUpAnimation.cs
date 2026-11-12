@@ -1,7 +1,8 @@
-﻿namespace Blazorise.Animate
+﻿namespace Blazorise.Animate;
+
+/// <inheritdoc cref="Animations.ZoomOutUp"/>
+public class ZoomOutUpAnimation : IAnimation
 {
-    public class ZoomOutUpAnimation : IAnimation
-    {
-        public string Name => "zoom-out-up";
-    }
+    /// <inheritdoc />
+    public string Name => "zoom-out-up";
 }

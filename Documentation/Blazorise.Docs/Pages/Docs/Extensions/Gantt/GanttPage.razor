@@ -1,0 +1,69 @@
+@page "/docs/extensions/gantt"
+@page "/docs/extensions/gantt/getting-started"
+
+<Seo Canonical="/docs/extensions/gantt/getting-started" Title="Blazorise Gantt component" Description="Learn how to use the Blazorise Gantt component to plan, track, and edit project timelines with flat or hierarchical task data." />
+
+<DocsPageTitle Path="Extensions/Gantt" AddedVersion="2.0" AddedDate="2026-03-18">
+    Blazorise Gantt component
+</DocsPageTitle>
+
+<DocsPageLead>
+    Build timeline-driven planning experiences with a synchronized tree and timeline view.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    The <Code>Gantt</Code> component is designed for project planning use cases where tasks have hierarchy, dates, duration, and progress. It supports declarative columns, built-in editing, keyboard and mouse interactions, and template-based customization.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Use the focused Gantt pages for <Anchor To="docs/extensions/gantt/data-binding">data binding</Anchor>, <Anchor To="docs/extensions/gantt/columns">columns and templates</Anchor>, <Anchor To="docs/extensions/gantt/editing">editing</Anchor>, <Anchor To="docs/extensions/gantt/views">views</Anchor>, and <Anchor To="docs/extensions/gantt/timeline">timeline features</Anchor>.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    To use the <Code>Gantt</Code> component, install the <Code>Blazorise.Gantt</Code> package first.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Installation
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="NuGet">
+        Install extension from NuGet.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="GanttNugetInstallExample" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Imports">
+        In your main <Badge Color="Color.Light">_Imports.razor</Badge> add:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="GanttImportsExample" />
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Basic Usage
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Flat Data Binding">
+        <Paragraph>
+            Use the classic <Code>Id</Code> + <Code>ParentId</Code> model when your API already returns a flat task list.
+        </Paragraph>
+        <Paragraph>
+            Some columns are hidden by default so the timeline has more space; use the <Strong>Column Picker</Strong> in the toolbar to show them.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="GanttFlatDataExample" Outlined FullWidth>
+        <GanttFlatDataExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/extensions/gantt/api" Name="<Gantt />" />
+    <DocsPageApiItem Url="docs/extensions/gantt/api" Name="<GanttColumns />" />
+    <DocsPageApiItem Url="docs/extensions/gantt/api" Name="<GanttColumn />" />
+    <DocsPageApiItem Url="docs/extensions/gantt/api" Name="<GanttToolbar />" />
+    <DocsPageApiItem Url="docs/extensions/gantt/api" Name="<GanttViews />" />
+    <DocsPageApiItem Url="docs/extensions/gantt/api" Name="<GanttWeekView />" />
+</DocsPageApi>

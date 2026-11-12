@@ -1,0 +1,116 @@
+﻿@mixin ant-tag-variant($name, $solid-background, $outlined-background, $outlined-border, $outlined-color, $solid-color: var(--ant-color-text-light-solid)) {
+    &.ant-tag-#{$name}:not(.ant-tag-disabled).ant-tag-outlined {
+        color: #{$outlined-color};
+        background-color: #{$outlined-background};
+        border-color: #{$outlined-border};
+    }
+
+    &.ant-tag-#{$name}:not(.ant-tag-disabled).ant-tag-solid {
+        color: #{$solid-color};
+        background-color: #{$solid-background};
+        border-color: #{$solid-background};
+    }
+
+    &.ant-tag-#{$name}:not(.ant-tag-disabled).ant-tag-filled {
+        color: #{$outlined-color};
+        background-color: #{$outlined-background};
+        border-color: transparent;
+    }
+}
+
+.ant-tag-pill {
+    padding-inline: .6em;
+    border-radius: 10rem;
+}
+
+.ant-tag {
+    @each $name, $colors in $tag-variants {
+        @include ant-tag-variant($name, nth($colors, 1), nth($colors, 2), nth($colors, 3), nth($colors, 4), nth($colors, 5));
+    }
+
+    &.ant-tag-link:not(.ant-tag-disabled).ant-tag-outlined,
+    &.ant-tag-link:not(.ant-tag-disabled).ant-tag-solid,
+    &.ant-tag-link:not(.ant-tag-disabled).ant-tag-filled {
+        padding-inline: 0;
+    }
+
+    &.ant-tag-link:not(.ant-tag-disabled).ant-tag-outlined,
+    &.ant-tag-link:not(.ant-tag-disabled).ant-tag-solid,
+    &.ant-tag-link:not(.ant-tag-disabled).ant-tag-filled,
+    &.ant-tag-link-subtle {
+        color: var(--b-theme-link, var(--ant-color-link));
+        background-color: transparent;
+        border-color: transparent;
+    }
+
+    @each $name, $colors in $tag-subtle-variants {
+        &.ant-tag-#{$name}-subtle {
+            color: nth($colors, 1);
+            background-color: nth($colors, 2);
+            border-color: nth($colors, 3);
+        }
+    }
+}
+
+.ant-tag {
+    &.ant-tag-custom.ant-tag-solid,
+    &.ant-tag-custom.ant-tag-outlined {
+        background-color: var(--ant-tag-default-bg);
+        border-color: var(--ant-tag-default-bg);
+        color: var(--ant-color-text-light-solid);
+
+        @supports (color: contrast-color(white)) {
+            color: contrast-color(var(--ant-tag-default-bg));
+        }
+
+        &[href] {
+            &:hover,
+            &:focus {
+                background-color: color-mix(in srgb, var(--ant-tag-default-bg) 85%, black);
+                border-color: color-mix(in srgb, var(--ant-tag-default-bg) 85%, black);
+                color: var(--ant-color-text-light-solid);
+
+                @supports (color: contrast-color(white)) {
+                    color: contrast-color(color-mix(in srgb, var(--ant-tag-default-bg) 85%, black));
+                }
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--ant-tag-default-bg);
+                outline-offset: 2px;
+            }
+        }
+
+        .ant-tag-close-icon {
+            color: inherit;
+
+            &:hover,
+            &:focus {
+                color: inherit;
+            }
+        }
+    }
+
+    &.ant-tag-custom.ant-tag-outlined {
+        background-color: color-mix(in srgb, var(--ant-tag-default-bg) 12%, var(--ant-color-bg-container));
+        border-color: color-mix(in srgb, var(--ant-tag-default-bg) 30%, var(--ant-color-bg-container));
+        color: color-mix(in srgb, var(--ant-tag-default-bg) 40%, var(--ant-color-text));
+
+        @supports (color: contrast-color(white)) {
+            color: color-mix(in srgb, var(--ant-tag-default-bg) 30%, contrast-color(color-mix(in srgb, var(--ant-tag-default-bg) 12%, var(--ant-color-bg-container))));
+        }
+
+        &[href] {
+            &:hover,
+            &:focus {
+                background-color: color-mix(in srgb, var(--ant-tag-default-bg) 25%, var(--ant-color-bg-container));
+                border-color: color-mix(in srgb, var(--ant-tag-default-bg) 40%, var(--ant-color-bg-container));
+                color: color-mix(in srgb, var(--ant-tag-default-bg) 40%, var(--ant-color-text));
+
+                @supports (color: contrast-color(white)) {
+                    color: color-mix(in srgb, var(--ant-tag-default-bg) 30%, contrast-color(color-mix(in srgb, var(--ant-tag-default-bg) 25%, var(--ant-color-bg-container))));
+                }
+            }
+        }
+    }
+}

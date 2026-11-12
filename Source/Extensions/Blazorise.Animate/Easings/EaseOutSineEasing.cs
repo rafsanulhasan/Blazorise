@@ -1,7 +1,8 @@
-﻿namespace Blazorise.Animate
+﻿namespace Blazorise.Animate;
+
+/// <inheritdoc cref="Easings.EaseOutSine"/>
+public class EaseOutSineEasing : IEasing
 {
-    public class EaseOutSineEasing : IEasing
-    {
-        public string Name => "ease-out-sine";
-    }
+    /// <inheritdoc />
+    public string Name => "ease-out-sine";
 }

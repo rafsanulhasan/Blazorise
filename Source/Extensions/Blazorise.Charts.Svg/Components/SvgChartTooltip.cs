@@ -1,0 +1,177 @@
+#region Using directives
+using System;
+using System.Threading.Tasks;
+using Blazorise.Extensions;
+using Microsoft.AspNetCore.Components;
+#endregion
+
+namespace Blazorise.Charts.Svg;
+
+/// <summary>
+/// Defines tooltip behavior for a native SVG chart.
+/// </summary>
+public class SvgChartTooltip : SvgChartComponentBase
+{
+    #region Members
+
+    private ComponentParameterInfo<bool> paramEnabled;
+
+    private ComponentParameterInfo<SvgChartInteractionMode> paramInteractionMode;
+
+    private ComponentParameterInfo<bool> paramIntersect;
+
+    private ComponentParameterInfo<Func<SvgChartTooltipContext, string>> paramFormatter;
+
+    private ComponentParameterInfo<RenderFragment<SvgChartTooltipContext>> paramTemplate;
+
+    private ComponentParameterInfo<double> paramWidth;
+
+    private ComponentParameterInfo<double> paramHeight;
+
+    private ComponentParameterInfo<double> paramOffsetX;
+
+    private ComponentParameterInfo<double> paramOffsetY;
+
+    private ComponentParameterInfo<bool> paramAutoSize;
+
+    private ComponentParameterInfo<SvgChartFontOptions> paramFont;
+
+    private ComponentParameterInfo<SvgChartSpacing> paramPadding;
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc/>
+    public override Task SetParametersAsync( ParameterView parameters )
+    {
+        parameters.TryGetParameter( Enabled, out paramEnabled );
+        parameters.TryGetParameter( InteractionMode, out paramInteractionMode );
+        parameters.TryGetParameter( Intersect, out paramIntersect );
+        parameters.TryGetParameter( Formatter, out paramFormatter );
+        parameters.TryGetParameter( Template, out paramTemplate );
+        parameters.TryGetParameter( Width, out paramWidth );
+        parameters.TryGetParameter( Height, out paramHeight );
+        parameters.TryGetParameter( OffsetX, out paramOffsetX );
+        parameters.TryGetParameter( OffsetY, out paramOffsetY );
+
+        parameters.TryGetParameter( AutoSize, out paramAutoSize );
+        parameters.TryGetParameter( Font, out paramFont );
+        parameters.TryGetParameter( Padding, out paramPadding );
+
+        return base.SetParametersAsync( parameters );
+    }
+
+    /// <inheritdoc />
+    protected override void Register()
+    {
+        Parent?.RegisterTooltip( this );
+        SetRegisteredParent();
+    }
+
+    /// <inheritdoc />
+    protected override void Unregister()
+    {
+        RegisteredParent?.UnregisterTooltip( this );
+    }
+
+    internal SvgChartTooltipOptions ResolveOptions( SvgChartTooltipOptions fallback )
+    {
+        fallback ??= new();
+
+        return new()
+        {
+            Enabled = paramEnabled.GetValueOrDefault( fallback.Enabled ),
+            InteractionMode = paramInteractionMode.GetValueOrDefault( fallback.InteractionMode ),
+            Intersect = paramIntersect.GetValueOrDefault( fallback.Intersect ),
+            Formatter = paramFormatter.GetValueOrDefault( fallback.Formatter ),
+            Template = paramTemplate.GetValueOrDefault( fallback.Template ),
+            Width = paramWidth.GetValueOrDefault( fallback.Width ),
+            Height = paramHeight.GetValueOrDefault( fallback.Height ),
+            OffsetX = paramOffsetX.GetValueOrDefault( fallback.OffsetX ),
+            OffsetY = paramOffsetY.GetValueOrDefault( fallback.OffsetY ),
+            AutoSize = paramAutoSize.GetValueOrDefault( fallback.AutoSize ),
+            Font = SvgChartOptionsMapper.CreateFontOptions( fallback.Font, paramFont.GetValueOrDefault( null ) ),
+            Padding = paramPadding.GetValueOrDefault( fallback.Padding ),
+        };
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Defines whether SVG chart tooltips are shown for points.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Defines how related points are resolved for tooltip content.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public SvgChartInteractionMode InteractionMode { get; set; } = SvgChartInteractionMode.Nearest;
+
+    /// <summary>
+    /// Defines whether the pointer must intersect a rendered data point to show the tooltip.
+    /// When false, the nearest category is resolved from the plot area for cartesian charts.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public bool Intersect { get; set; } = true;
+
+    /// <summary>
+    /// Defines a callback used to format default tooltip text.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public Func<SvgChartTooltipContext, string> Formatter { get; set; }
+
+    /// <summary>
+    /// Defines custom tooltip content.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public RenderFragment<SvgChartTooltipContext> Template { get; set; }
+
+    /// <summary>
+    /// Defines the configured tooltip width in CSS pixels. This is a minimum when automatic sizing is enabled.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public double Width { get; set; } = 180;
+
+    /// <summary>
+    /// Defines the configured tooltip height in CSS pixels. This is a minimum when automatic sizing is enabled.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public double Height { get; set; } = 56;
+
+    /// <summary>
+    /// Defines the horizontal tooltip offset from the point anchor in SVG viewport units at the unscaled chart size. The rendered offset is unaffected by chart scaling.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public double OffsetX { get; set; } = 8;
+
+    /// <summary>
+    /// Defines the vertical tooltip offset from the point anchor in SVG viewport units at the unscaled chart size. The rendered offset is unaffected by chart scaling.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public double OffsetY { get; set; } = 8;
+
+    /// <summary>
+    /// Defines whether the tooltip grows to fit its content. Width and Height become minimum sizes.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public bool AutoSize { get; set; } = true;
+
+    /// <summary>
+    /// Defines font options. Unspecified values inherit the chart font.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public SvgChartFontOptions Font { get; set; }
+
+    /// <summary>
+    /// Defines space around the content.
+    /// </summary>
+    /// <remarks>When omitted, inherits the corresponding chart option.</remarks>
+    [Parameter] public SvgChartSpacing Padding { get; set; }
+
+    #endregion
+}

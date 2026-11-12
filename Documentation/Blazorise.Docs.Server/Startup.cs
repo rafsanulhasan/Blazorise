@@ -1,79 +1,220 @@
+#region Using directives
+using System;
+using System.IO.Compression;
+using System.Linq;
+using System.Net.Http.Headers;
+using Blazored.LocalStorage;
 using Blazorise.Bootstrap5;
+using Blazorise.Captcha.ReCaptcha;
+using Blazorise.CodeEditor;
+using Blazorise.Components;
+using Blazorise.Docs.BlogRuntime;
+using Blazorise.Docs.Core;
+using Blazorise.Docs.Models;
+using Blazorise.Docs.Options;
 using Blazorise.Docs.Server.Infrastructure;
+using Blazorise.Docs.Services;
+using Blazorise.Docs.Services.Search;
+using Blazorise.FluentValidation;
 using Blazorise.Icons.FontAwesome;
+using Blazorise.Maps;
+using Blazorise.Pdf;
+using Blazorise.Reporting;
+using Blazorise.Reporting.DataSources.Csv;
+using Blazorise.Reporting.DataSources.Sql;
+using Blazorise.Reporting.DataSources.WebApi;
 using Blazorise.RichTextEdit;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+#endregion
 
-namespace Blazorise.Docs.Server
+namespace Blazorise.Docs.Server;
+
+public class Startup
 {
-    public class Startup
+    public Startup( IConfiguration configuration )
     {
-        public Startup( IConfiguration configuration )
-        {
-            Configuration = configuration;
-        }
+        Configuration = configuration;
+    }
 
-        public IConfiguration Configuration { get; }
+    public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices( IServiceCollection services )
-        {
-            services.AddRazorPages();
-            services.AddServerSideBlazor();
-
-            services
-              .AddBlazorise( options =>
-              {
-                  options.Immediate = true; // optional
-              } )
-              .AddBootstrap5Providers()
-              .AddFontAwesomeIcons()
-              .AddBlazoriseRichTextEdit();
-
-            services.AddMemoryCache();
-            services.AddScoped<Shared.Data.EmployeeData>();
-            services.AddScoped<Shared.Data.CountryData>();
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure( IApplicationBuilder app, IWebHostEnvironment env )
-        {
-            if ( env.IsDevelopment() )
+    // This method gets called by the runtime. Use this method to add services to the container.
+    // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+    public void ConfigureServices( IServiceCollection services )
+    {
+        // Add services to the container.
+        services
+            .AddRazorComponents()
+            .AddInteractiveServerComponents().AddHubOptions( options =>
             {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler( "/Error" );
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
-            app.UseEndpoints( endpoints =>
-            {
-                endpoints.MapGet( "/robots.txt", async context =>
-                {
-                    await Seo.GenerateRobots( context );
-                } );
-
-                endpoints.MapGet( "/sitemap.txt", async context =>
-                {
-                    await Seo.GenerateSitemap( context );
-                } );
-
-                endpoints.MapBlazorHub();
-                endpoints.MapFallbackToPage( "/_Host" );
+                options.MaximumReceiveMessageSize = 1024 * 1024 * 100;
             } );
+
+        services.AddHttpContextAccessor();
+
+        services
+            .AddBlazorise( options =>
+            {
+                options.ProductToken = Configuration["Licensing:ProductToken"];
+                options.Immediate = true; // optional
+            } )
+            .AddBootstrap5Providers()
+            .AddFontAwesomeIcons()
+            .AddBlazoriseCodeEditor()
+            .AddBlazoriseRichTextEdit( options =>
+            {
+                options.UseTables = true;
+                options.UseResize = true;
+            } )
+            .AddBlazoriseFluentValidation()
+            .AddBlazoriseGoogleReCaptcha( x => x.SiteKey = Configuration[key: "ReCaptchaSiteKey"] )
+            .AddBlazoriseMaps()
+            .AddBlazoriseReporting()
+            .AddBlazorisePdfHttpResources()
+            .AddBlazoriseReportingCsvDataSource()
+            .AddBlazoriseReportingSqlDataSource()
+            .AddBlazoriseReportingWebApiDataSource( configureOptions: options =>
+            {
+                options.ResourceAllowed = uri => uri.Scheme == Uri.UriSchemeHttps
+                    && uri.IsDefaultPort
+                    && string.Equals( uri.Host, "dummyjson.com", StringComparison.OrdinalIgnoreCase );
+            } )
+            .AddBlazoriseRouterTabs();
+
+        services.Configure<BlogOptions>( Configuration.GetSection( "Blog" ) );
+        services.AddSingleton<IBlogProvider, GithubBlogProvider>();
+        services.AddHostedService<BlogPreheater>();
+
+        services.Configure<AppSettings>( options => Configuration.Bind( options ) );
+        services.Configure<JobsOptions>( Configuration.GetSection( JobsOptions.SectionName ) );
+        services.AddHttpClient();
+        services.AddHttpClient<IJobsService, ServerJobsService>();
+        services.AddHttpClient<IJobSubmissionService, GitHubJobSubmissionService>();
+        services.AddValidatorsFromAssembly( typeof( App ).Assembly );
+
+        services.Configure<BrevoApiOptions>( Configuration.GetSection( BrevoApiOptions.SectionName ) );
+        services.AddHttpClient<IBrevoApiClient, BrevoApiClient>();
+
+        services.AddBlazoredLocalStorage();
+
+        services.AddMemoryCache();
+        services.AddScoped<Shared.Data.EmployeeData>();
+        services.AddScoped<Shared.Data.CountryData>();
+        services.AddSingleton<SearchEntriesProvider>();
+
+        var emailOptions = Configuration.GetSection( "Email" ).Get<EmailOptions>();
+        services.AddSingleton<IEmailOptions>( serviceProvider => emailOptions );
+
+        services.AddSingleton<EmailSender>();
+        services.AddScoped<ThemeService>();
+
+        services.AddResponseCompression( options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+        } );
+
+        services.Configure<BrotliCompressionProviderOptions>( options =>
+        {
+            options.Level = CompressionLevel.Fastest;
+        } );
+
+        services.Configure<GzipCompressionProviderOptions>( options =>
+        {
+            options.Level = CompressionLevel.SmallestSize;
+        } );
+
+        services.AddHsts( options =>
+        {
+            options.Preload = true;
+            options.IncludeSubDomains = true;
+            options.MaxAge = TimeSpan.FromDays( 365 );
+        } );
+
+        services.AddSingleton( new DocsVersionOptions
+        {
+            Versions = Configuration.GetSection( "DocsVersions" ).Get<DocsVersion[]>().ToList()
+        } );
+
+        services.AddHealthChecks();
+
+        services.AddControllers();
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure( WebApplication app )
+    {
+        if ( !app.Environment.IsDevelopment() )
+        {
+            app.UseResponseCompression();
         }
+
+        if ( !app.Environment.IsDevelopment() )
+        {
+            app.UseExceptionHandler( "/Error" );
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseHsts();
+        }
+
+        app.UseHttpsRedirection();
+        app.UseStatusCodePages( context =>
+        {
+            if ( context.HttpContext.Response.StatusCode == StatusCodes.Status404NotFound )
+            {
+                context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+                return context.HttpContext.Response.WriteAsync( "Not found" );
+            }
+
+            return System.Threading.Tasks.Task.CompletedTask;
+        } );
+
+        app.UseStaticFiles( new StaticFileOptions
+        {
+            OnPrepareResponse = context =>
+            {
+                const int cacheDurationInSeconds = 60 * 60 * 24 * 365;
+                context.Context.Response.Headers.CacheControl = $"public,max-age={cacheDurationInSeconds},immutable";
+            }
+        } );
+        app.UseAntiforgery();
+
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
+
+        app.MapControllers();
+        app.MapHealthChecks( "/healthcheck" );
+
+        //app.UseRouting();
+
+        app.MapGet( "/robots.txt", SeoGenerator.GenerateRobots );
+        app.MapGet( "/sitemap.txt", SeoGenerator.GenerateSitemap );
+        app.MapGet( "/sitemap.xml", SeoGenerator.GenerateSitemapXml );
+        app.MapGet( "/feed.rss", async ( HttpContext httpContext, IBlogProvider blogProvider ) =>
+        {
+            await SeoGenerator.GenerateRssFeed( httpContext, blogProvider );
+        } );
+
+        //permanent redirects
+        app.Use( async ( context, next ) =>
+        {
+            var path = context.Request.Path.Value;
+
+            if ( path is not null && PermanentRedirects.TryGetValue( path, out var newPath ) )
+            {
+                context.Response.StatusCode = StatusCodes.Status301MovedPermanently;
+                context.Response.Headers.Location = newPath;
+                return;
+            }
+
+            await next();
+        } );
     }
 }

@@ -1,0 +1,134 @@
+﻿@mixin ant-list-group-contextual($name, $color, $background, $active-background, $active-color: var(--ant-color-text-light-solid)) {
+    .ant-list-group-item-#{$name} {
+        color: #{$color};
+        background-color: #{$background};
+
+        &.ant-list-group-item-selectable {
+            @include hover-focus() {
+                color: #{$color};
+                background-color: color-mix(in srgb, #{$background} 92%, var(--ant-color-text));
+            }
+        }
+
+        &.ant-list-group-item-active {
+            color: #{$active-color};
+            background-color: #{$active-background};
+            border-color: #{$active-background};
+
+            @include hover-focus() {
+                color: #{$active-color};
+                background-color: #{$active-background};
+                border-color: #{$active-background};
+            }
+        }
+    }
+}
+
+.ant-list-group {
+    &.ant-list-group-flush {
+        border: 0;
+        border-radius: 0;
+
+        .ant-list-items > .ant-list-item:last-child {
+            border-block-end: 0;
+        }
+    }
+
+    &.ant-list-group-scrollable {
+        overflow-y: auto;
+    }
+
+    .ant-list-items {
+        margin: 0;
+        padding: 0;
+    }
+
+    .ant-list-group-item {
+        display: block;
+        width: 100%;
+        padding: var(--ant-padding-sm) var(--ant-padding-lg);
+        color: inherit;
+        transition: color var(--ant-motion-duration-mid), background-color var(--ant-motion-duration-mid), border-color var(--ant-motion-duration-mid);
+
+        &.ant-list-group-item-selectable {
+            cursor: pointer;
+
+            @include hover-focus() {
+                z-index: 1;
+                color: var(--ant-color-text);
+                text-decoration: none;
+                background-color: var(--ant-control-item-bg-hover);
+            }
+
+            &:active {
+                color: var(--ant-color-text);
+                background-color: var(--ant-control-item-bg-active);
+            }
+        }
+
+        &.ant-list-group-item-active {
+            color: var(--ant-color-primary);
+            background-color: var(--ant-control-item-bg-active);
+
+            @include hover-focus() {
+                color: var(--ant-color-primary);
+                background-color: var(--ant-control-item-bg-active);
+            }
+        }
+
+        &.ant-list-group-item-disabled {
+            color: var(--ant-color-text-disabled);
+            background-color: var(--ant-color-bg-container-disabled);
+            cursor: not-allowed;
+        }
+    }
+
+    @each $name, $colors in $list-group-contextual-variants {
+        @include ant-list-group-contextual($name, nth($colors, 1), nth($colors, 2), nth($colors, 3), nth($colors, 4));
+    }
+}
+
+.ant-list-group .ant-list-group-item.ant-list-group-item-custom {
+    background-image: none;
+    background-color: color-mix(in srgb, var(--ant-list-item-bg) 15%, var(--ant-color-bg-container));
+    border-color: color-mix(in srgb, var(--ant-list-item-bg) 35%, var(--ant-color-bg-container));
+    color: color-mix(in srgb, var(--ant-list-item-bg) 40%, var(--ant-color-text));
+
+    @supports (color: contrast-color(white)) {
+        color: color-mix(in srgb, var(--ant-list-item-bg) 30%, contrast-color(color-mix(in srgb, var(--ant-list-item-bg) 15%, var(--ant-color-bg-container))));
+    }
+
+    &.ant-list-group-item-selectable:not(.ant-list-group-item-disabled):not(:disabled):not(.ant-list-group-item-active) {
+        &:hover,
+        &:focus {
+            background-color: color-mix(in srgb, var(--ant-list-item-bg) 25%, var(--ant-color-bg-container));
+
+            @supports (color: contrast-color(white)) {
+                color: color-mix(in srgb, var(--ant-list-item-bg) 30%, contrast-color(color-mix(in srgb, var(--ant-list-item-bg) 25%, var(--ant-color-bg-container))));
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--ant-list-item-bg);
+            outline-offset: -2px;
+        }
+    }
+
+    &.ant-list-group-item-active,
+    &.ant-list-group-item-active:hover,
+    &.ant-list-group-item-active:focus {
+        background-color: var(--ant-list-item-bg);
+        border-color: var(--ant-list-item-bg);
+        color: white;
+
+        @supports (color: contrast-color(white)) {
+            color: contrast-color(var(--ant-list-item-bg));
+        }
+    }
+
+    &.ant-list-group-item-disabled,
+    &:disabled {
+        opacity: .5;
+        pointer-events: none;
+    }
+}

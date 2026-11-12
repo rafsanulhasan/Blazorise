@@ -1,51 +1,102 @@
-﻿@page "/docs/components/color-picker"
+@page "/docs/components/color-picker"
 
-<Seo Canonical="/docs/components/color-picker" Title="Blazorise ColorPicker component" Description="The ColorPicker allows you to select a color using a variety of input methods." />
+<Seo Canonical="/docs/components/color-picker" Title="Blazorise ColorPicker component" Description="Learn to use and work with the Blazorise ColorPicker component that allows you to select a color using a variety of input methods." />
 
-<DocsPageTitle>
-    ColorPicker component
+<DocsPageTitle Path="Components/Color Picker">
+    Blazorise ColorPicker component
 </DocsPageTitle>
 
+<DocsPageLead>
+    <Code>ColorPicker</Code> helps users choose precise colors and transparency for themes, drawing tools, and other visual settings.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    <Code>ColorPicker</Code> is based on a <Blazorise.Link To="https://simonwep.github.io/pickr/">Pickr</Blazorise.Link> library
-    and as such is not a native color input element. That means that unlike <code>ColorEdit</code> which will render <Code>type="color"</Code>,
-    <Code>ColorPicker</Code> will render <Code>span</Code> element.
+    Use the color surface to explore shades, choose a familiar color from the palette, or enter an exact color code.
+    For the browser's built-in color selection dialog, use <Anchor To="docs/components/color-input" Title="Link to ColorInput">ColorInput</Anchor>.
 </DocsPageParagraph>
 
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Basic Example">
-        Click the red area to activate the color picker. This is the basic variation of it.
+    <DocsPageSectionHeader Title="Basic">
+        Bind <Code>Value</Code> to update the color as users select it. Save confirms the current color and closes the picker, Cancel restores the color from when the picker opened, and Clear removes the color.
+        Use <Code>ShowSaveButton</Code>, <Code>ShowCancelButton</Code>, and <Code>ShowClearButton</Code> to control which actions are available.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
-        <BasicColorPickerExample />
+    <DocsPageSectionContent Code="ColorPickerExample" Outlined FullWidth>
+        <ColorPickerExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicColorPickerExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Inline" AddedVersion="2.4" AddedDate="2026-10-11">
+        Set <Code>Inline</Code> to keep the picker visible directly in the page without the popup toggle.
+        The HEXA/RGBA input remains available unless <Code>ShowInputField="false"</Code> is set.
+        Selecting a color updates the bound value immediately. Save sets the color that Cancel restores, and the picker stays visible after all actions.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ColorPickerInlineExample" Outlined FullWidth>
+        <ColorPickerInlineExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes>
-    <DocsAttributesItem Name="Color" Type="string" Default="null">
-        Gets or sets the input color value in hex format.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ColorChanged" Type="EventCallback<string>">
-        Occurs when the color has changed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Palette" Type="string[]">
-        List a colors below the colorpicker to make it convenient for users to choose from frequently or recently used colors.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ShowPalette" Type="bool" Default="true">
-        Controls the visibility of the palette below the colorpicker to make it convenient for users to choose from frequently or recently used colors.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="HideAfterPaletteSelect" Type="bool" Default="true">
-        Automatically hides the dropdown menu after a palette color is selected.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ShowClearButton" Type="bool" Default="true">
-        Controls the visibility of the clear buttons.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ShowCancelButton" Type="bool" Default="true">
-        Controls the visibility of the cancel buttons.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Hue slider">
+        In this Blazorise example, the <Code>ColorPicker</Code> component is enhanced with a hue slider, as indicated by the <Code>ShowHueSlider</Code> attribute.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ColorPickerShowHueExample" Outlined FullWidth>
+        <ColorPickerShowHueExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Value visibility">
+        Set <Code>ShowValue="false"</Code> to hide the selected color value and display only the swatch, while preserving the picker's width and swatch alignment.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ColorPickerShowValueExample" Outlined FullWidth>
+        <ColorPickerShowValueExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom preview">
+        Use <Code>PreviewContent</Code> to replace the swatch with an icon or other non-interactive content. Clicking the preview opens the picker. <Code>ShowValue</Code> independently controls the selected color text. Supply an accessible name when the preview has no visible label.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ColorPickerPreviewContentExample" Outlined FullWidth>
+        <ColorPickerPreviewContentExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Animation" AddedVersion="2.4" AddedDate="2026-10-11">
+        The picker menu fades in when opened and closes immediately. Set <Code>Animated="false"</Code> to open immediately, or use <Code>AnimationDuration</Code> to adjust the opening duration in milliseconds.
+        A null duration preserves the provider's default; zero or a negative value disables the animation. The user's reduced-motion preference is respected automatically.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ColorPickerAnimationExample" Outlined FullWidth>
+        <ColorPickerAnimationExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Support Precise Choices
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Use a clear label and show the resulting color value when precision or reuse matters. Offer a sensible initial color and, when appropriate, a way to return to the product default.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Color Contrast
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Validate the contrast of user-selected foreground and background colors before applying them to text or controls. When the full picker interface is unnecessary, use the more compact <Anchor To="docs/components/color-input">ColorInput</Anchor> component.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/color-picker/api" Name="<ColorPicker />" />
+</DocsPageApi>

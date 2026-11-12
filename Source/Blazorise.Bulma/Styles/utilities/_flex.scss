@@ -1,0 +1,42 @@
+@each $breakpoint in map-keys($grid-breakpoints) {
+    @if ($breakpoint != xs and $breakpoint != mobile) {
+        @include media-breakpoint-up($breakpoint) {
+            $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+            @each $property, $values in $flex-utilities {
+                @each $name, $value in $values {
+                    .is-#{$property}#{$infix}-#{$name} {
+                        #{$property}: $value !important;
+                    }
+                }
+            }
+
+            .is-flex#{$infix} {
+                &-fill {
+                    flex: 1 1 auto !important;
+                }
+
+                @each $property in $flex-grow-shrink-properties {
+                    @each $value in $flex-binary-values {
+                        &-#{$property}-#{$value} {
+                            flex-#{$property}: $value !important;
+                        }
+                    }
+                }
+
+                @each $name, $value in $flex-basis-values {
+                    &-basis-#{$name} {
+                        flex-basis: $value !important;
+                    }
+                }
+            }
+
+            @for $i from 0 through 12 {
+                .is-flex-order#{$infix}-#{$i} {
+                    order: $i;
+                }
+            }
+
+        }
+    }
+}

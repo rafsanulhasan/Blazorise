@@ -1,0 +1,16 @@
+﻿@namespace Blazorise.Docs.Docs.Examples
+
+<Field>
+    <TextInput Value="@name" ValueChanged="@OnNameChanged" />
+</Field>
+
+@code{
+    string name;
+
+    Task OnNameChanged( string value )
+    {
+        name = value;
+
+        return Task.CompletedTask;
+    }
+}

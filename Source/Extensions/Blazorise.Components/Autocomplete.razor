@@ -1,78 +1,124 @@
-﻿@inherits BaseAfterRenderComponent
+@using Blazorise.Extensions
+@using Blazorise
+@using Blazorise.Components.Internal
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@inherits BaseInputComponent<TValue, AutocompleteClasses<TItem, TValue>, AutocompleteStyles<TItem, TValue>>
 @typeparam TItem
 @typeparam TValue
 
-<Dropdown ElementId="@ElementId" Class="@DropdownClassNames" Style="@CssStyle" Attributes="@Attributes" Visible="@(DropdownVisible || NotFoundVisible)">
-    <Validation Validator="@(Validator ?? ValidationRule.None)" AsyncValidator="@AsyncValidator">
-
-        @if ( Multiple )
+<Dropdown ElementId="@ElementId" Class="@DropdownClassNames" Style="@CssStyle" Visible="@(DropdownVisible || NotFoundVisible || FreeTypingNotFoundVisible)" PositionStrategy="@PositionStrategy" DropdownMenuTargetId="@DropdownMenuTargetElementId" Disabled="@Disabled" AriaInvalid="@ResolvedAriaInvalid" AriaRequired="@ResolvedAriaRequired" AriaDescribedBy="@ResolvedAriaDescribedBy" AriaLabelledBy="@ExplicitAriaLabelledBy" Attributes="@Attributes">
+    @if ( IsMultiple && !SelectedTexts.IsNullOrEmpty() )
+    {
+        @foreach ( var selectedText in SelectedTexts )
         {
-            @foreach ( var selectedText in SelectedTexts )
+            @if ( TagTemplate is null )
             {
-                <Badge Color="@MultipleBadgeColor" Margin="Margin.Is2.FromStart" CloseClicked="async () => await RemoveMultipleText( selectedText )">@selectedText</Badge>
+                <Badge Color="@GetMultipleBadgeColor()" Margin="Blazorise.Margin.Is2.FromStart" Class="@Classes?.Tag" Style="@Styles?.Tag" CloseClicked="async () => await RemoveMultipleTextAndValue( selectedText )">@selectedText</Badge>
+            }
+            else
+            {
+                var item = GetItemByText( selectedText );
+                var value = GetItemValue( selectedText );
+                var removeCallback = EventCallback.Factory.Create( this, async () => await RemoveMultipleTextAndValue( selectedText ) );
+                @TagTemplate( new( item, value, selectedText, removeCallback ) )
             }
         }
+    }
 
-        <TextEdit @ref="@textEditRef"
-                  Role="TextRole.Search"
-                  Text="@SelectedText"
-                  TextChanged="@OnTextChangedHandler"
-                  Placeholder="@Placeholder"
-                  Size="@Size"
-                  Disabled="@Disabled"
-                  TabIndex="@TabIndex"
-                  KeyDown="@OnTextKeyDownHandler"
-                  FocusIn="@OnTextFocusInHandler"
-                  Blur="@OnTextBlurHandler"
-                  Immediate="@Immediate"
-                  Debounce="@Debounce"
-                  DebounceInterval="@DebounceInterval"
-                  CustomValidationValue="@GetValidationValue">
-            <Feedback>
-                <ValidationError />
-                <ValidationSuccess />
-                <ValidationNone />
-            </Feedback>
-        </TextEdit>
-    </Validation>
-    <DropdownMenu @ref="DropdownMenuRef">
-        @if ( NotFoundVisible )
-        {
-            <DropdownItem Disabled>
-                @NotFoundContent( SelectedText )
-            </DropdownItem>
-        }
-
+    <CascadingValue Value="(Validation)null">
+        <TextInput @ref="@textInputRef"
+                   ElementId="@InputElementId"
+                   Role="TextRole.Search"
+                   Value="@Search"
+                   ValueChanged="@OnTextChangedHandler"
+                   Placeholder="@Placeholder"
+                   Size="@Size"
+                   MaxLength="@MaxEntryLength"
+                   Disabled="@Disabled"
+                   ReadOnly="@ReadOnly"
+                   TabIndex="@TabIndex"
+                   KeyDown="@OnTextKeyDownHandler"
+                   KeyPress="@OnTextKeyPressHandler"
+                   KeyUp="@OnTextKeyUpHandler"
+                   OnFocus="OnTextFocusHandler"
+                   FocusIn="@OnTextFocusInHandler"
+                   FocusOut="@OnTextFocusOutHandler"
+                   Blur="OnTextBlurHandler"
+                   Immediate="@Immediate"
+                   Debounce="@Debounce"
+                   DebounceInterval="@DebounceInterval"
+                   Background="@SearchBackground"
+                   TextColor="@SearchTextColor"
+                   Class="@SearchClassNames"
+                   Style="@SearchStyleNames"
+                   AriaRequired="@SearchInputAriaRequired">
+        </TextInput>
+    </CascadingValue>
+    <DropdownMenu Class="@Classes?.Menu" Style="@Styles?.Menu">
         @if ( DropdownVisible )
         {
-            // once the menu is opened we need to register it as closable so that user could properly close it with escape key
-            // without accidentally triggering the parent component closing
-            if ( !jsRegistered )
+            @if ( VirtualizeManualReadMode )
             {
-                jsRegistered = true;
-
-                ExecuteAfterRender( async () =>
-                {
-                    await JSClosableModule.Register( dotNetObjectRef, ElementRef );
-                } );
+                <Virtualize @ref="virtualizeRef" TItem="TItem" Context="item" ItemsProvider="VirtualizeItemsProviderHandler">
+                    @RenderItem( item, FilteredData.IndexOf( item ) )
+                </Virtualize>
             }
-
-            for ( int i = 0; i < FilteredData.Count; ++i )
+            else if ( Virtualize )
             {
-                var item = FilteredData[i];
-
-                var text = GetItemText( item );
-                var value = GetItemValue( item );
-
-                @if ( ItemContent is not null )
+                <Virtualize @ref="virtualizeRef" TItem="TItem" Context="item" Items="@FilteredData">
+                    @RenderItem( item, FilteredData.IndexOf( item ) )
+                </Virtualize>
+            }
+            else
+            {
+                @for ( int itemIndex = 0; itemIndex < FilteredData.Count; itemIndex++ )
                 {
-                    <DropdownItem @key="item" Active="@(i == ActiveItemIndex)" Value="@value" Clicked="@OnDropdownItemClicked">@ItemContent(new (item, value, text))</DropdownItem>
-                }
-                else
-                {
-                    <DropdownItem @key="item" Active="@(i == ActiveItemIndex)" Value="@value" Clicked="@OnDropdownItemClicked">@text</DropdownItem>
+                    TItem item = FilteredData[itemIndex];
+                    @RenderItem( item, itemIndex )
                 }
             }
+        }
+        else if ( NotFoundVisible )
+        {
+            var notFoundContext = GetNotFoundItemContext();
+
+            <DropdownItem Disabled TabIndex="-1" CloseParentDropdowns="@CloseParentDropdowns" Class="@DropdownItemClassNames( notFoundContext )" Style="@DropdownItemStyleNames( notFoundContext )">
+                @NotFoundTemplate( Search )
+            </DropdownItem>
+        }
+        else if ( FreeTypingNotFoundVisible )
+        {
+            var notFoundContext = GetNotFoundItemContext();
+
+            <DropdownItem Disabled TabIndex="-1" CloseParentDropdowns="@CloseParentDropdowns" Class="@DropdownItemClassNames( notFoundContext )" Style="@DropdownItemStyleNames( notFoundContext )">
+                @FreeTypingNotFoundTemplate( Search )
+            </DropdownItem>
         }
     </DropdownMenu>
 </Dropdown>
+@Feedback
+@code {
+    protected RenderFragment RenderItem( TItem item, int itemIndex ) => __builder =>
+    {
+        var isActiveItem = IsSuggestedActiveItem( item );
+        var isFocusedItem = itemIndex == ActiveItemIndex;
+        var disabled = GetItemDisabled( item );
+        var text = GetItemText( item );
+        var value = GetItemValue( item );
+        var itemContext = CreateItemContext( item, value, text, itemIndex, isActiveItem, isFocusedItem, disabled );
+
+        <_AutocompleteItem @key="@item"
+                           TItem="TItem"
+                           TValue="TValue"
+                           Context="@itemContext"
+                           ElementId="@DropdownItemId( itemIndex )"
+                           Class="@DropdownItemClassNames( itemContext )"
+                           Style="@DropdownItemStyleNames( itemContext )"
+                           CloseParentDropdowns="@CloseParentDropdowns"
+                           HighlightSearch="@HighlightSearch"
+                           Search="@Search"
+                           ItemContent="@ItemContent"
+                           PointerDown="@(() => clickFromCheck = true)"
+                           Selected="@OnDropdownItemSelected" />
+    };
+}

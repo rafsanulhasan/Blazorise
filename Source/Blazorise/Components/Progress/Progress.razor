@@ -1,8 +1,8 @@
 ﻿@namespace Blazorise
-@inherits BaseComponent
+@inherits BaseComponent<ProgressClasses, ProgressStyles>
 <CascadingValue Value="@this" IsFixed>
     <CascadingValue Value="@State">
-        <div class="@ClassNames" style="@StyleNames" @attributes="@Attributes">
+        <div @ref="@ElementRef" id="@ElementId" class="@ClassNames" style="@StyleNames" @attributes="@Attributes">
             @if ( !HasProgressBar )
             {
                 <div class="@ProgressBarClassNames" style="@ProgressBarStyleNames" role="progressbar" aria-valuenow="@Percentage" aria-valuemin="@Min" aria-valuemax="@Max" @attributes="@Attributes">

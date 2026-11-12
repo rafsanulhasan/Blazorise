@@ -1,0 +1,143 @@
+﻿@page "/docs/extensions/pdfviewer"
+
+<Seo Canonical="/docs/extensions/pdfviewer" Title="Blazorise PdfViewer component" Description="Learn how to use the Blazorise PdfViewer component to display and navigate PDF documents with paging, zooming, toolbar controls, and responsive viewer layouts." />
+
+<DocsPageTitle Path="Extensions/PdfViewer" AddedVersion="1.7" AddedDate="2024-09-06">
+    Blazorise PdfViewer component
+</DocsPageTitle>
+
+<DocsPageLead>
+    Let users read and navigate PDF documents without leaving your application.
+</DocsPageLead>
+
+<DocsPageSectionTitle>
+    Overview
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Use the <Code>PdfViewer</Code> component for documents such as reports, invoices, or instructions that users need to read alongside application content.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Use <Code>PdfViewer</Code> on its own, or place it with <Code>PdfViewerToolbar</Code> inside <Code>PdfViewerContainer</Code> for a viewer with navigation controls.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="PdfViewer component anatomy">
+    <DocsAnatomyRegion Label="PdfViewerContainer" Description="An optional layout container for the toolbar and viewer.">
+        <DocsAnatomyRegion Label="PdfViewerToolbar" Description="Provides document navigation and viewer controls." />
+        <DocsAnatomyRegion Label="PdfViewer" Description="Displays the PDF document." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageParagraph>
+    To use the <Code>PdfViewer</Code> component, install the <Code>Blazorise.PdfViewer</Code> package first.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Installation
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="NuGet">
+        Install extension from NuGet.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="PdfViewerNugetInstallExample" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Imports">
+        In your main <Badge Color="Color.Light">_Imports.razor</Badge> add:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="ImportPdfViewerExample" />
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Basic">
+        This example demonstrates how to use the PdfViewer component to display a PDF document within your application. The <Code>Source</Code> attribute is set to the URL of the PDF you want to render.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="PdfViewerBasicExample" Outlined FullWidth>
+        <PdfViewerBasicExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Base64 String">
+        You can also load a PDF document using a base64 string. This example shows how to use the PdfViewer component to display a PDF document from a base64 string.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="PdfViewerBase64Example" Outlined FullWidth>
+        <PdfViewerBase64Example />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Password Protected">
+        <Paragraph>
+            When loading a password-protected PDF, the viewer automatically requests the password through a modal prompt.
+        </Paragraph>
+        <Paragraph>
+            Use Password: "samplefiles"
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="PdfViewerPasswordProtectedExample" Outlined FullWidth>
+        <PdfViewerPasswordProtectedExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="With Navigation">
+        This example demonstrates how to integrate the PdfViewer component with navigation buttons in a Blazor application. The PdfViewer is set up to display a PDF document, while the buttons allow for page navigation.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="PdfViewerPagingExample" Outlined FullWidth>
+        <PdfViewerPagingExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Continuous Scrolling">
+        Set the <Code>Mode</Code> parameter to <Code>PdfViewerMode.Continuous</Code> to display pages in a scrollable vertical layout. Toolbar navigation and the current page number stay synchronized while scrolling.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="PdfViewerContinuousExample" Outlined FullWidth>
+        <PdfViewerContinuousExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="With Toolbar">
+        <Paragraph>
+            This example illustrates how to use the <Strong>PdfViewerContainer</Strong> to integrate both a toolbar and a viewer component for displaying and interacting with a PDF document.
+        </Paragraph>
+        <Paragraph>
+            <UnorderedList>
+                <UnorderedListItem>
+                    <Strong>PdfViewerContainer</Strong>: Acts as the main container for both the toolbar and the PDF viewer. It ensures proper layout and scrolling if needed.
+                </UnorderedListItem>
+                <UnorderedListItem>
+                    <Strong>PdfViewerToolbar</Strong>: A toolbar component is included within the container. This toolbar typically provides controls for interacting with the PDF, such as navigation and scaling.
+                </UnorderedListItem>
+                <UnorderedListItem>
+                    <Strong>PdfViewer</Strong>: The main component for displaying the PDF document. It is configured with the Source attribute to load a sample PDF from the provided URL.
+                </UnorderedListItem>
+            </UnorderedList>
+        </Paragraph>
+        <Paragraph>
+            <Strong>Note:</Strong> The <Strong>PdfViewer</Strong> component can function independently of the <Strong>PdfViewerToolbar</Strong> if needed, directly rendering the specified PDF document. However, when used together in this setup, they offer a complete solution for PDF viewing and interaction.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="PdfViewerToolbarExample" Outlined FullWidth>
+        <PdfViewerToolbarExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/extensions/pdfviewer/api" Name="<PdfViewer />" />
+    <DocsPageApiItem Url="docs/extensions/pdfviewer/api" Name="<PdfViewerContainer />" />
+    <DocsPageApiItem Url="docs/extensions/pdfviewer/api" Name="<PdfViewerToolbar />" />
+</DocsPageApi>

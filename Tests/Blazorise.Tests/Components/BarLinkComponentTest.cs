@@ -1,60 +1,86 @@
-﻿using System;
-using Blazorise.Tests.Helpers;
+using System.Threading.Tasks;
 using Blazorise.Tests.TestServices;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Blazorise.Tests.Components
+namespace Blazorise.Tests.Components;
+
+public class BarLinkComponentTest : BunitContext
 {
-    public class BarLinkComponentTest : TestContext
+    public BarLinkComponentTest()
     {
-        public BarLinkComponentTest()
-        {
-            var testServices = new TestServiceProvider( Services.AddSingleton<NavigationManager, TestNavigationManager>() );
-            BlazoriseConfig.AddBootstrapProviders( testServices );
-            BlazoriseConfig.JSInterop.AddButton( JSInterop );
-        }
+        Services.AddSingleton<NavigationManager, TestNavigationManager>();
+        Services.AddBlazoriseTests().AddBootstrapProviders();
+        JSInterop
+            .AddBlazoriseButton();
+    }
 
-        [Fact]
-        public void CanRaiseClicked_WithoutToParameterSet()
-        {
-            // setup
-            bool wasClicked = false;
-            var testCallback = new EventCallback( null, (Action)( () =>
-                wasClicked = true ) );
+    [Fact]
+    public async Task CanRaiseClicked_WithoutToParameterSet()
+    {
+        // setup
+        bool wasClicked = false;
+        var testCallback = new EventCallback<MouseEventArgs>( null, ( MouseEventArgs e ) => wasClicked = true );
 
-            // test
-            var comp = RenderComponent<BarLink>( builder =>
-                builder
-                    .Add( p => p.Clicked, testCallback ) );
+        // test
+        var comp = Render<BarLink>( builder =>
+            builder
+                .Add( p => p.Clicked, testCallback ) );
 
-            comp.Find( "a" ).Click();
+        await comp.Find( "a" ).ClickAsync();
 
-            // validate
-            Assert.True( wasClicked );
-        }
+        // validate
+        Assert.True( wasClicked );
+    }
 
-        [Fact]
-        public void CanRaiseClicked_WithToParameterSet()
-        {
-            // setup
-            bool wasClicked = false;
-            var testCallback = new EventCallback( null, (Action)( () =>
-                wasClicked = true ) );
+    [Fact]
+    public async Task CanRaiseClicked_WithToParameterSet()
+    {
+        // setup
+        bool wasClicked = false;
+        var testCallback = new EventCallback<MouseEventArgs>( null, ( MouseEventArgs e ) => wasClicked = true );
 
-            // test
-            var comp = RenderComponent<BarLink>( builder =>
-                builder
-                    .Add( p => p.To, "test" )
-                    .Add( p => p.Clicked, testCallback ) );
+        // test
+        var comp = Render<BarLink>( builder =>
+            builder
+                .Add( p => p.To, "test" )
+                .Add( p => p.Clicked, testCallback ) );
 
-            var link = comp.FindComponent<Link>();
-            link.Find( "a" ).Click();
+        var link = comp.FindComponent<Link>();
+        await link.Find( "a" ).ClickAsync();
 
-            // validate
-            Assert.True( wasClicked );
-        }
+        // validate
+        Assert.True( wasClicked );
+    }
+
+    [Fact]
+    public void ShouldSetAriaCurrent_WhenLinkIsActive()
+    {
+        // test
+        var comp = Render<BarLink>( builder =>
+            builder
+                .Add( p => p.To, "base" ) );
+
+        var anchor = comp.Find( "a" );
+
+        // validate
+        Assert.Equal( "page", anchor.GetAttribute( "aria-current" ) );
+    }
+
+    [Fact]
+    public void ShouldNotSetAriaCurrent_WhenLinkIsNotActive()
+    {
+        // test
+        var comp = Render<BarLink>( builder =>
+            builder
+                .Add( p => p.To, "test" ) );
+
+        var anchor = comp.Find( "a" );
+
+        // validate
+        Assert.False( anchor.HasAttribute( "aria-current" ) );
     }
 }

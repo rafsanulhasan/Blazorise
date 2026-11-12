@@ -1,6 +1,6 @@
-﻿import { getRequiredElement, fromExponential, firstNonNull } from "./utilities.js?v=1.0.2.0";
+import { getRequiredElement, fromExponential, firstNonNull } from "./utilities.js?v=__BLAZORISE_VERSION__";
 
-import './vendors/autoNumeric.js?v=1.0.2.0';
+import './vendors/autoNumeric.js?v=__BLAZORISE_VERSION__';
 
 let _instances = [];
 
@@ -21,7 +21,11 @@ export function initialize(dotnetAdapter, element, elementId, options) {
         digitGroupSeparator: firstNonNull(options.groupSeparator, AutoNumeric.options.digitGroupSeparator.noSeparator),
         digitalGroupSpacing: firstNonNull(options.groupSpacing, AutoNumeric.options.digitalGroupSpacing.three),
 
+        modifyValueOnWheel: firstNonNull(options.modifyValueOnWheel, AutoNumeric.options.modifyValueOnWheel.doNothing),
+        wheelOn: firstNonNull(options.wheelOn, AutoNumeric.options.wheelOn.focus),
         wheelStep: firstNonNull(options.step, 1),
+        modifyValueOnUpDownArrow: firstNonNull(options.enableStep, AutoNumeric.options.modifyValueOnUpDownArrow.modifyValue),
+        upDownStep: firstNonNull(options.step, 1),
         minimumValue: firstNonNull(fromExponential(firstNonNull(options.min, options.typeMin)), AutoNumeric.options.minimumValue.tenTrillions),
         maximumValue: firstNonNull(fromExponential(firstNonNull(options.max, options.typeMax)), AutoNumeric.options.maximumValue.tenTrillions),
         overrideMinMaxLimits: firstNonNull(options.minMaxLimitsOverride, AutoNumeric.options.overrideMinMaxLimits.doNotOverride),
@@ -36,7 +40,8 @@ export function initialize(dotnetAdapter, element, elementId, options) {
         allowDecimalPadding: firstNonNull(options.allowDecimalPadding, AutoNumeric.options.allowDecimalPadding.always),
         alwaysAllowDecimalCharacter: firstNonNull(options.alwaysAllowDecimalSeparator, AutoNumeric.options.alwaysAllowDecimalCharacter.doNotAllow),
 
-        onInvalidPaste: 'ignore'
+        onInvalidPaste: 'ignore',
+        emptyInputBehavior: AutoNumeric.options.emptyInputBehavior.null
     });
 
     element.addEventListener('autoNumeric:rawValueModified', e => {
@@ -45,13 +50,75 @@ export function initialize(dotnetAdapter, element, elementId, options) {
         }
     });
 
+    element.addEventListener('input', onNativeValueChanged);
+    element.addEventListener('change', onNativeValueChanged);
+
     _instances[elementId] = instance;
+}
+
+function onNativeValueChanged(event) {
+    // AutoNumeric already processes typing and raises its own synthetic input events.
+    if (!event.isTrusted)
+        return;
+
+    const instance = AutoNumeric.getAutoNumericElement(event.currentTarget);
+
+    if (!instance)
+        return;
+
+    try {
+        const value = AutoNumeric.unformat(event.currentTarget.value, instance.getSettings());
+
+        if (Number.isNaN(Number(value))) {
+            instance.reformat();
+            return;
+        }
+
+        instance.set(value === "" ? null : value);
+    } catch {
+        // Ignore saved values that no longer satisfy the configured numeric limits.
+        instance.reformat();
+    }
+}
+
+export function focus(element, elementId, selectText) {
+    element = getRequiredElement(element, elementId);
+
+    if (!element) {
+        return;
+    }
+
+    const focusInstance = instance => {
+        if (!element.isConnected) {
+            return;
+        }
+
+        element.focus();
+
+        if (selectText) {
+            element.select();
+        } else {
+            instance.selectInteger();
+            const caret = element.selectionEnd;
+            element.setSelectionRange(caret, caret);
+        }
+    };
+
+    const instance = _instances[elementId];
+
+    if (instance) {
+        focusInstance(instance);
+    } else {
+        element.addEventListener("autoNumeric:initialized", event => focusInstance(event.detail.aNElement), { once: true });
+    }
 }
 
 export function destroy(element, elementId) {
     const instance = _instances[elementId];
 
     if (instance) {
+        instance.node().removeEventListener('input', onNativeValueChanged);
+        instance.node().removeEventListener('change', onNativeValueChanged);
         instance.remove();
     }
 
@@ -100,10 +167,10 @@ export function updateOptions(element, elementId, options) {
         }
 
         if (options.min.changed) {
-            newOptions.minimumValue = firstNonNull(options.min.value, AutoNumeric.options.minimumValue.tenTrillions);
+            newOptions.minimumValue = fromExponential(firstNonNull(options.min.value, AutoNumeric.options.minimumValue.tenTrillions));
         }
         if (options.max.changed) {
-            newOptions.maximumValue = firstNonNull(options.max.value, AutoNumeric.options.maximumValue.tenTrillions);
+            newOptions.maximumValue = fromExponential(firstNonNull(options.max.value, AutoNumeric.options.maximumValue.tenTrillions));
         }
 
         if (options.minMaxLimitsOverride.changed) {
@@ -120,6 +187,18 @@ export function updateOptions(element, elementId, options) {
 
         if (options.alwaysAllowDecimalSeparator.changed) {
             newOptions.alwaysAllowDecimalCharacter = firstNonNull(options.alwaysAllowDecimalSeparator.value, AutoNumeric.options.alwaysAllowDecimalCharacter.doNotAllow);
+        }
+
+        if (options.modifyValueOnWheel.changed) {
+            newOptions.modifyValueOnWheel = firstNonNull(options.modifyValueOnWheel.value, AutoNumeric.options.modifyValueOnWheel.doNothing);
+        }
+
+        if (options.wheelOn.changed) {
+            newOptions.wheelOn = firstNonNull(options.wheelOn.value, AutoNumeric.options.wheelOn.focus);
+        }
+
+        if (options.enableStep.changed) {
+            newOptions.modifyValueOnUpDownArrow = options.enableStep.value;
         }
 
         instance.update(newOptions);

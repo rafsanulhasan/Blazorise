@@ -1,0 +1,134 @@
+@page "/docs/components/memo-edit"
+@page "/docs/components/memo-input"
+
+<Seo Canonical="/docs/components/memo-input" Title="Blazorise MemoInput system" Description="Learn to use and work with the Blazorise MemoInput component, which is used to create multiline text input (textarea)." />
+
+<DocsPageTitle Path="Components/Memo Input">
+    Blazorise MemoInput component
+</DocsPageTitle>
+
+<DocsPageLead>
+    MemoInput collect data from the user and allow multiple lines of text.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    MemoInput is an input field component for multi-line text input based on a <Code Tag>textarea</Code> element.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Basic">
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MemoInputBasicExample" Outlined FullWidth>
+        <MemoInputBasicExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Tab override">
+        By default a <Code Tag>textarea</Code> will lose focus when you press the <Kbd>Tab</Kbd> key. If you want to allow tabs to be entered
+        you just need to enable it with <Code>ReplaceTab</Code>, and optionally a <Code>TabSize</Code> parameter.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MemoInputTabExample" Outlined FullWidth>
+        <MemoInputTabExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Auto size">
+        Set <Code>AutoSize</Code> to make MemoInput grow and shrink with its content. The <Code>Rows</Code> parameter sets its minimum height; when omitted, the minimum is two rows. Native <Code>field-sizing: content</Code> is used when supported, with an automatic fallback for older browsers. You can also set a maximum height through custom styles, after which the textarea scrolls.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MemoInputAutoSizeExample" Outlined FullWidth>
+        <MemoInputAutoSizeExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom colors" AddedVersion="2.3" AddedDate="2026-09-24">
+        Use <Code>Color</Code> to set the color variant of the input. Set <Code>TextColor</Code> independently.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MemoInputCustomColorsExample" Outlined FullWidth>
+        <MemoInputCustomColorsExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Binding
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Two-way binding">
+        By using <Code>bind-*</Code> attribute the text will be automatically assigned to the member variable.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MemoInputWithBindExample" Outlined FullWidth>
+        <MemoInputWithBindExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Mannual event binding">
+        When using the event <Code>ValueChanged</Code>, you also must define the <Code>Value</Code> value attribute.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MemoInputWithEventExample" Outlined FullWidth>
+        <MemoInputWithEventExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Settings
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Text Changed mode">
+        By default the <Code>ValueChanged</Code> event will be raised on every keypress.
+        To override default behavior of <Code>ValueChanged</Code> event and to disable the change on every
+        keypress you must set the <Code>Immediate</Code> to <Code>false</Code> on application start.
+        After setting it to <Code>false</Code> the event will be raised only after the input loses focus.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="MemoInputTextChangedModeExample" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Text Delay mode">
+        Because of some limitations in Blazor, sometimes there can be problems when <Code>Immediate</Code> is enabled.
+        Basically if you try to type too fast into the text field the caret can jump randomly from current selection
+        to the end of the text. To prevent that behaviour you need to enable <Code>Debounce</Code>. Once enabled it will
+        slightly delay every value entered into the field to allow the Blazor engine to do it's thing.
+        By default this option is disabled.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="MemoInputTextDelayModeExample" />
+</DocsPageSection>
+
+<Alert Color="Color.Info" Visible>
+    <AlertDescription>
+        <Strong>Note:</Strong> All of the options above can also be defined on each <Code>MemoInput</Code> individually.
+        Defining them on <Code>MemoInput</Code> will override any global settings.
+    </AlertDescription>
+</Alert>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Guide Longer Input
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Use a visible label and persistent help text when users need guidance about the expected content or format. Choose a useful initial height or enable auto sizing, but set practical limits so a long value does not take over the page.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Frequent Updates
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Delayed text updates are preferable when typing triggers search, preview, or autosave work. Communicate save progress and failures instead of implying that every keystroke is already persisted. Override the <Kbd>Tab</Kbd> key only in editing experiences where inserting tabs is expected; otherwise preserve normal keyboard navigation.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/memo-input/api" Name="<MemoInput />" />
+</DocsPageApi>

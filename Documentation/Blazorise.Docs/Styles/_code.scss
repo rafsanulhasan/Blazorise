@@ -1,6 +1,6 @@
 ﻿.blazorise-codeblock {
     height: 100%;
-    background-color: #272C35;
+    background-color: var(--b-codeblock-background-color);
     border-radius: 0 0 4px 4px;
     padding: 16px;
     font-size: .9rem;
@@ -8,7 +8,7 @@
 
     & pre {
         height: 100%;
-        color: #ededed;
+        color: var(--b-codeblock-color);
         padding: 0px;
         font-size: 1em;
         font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
@@ -25,95 +25,119 @@
     & .html {
 
         & .htmlTagDelimiter {
-            color: #979797;
+            color: var(--b-codeblock-tag-delimiter-color);
         }
 
         & .htmlElementName {
-            color: #FF8B9C;
+            color: var(--b-codeblock-element-color);
         }
 
         & .htmlAttributeName {
-            color: #c5a5c5;
+            color: var(--b-codeblock-attribute-name-color);
         }
 
         & .htmlOperator, .quot {
-            color: #c8c8c8;
+            color: var(--b-codeblock-operator-color);
         }
 
         & .htmlAttributeValue {
-            color: #ededed;
+            color: var(--b-codeblock-attribute-value-color);
         }
 
         & .htmlLink {
-            color: #61afef;
+            color: var(--b-codeblock-link-color);
             text-decoration: underline;
         }
 
         & .enum {
-            color: #b4eb8f;
-            background-color: rgba(255,255,255,0.15);
+            color: var(--b-codeblock-enum-color);
+            background-color: var(--b-codeblock-token-background-color);
         }
 
         & .enumValue, .sharpVariable {
-            color: #ededed;
-            background-color: rgba(255,255,255,0.15);
+            color: var(--b-codeblock-enum-value-color);
+            background-color: var(--b-codeblock-token-background-color);
         }
 
         & .keyword {
-            color: #61afef;
-            background-color: rgba(255,255,255,0.15);
+            color: var(--b-codeblock-keyword-color);
+            background-color: var(--b-codeblock-token-background-color);
         }
 
         & .atSign {
-            color: #000;
-            background-color: #b9b928;
+            color: var(--b-codeblock-at-sign-color);
+            background-color: var(--b-codeblock-at-sign-background-color);
         }
 
         & .comment {
-            color: #57a64a;
+            color: var(--b-codeblock-comment-color);
         }
     }
 
     & .csharp {
         & .atSign {
-            color: #000;
-            background-color: #b9b928;
+            color: var(--b-codeblock-at-sign-color);
+            background-color: var(--b-codeblock-at-sign-background-color);
         }
 
         & .keyword {
-            color: #c5a5c5;
+            color: var(--b-codeblock-keyword-color);
         }
 
         & .string {
-            color: #d69d85;
+            color: var(--b-codeblock-string-color);
         }
 
         & .function {
-            color: #68B6F8;
+            color: var(--b-codeblock-function-color);
         }
 
         & .class {
-            color: #c5a5c5
+            color: var(--b-codeblock-type-color);
         }
 
         & .localVar {
-            color: #FFC74C;
+            color: var(--b-codeblock-variable-color);
         }
 
         & .interface {
-            color: #b0d7a3;
+            color: var(--b-codeblock-interface-color);
         }
 
         & .number {
-            color: #b0d7a3;
+            color: var(--b-codeblock-number-color);
         }
 
         & .enum {
-            color: #b4eb8f;
+            color: var(--b-codeblock-enum-color);
         }
 
         & .comment {
-            color: #57a64a;
+            color: var(--b-codeblock-comment-color);
         }
     }
+
+    & .powershell {
+        & .comment {
+            color: var(--b-codeblock-comment-color);
+        }
+
+        & .powershellOperator {
+            color: var(--b-codeblock-powershell-operator-color);
+        }
+    }
+}
+
+.b-docs-page-section-source-code {
+    background-color: var(--b-codeblock-background-color);
+
+    & > .blazorise-codeblock {
+        overflow: visible;
+    }
+}
+
+code {
+    color: var(--b-code-color);
+    padding: 0.25em 0.375em;
+    background-color: var(--b-code-background-color);
 }

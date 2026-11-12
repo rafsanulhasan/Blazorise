@@ -1,77 +1,76 @@
-﻿#region Using directives
+#region Using directives
+using System.Collections.Generic;
 using Blazorise.Utilities;
 using Microsoft.AspNetCore.Components;
 #endregion
 
-namespace Blazorise
+namespace Blazorise;
+
+/// <summary>
+/// A wrapper that represents a row in a flexbox grid.
+/// </summary>
+public partial class Row : BaseRowComponent
 {
-    /// <summary>
-    /// A wrapper that represents a row in a flexbox grid.
-    /// </summary>
-    public partial class Row : BaseComponent
+    #region Members
+
+    private IFluentRowColumns rowColumns;
+
+    private IFluentGutter gutter;
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc/>
+    protected override void BuildClasses( ClassBuilder builder )
     {
-        #region Members
+        builder.Append( ClassProvider.Row() );
 
-        private IFluentRowColumns rowColumns;
+        if ( RowColumns is not null && RowColumns.HasSizes )
+            builder.Append( RowColumns.Class( ClassProvider ) );
 
-        #endregion
+        if ( gutter is not null )
+            builder.Append( Gutter.Class( ClassProvider ) );
 
-        #region Methods
-
-        /// <inheritdoc/>
-        protected override void BuildClasses( ClassBuilder builder )
-        {
-            builder.Append( ClassProvider.Row() );
-            builder.Append( ClassProvider.RowNoGutters(), NoGutters );
-
-            if ( RowColumns != null && RowColumns.HasSizes )
-                builder.Append( RowColumns.Class( ClassProvider ) );
-
-            base.BuildClasses( builder );
-        }
-
-        /// <inheritdoc/>
-        protected override void BuildStyles( StyleBuilder builder )
-        {
-            builder.Append( StyleProvider.RowGutter( Gutter ), Gutter != default );
-
-            base.BuildStyles( builder );
-        }
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Defines the number of columns to show in a row.
-        /// </summary>
-        [Parameter]
-        public IFluentRowColumns RowColumns
-        {
-            get => rowColumns;
-            set
-            {
-                rowColumns = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Row grid spacing - we recommend setting Horizontal and/or Vertical it to (16 + 8n). (n stands for natural number.)
-        /// </summary>
-        [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }
-
-        /// <summary>
-        /// Removes the negative margins from row and the horizontal padding from all immediate children columns.
-        /// </summary>
-        [Parameter] public bool NoGutters { get; set; }
-
-        /// <summary>
-        /// Specifies the content to be rendered inside this <see cref="Row"/>.
-        /// </summary>
-        [Parameter] public RenderFragment ChildContent { get; set; }
-
-        #endregion
+        base.BuildClasses( builder );
     }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Specifies the number of columns to show in a row.
+    /// </summary>
+    [Parameter]
+    public IFluentRowColumns RowColumns
+    {
+        get => rowColumns;
+        set
+        {
+            rowColumns = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Specifies the padding between your columns, used to responsively space and align content in the Blazorise grid system.
+    /// </summary>
+    [Parameter]
+    public IFluentGutter Gutter
+    {
+        get => gutter;
+        set
+        {
+            if ( gutter == value )
+                return;
+
+            gutter = value;
+
+            DirtyClasses();
+        }
+    }
+
+    #endregion
 }

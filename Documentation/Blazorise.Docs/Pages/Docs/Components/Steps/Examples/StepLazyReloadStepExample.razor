@@ -1,0 +1,40 @@
+﻿@namespace Blazorise.Docs.Docs.Examples
+
+<Steps RenderMode="StepsRenderMode.LazyReload" SelectedStep="contact" AriaLabel="Contact details with lazy reloading">
+    <Items>
+        <Step Name="contact">Contact</Step>
+        <Step Name="notes">Notes</Step>
+    </Items>
+    <Content>
+        <StepPanel Name="contact" Padding="Padding.Is3">
+            <Paragraph>Enter contact details, visit Notes, then return. The inputs are recreated and your entries are cleared.</Paragraph>
+            <Field>
+                <FieldLabel>Full name</FieldLabel>
+                <FieldBody>
+                    <TextInput Placeholder="e.g. Alex Morgan" />
+                </FieldBody>
+            </Field>
+            <Field Margin="Margin.Is0.FromBottom">
+                <FieldLabel>Email address</FieldLabel>
+                <FieldBody>
+                    <TextInput Role="TextRole.Email" Placeholder="e.g. alex@example.com" />
+                </FieldBody>
+            </Field>
+        </StepPanel>
+        <StepPanel Name="notes" Padding="Padding.Is3">
+            <Paragraph>Only the active panel's content is rendered. These inputs also start empty each time you return.</Paragraph>
+            <Field>
+                <FieldLabel>Subject</FieldLabel>
+                <FieldBody>
+                    <TextInput Placeholder="e.g. Project introduction" />
+                </FieldBody>
+            </Field>
+            <Field Margin="Margin.Is0.FromBottom">
+                <FieldLabel>Notes</FieldLabel>
+                <FieldBody>
+                    <MemoInput Rows="3" Placeholder="Add a few details to discuss with this contact." />
+                </FieldBody>
+            </Field>
+        </StepPanel>
+    </Content>
+</Steps>

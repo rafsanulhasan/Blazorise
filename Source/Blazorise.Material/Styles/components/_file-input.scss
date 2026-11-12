@@ -1,0 +1,99 @@
+.mui-file {
+    display: grid;
+    min-inline-size: 0;
+    inline-size: 100%;
+
+    > .mui-file-input {
+        grid-area: 1 / 1;
+        min-inline-size: 0;
+        block-size: var(--mui-input-size);
+        line-height: var(--mui-input-size);
+        padding-block: 0;
+        padding-inline: 0.375rem;
+        cursor: pointer;
+    }
+
+    > input[type=file] {
+        color: transparent !important;
+
+        &::-webkit-file-upload-button {
+            display: none;
+        }
+
+        &::file-selector-button {
+            display: none;
+        }
+
+        &:focus {
+            border-width: 0.0625rem;
+            padding-inline: 0.375rem;
+            border-color: var(--mui-primary);
+        }
+    }
+
+    > .mui-file-content {
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        z-index: 2;
+        pointer-events: none;
+        background: none !important;
+        border-color: transparent !important;
+    }
+
+    .mui-file-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        block-size: calc(var(--mui-input-size) - 0.5rem);
+        max-block-size: 100%;
+        border-radius: 999rem;
+        margin-inline-end: 0.75rem;
+        padding-inline: 0.875rem;
+        line-height: 1;
+        background-color: var(--mui-secondary-container);
+        color: var(--mui-on-secondary-container);
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 500;
+        white-space: nowrap;
+        transition: background-color var(--mui-duration-normal), color var(--mui-duration-normal), opacity var(--mui-duration-normal);
+    }
+
+    .mui-file-selection {
+        min-inline-size: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &:has(> input:hover) .mui-file-button {
+        background-color: color-mix(in srgb, var(--mui-secondary) 24%, var(--mui-secondary-container));
+    }
+
+    &:has(> input:focus) .mui-file-button {
+        background-color: color-mix(in srgb, var(--mui-primary) 20%, var(--mui-secondary-container));
+        color: var(--mui-on-primary-container);
+    }
+
+    &:has(> input.is-valid) .mui-file-button {
+        background-color: color-mix(in srgb, var(--mui-success) 16%, var(--mui-success-container));
+        color: var(--mui-on-success-container);
+    }
+
+    &:has(> input.is-invalid) .mui-file-button {
+        background-color: color-mix(in srgb, var(--mui-error) 14%, var(--mui-error-container));
+        color: var(--mui-on-error-container);
+    }
+
+    &:has(> input:disabled) {
+        .mui-file-content {
+            opacity: 0.5;
+        }
+
+        .mui-file-button {
+            opacity: 0.62;
+        }
+    }
+}

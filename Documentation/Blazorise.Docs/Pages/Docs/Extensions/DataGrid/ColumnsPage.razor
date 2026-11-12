@@ -1,0 +1,105 @@
+@page "/docs/extensions/datagrid/columns"
+
+<Seo Canonical="/docs/extensions/datagrid/columns" Title="Blazorise DataGrid Columns" Description="Learn to use and work with the Blazorise DataGrid Columns to customize and configure the columns in a data grid." />
+
+<DocsPageTitle>
+    Blazorise DataGrid: Columns
+</DocsPageTitle>
+
+<DocsPageLead>
+    DataGrid column types provide display, editing, and filtering behavior suited to different kinds of data. Choosing the appropriate type makes values easier to understand and gives users controls that fit the task.
+</DocsPageLead>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Default Column">
+        The default column displays field values and provides text-based editing and filtering. It offers a straightforward starting point for searchable, editable tables.
+    </DocsPageSectionHeader>
+
+    <DocsPageSectionContent Code="DataGridColumnExample" FullWidth AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridColumnExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Check Column">
+        Checkbox columns represent Boolean values with a checked or unchecked state. They make binary choices quick to recognize and update.
+    </DocsPageSectionHeader>
+
+    <DocsPageSectionContent Code="DataGridCheckColumnExample" FullWidth AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridCheckColumnExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Date Column">
+        Date columns provide calendar-based editing and date-aware filtering for date and timestamp values. Users can select dates visually and narrow records to the dates that matter to them.
+    </DocsPageSectionHeader>
+
+    <DocsPageSectionContent Code="DataGridDateColumnExample" FullWidth AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridDateColumnExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Native Date Column">
+        Native date columns use browser-provided date inputs for editing and filtering. They offer a date selection experience that follows the user's browser and device.
+    </DocsPageSectionHeader>
+
+    <DocsPageSectionContent Code="DataGridDateColumnNativeExample" FullWidth AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridDateColumnNativeExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Numeric Column">
+        Numeric columns pair numeric values with dedicated input controls and numeric filter comparisons. Users can enter amounts and narrow results by value or range.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DataGridNumericColumnExample" FullWidth AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridNumericColumnExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Native Numeric Column">
+        Native numeric columns use the browser's number input while retaining numeric filtering. They provide a familiar way to enter and adjust values using the browser's own controls.
+    </DocsPageSectionHeader>
+
+    <DocsPageSectionContent Code="DataGridNumericColumnNativeExample" FullWidth AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridNumericColumnNativeExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Select Column">
+        Select columns present predefined choices with readable labels. They keep entries consistent and reduce typing errors when values come from a known set.
+    </DocsPageSectionHeader>
+
+    <DocsPageSectionContent Code="DataGridSelectColumnExample" FullWidth AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridSelectColumnExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Select Column Multiple">
+        Multiple-selection columns allow a field to hold several choices from a predefined set. Users can manage related selections together within a single cell.
+    </DocsPageSectionHeader>
+
+    <DocsPageSectionContent Code="DataGridSelectColumnMultipleExample" FullWidth AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridSelectColumnMultipleExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/extensions/datagrid/api" Name="<DataGrid />" />
+    <DocsPageApiItem Url="docs/extensions/datagrid/api" Name="<DataGridColumn />" />
+    <DocsPageApiItem Url="docs/extensions/datagrid/api" Name="<DataGridCommandColumn />" />
+    <DocsPageApiItem Url="docs/extensions/datagrid/api" Name="<DataGridSelectColumn />" />
+    <DocsPageApiItem Url="docs/extensions/datagrid/api" Name="<DataGridDateColumn />" />
+    <DocsPageApiItem Url="docs/extensions/datagrid/api" Name="<DataGridNumericColumn />" />
+    <DocsPageApiItem Url="docs/extensions/datagrid/api" Name="<DataGridCheckColumn />" />
+</DocsPageApi>

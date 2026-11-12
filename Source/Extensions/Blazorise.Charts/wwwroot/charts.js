@@ -1,39 +1,23 @@
-import { parseFunction, deepClone } from "./utilities.js?v=1.0.2.0";
+import "./vendors/chart.js?v=__BLAZORISE_VERSION__";
 
-// workaround for: https://github.com/Megabit/Blazorise/issues/2287
-const _ChartTitleCallbacks = function (item) {
-    return item[0].dataset.label;
-};
+import "./vendors/chartjs-plugin-datalabels.js?v=__BLAZORISE_VERSION__";
+import "./vendors/chartjs-plugin-annotation.js?v=__BLAZORISE_VERSION__";
 
-const _ChartLabelCallback = function (item) {
-    const label = item.label;
-    const value = item.dataset.data[item.dataIndex];
-    return label + ': ' + value;
-};
+import "./vendors/luxon.js?v=__BLAZORISE_VERSION__";
+import "./vendors/chartjs-adapter-luxon.js?v=__BLAZORISE_VERSION__";
+import "./vendors/chartjs-plugin-streaming.js?v=__BLAZORISE_VERSION__";
 
-// In Chart v3 callbacks are now defined by default. So to override them by the Blazorise the user
-// would have to first set them to null immediately after charts.js is loaded for this workaround
-// to have any effect.
-
-if (!Chart.overrides.pie.plugins.tooltip.callbacks.title) {
-    Chart.overrides.pie.plugins.tooltip.callbacks.title = _ChartTitleCallbacks;
-}
-
-if (!Chart.overrides.pie.plugins.tooltip.callbacks.label) {
-    Chart.overrides.pie.plugins.tooltip.callbacks.label = _ChartLabelCallback;
-}
-
-if (!Chart.overrides.doughnut.plugins.tooltip.callbacks.title) {
-    Chart.overrides.doughnut.plugins.tooltip.callbacks.title = _ChartTitleCallbacks;
-}
-
-if (!Chart.overrides.doughnut.plugins.tooltip.callbacks.label) {
-    Chart.overrides.doughnut.plugins.tooltip.callbacks.label = _ChartLabelCallback;
-}
+import { parseFunction, deepClone } from "./utilities.js?v=__BLAZORISE_VERSION__";
+import { registerDisconnectCleanup, unregisterDisconnectCleanup } from "../Blazorise/utilities.js?v=__BLAZORISE_VERSION__";
+import {
+    scheduleResponsiveResizePatch,
+    setupResponsiveResizePatchHandlers,
+    cleanupResponsiveResizePatchHandlers
+} from "./patches/chartResponsiveResizePatch.js?v=__BLAZORISE_VERSION__";
 
 const _instances = [];
 
-export function initialize(dotnetAdapter, eventOptions, canvas, canvasId, type, data, options, dataJsonString, optionsJsonString, optionsObject) {
+export function initialize(dotnetAdapter, eventOptions, canvas, canvasId, type, data, options, dataJsonString, optionsJsonString, optionsObject, pluginNames) {
     if (dataJsonString) {
         data = JSON.parse(dataJsonString);
     }
@@ -43,6 +27,22 @@ export function initialize(dotnetAdapter, eventOptions, canvas, canvasId, type, 
     }
     else if (optionsObject) {
         options = optionsObject;
+    }
+
+    function processTooltipCallbacks(callbacks) {
+        if (callbacks && typeof callbacks === 'object') {
+            const newCallbacks = {};
+
+            Object.keys(callbacks).forEach(key => {
+                if (typeof callbacks[key] === 'string') {
+                    newCallbacks[key] = eval(`(${callbacks[key]})`);
+                } else {
+                    newCallbacks[key] = callbacks[key];
+                }
+            });
+
+            Object.assign(callbacks, newCallbacks);
+        }
     }
 
     function processTicksCallback(scales, axis) {
@@ -65,26 +65,42 @@ export function initialize(dotnetAdapter, eventOptions, canvas, canvasId, type, 
         processTicksCallback(options.scales, 'y');
     }
 
+    if (options && options.plugins && options.plugins.tooltip && options.plugins.tooltip.callbacks) {
+        processTooltipCallbacks(options.plugins.tooltip.callbacks);
+    }
+
     // search for canvas element
     canvas = canvas || document.getElementById(canvasId);
 
     if (canvas) {
-        const chart = createChart(dotnetAdapter, eventOptions, canvas, canvasId, type, data, options);
+        destroy(null, canvasId);
+
+        const chart = createChart(dotnetAdapter, eventOptions, canvas, canvasId, type, data, options, pluginNames);
 
         // save references to all elements
         _instances[canvasId] = {
-            dotNetRef: dotnetAdapter,
+            dotnetAdapter: dotnetAdapter,
             eventOptions: eventOptions,
             canvas: canvas,
-            chart: chart
+            chart: chart,
+            pluginNames: pluginNames,
+            hasExplicitCanvasSize: !!canvas.getAttribute("width")
+                || !!canvas.getAttribute("height")
+                || !!canvas.style.width
+                || !!canvas.style.height,
+            disconnectCleanupId: registerDisconnectCleanup(canvas, () => destroy(null, canvasId, false))
         };
+
+        setupResponsiveResizePatchHandlers(_instances[canvasId]);
     }
 }
 
 export function changeChartType(canvas, canvasId, type) {
     let chart = getChart(canvasId);
 
-    if (chart) {
+    const instance = _instances[canvasId];
+
+    if (chart && instance) {
         const data = chart.data;
         const options = deepClone(chart.options);
 
@@ -96,22 +112,39 @@ export function changeChartType(canvas, canvasId, type) {
 
         chart.destroy();
 
-        chart = createChart(_instances[canvasId].dotnetAdapter, _instances[canvasId].eventOptions, canvas, canvas, type, data, options);
+        chart = createChart(instance.dotnetAdapter, instance.eventOptions, canvas, canvasId, type, data, options, instance.pluginNames);
 
         _instances[canvasId].chart = chart;
+
+        scheduleResponsiveResizePatch(instance, true);
     }
 }
 
-function createChart(dotnetAdapter, eventOptions, canvas, canvasId, type, data, options) {
+function createChart(dotnetAdapter, eventOptions, canvas, canvasId, type, data, options, pluginNames) {
     // save the copy of the received options
     const originalOptions = deepClone(options);
 
     options = compileOptionCallbacks(options);
 
+    const plugins = [];
+
+    if (pluginNames) {
+        if (pluginNames.includes("DataLabels") && ChartDataLabels) {
+            plugins.push(ChartDataLabels);
+        }
+
+        if (pluginNames.includes("Streaming")) {
+            plugins.push({
+                duration: 20000
+            });
+        }
+    }
+
     const chart = new Chart(canvas, {
         type: type,
         data: data,
-        options: options
+        options: options,
+        plugins: plugins
     });
 
     chart.originalOptions = originalOptions;
@@ -135,13 +168,22 @@ export function compileOptionCallbacks(options) {
     return options;
 }
 
-export function destroy(canvas, canvasId) {
-    var instances = _instances || {};
+export function destroy(canvas, canvasId, unregisterCleanup = true) {
+    const instances = _instances || {};
+    const instance = instances[canvasId];
 
-    const chart = instances[canvasId].chart;
+    if (!instance) {
+        return;
+    }
 
-    if (chart) {
-        chart.destroy();
+    if (unregisterCleanup) {
+        unregisterDisconnectCleanup(instance.disconnectCleanupId);
+    }
+
+    cleanupResponsiveResizePatchHandlers(instance);
+
+    if (instance.chart) {
+        instance.chart.destroy();
     }
 
     delete instances[canvasId];
@@ -169,12 +211,28 @@ export function setOptions(canvasId, options, optionsJsonString, optionsObject) 
         // Due to a bug in chartjs we need to set aspectRatio directly on chart instance
         // instead of through the options.
         if (options.aspectRatio) {
-            chart.aspectRatio = options.aspectRatio;
+            chart._aspectRatio = options.aspectRatio;
+
+            const instance = _instances[canvasId];
+
+            if (instance) {
+                scheduleResponsiveResizePatch(instance, true);
+            }
+            else {
+                chart.resize();
+            }
         }
     }
 }
 
 export function resize(canvasId) {
+    const instance = _instances[canvasId];
+
+    if (instance) {
+        scheduleResponsiveResizePatch(instance, true);
+        return;
+    }
+
     const chart = getChart(canvasId);
 
     if (chart) {
@@ -451,13 +509,15 @@ export function wireEvents(dotnetAdapter, eventOptions, canvas, type, chart) {
 }
 
 export function getChart(canvasId) {
-    let chart = null;
+    const instance = _instances[canvasId];
 
-    Chart.helpers.each(Chart.instances, function (instance) {
-        if (instance.canvas.id === canvasId) {
-            chart = instance;
-        }
-    });
+    if (instance && instance.chart) {
+        return instance.chart;
+    }
 
-    return chart;
+    if (typeof Chart !== "undefined" && typeof Chart.getChart === "function") {
+        return Chart.getChart(canvasId);
+    }
+
+    return null;
 }

@@ -1,0 +1,39 @@
+@mixin emit-breakpoint-observer($breakpoints, $breakpoint-content-map, $selector: "body:before") {
+    $previous-content: null;
+
+    #{$selector} {
+        display: none;
+        visibility: hidden;
+    }
+
+    @each $breakpoint, $content in $breakpoint-content-map {
+        @if $previous-content == null {
+            #{$selector} {
+                content: "#{$content}";
+            }
+
+            $previous-content: $content;
+        }
+        @else if $content != $previous-content {
+            @include media-breakpoint-up($breakpoint, $breakpoints) {
+                #{$selector} {
+                    content: "#{$content}";
+                }
+            }
+
+            $previous-content: $content;
+        }
+    }
+}
+
+@mixin emit-initial-bar-breakpoints($selector, $breakpoints, $class-breakpoint-map) {
+    @each $class-name, $breakpoint in $class-breakpoint-map {
+        @include media-breakpoint-up($breakpoint, $breakpoints) {
+            #{$selector}.#{$class-name} {
+                display: flex !important;
+            }
+        }
+    }
+}
+
+@include emit-breakpoint-observer($breakpoint-observer-breakpoints, $breakpoint-observer-map);

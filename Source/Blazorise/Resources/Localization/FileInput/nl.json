@@ -1,0 +1,10 @@
+{
+  "culture": "nl",
+  "translations": {
+    "No file selected": "Geen bestand geselecteerd",
+    "Choose file": "Kies bestand",
+    "Choose files": "Kies bestanden",
+    "Choose folder": "Kies folder",
+    "Choose folders": "Kies mappen"
+  }
+}

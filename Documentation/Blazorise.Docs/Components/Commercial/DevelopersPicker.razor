@@ -1,0 +1,24 @@
+﻿<Div Border="Border.Light.OnAll.Rounded" Display="Display.InlineFlex" Flex="Flex.AlignItems.Center" Padding="Padding.Is1" Gap="Gap.Is1">
+    <Button Clicked="@OnDownClicked" Color="Color.Light" Disabled="@( Value <= 1 )" aria-label="Remove a developer">
+        <Icon Name="IconName.Minus" />
+    </Button>
+    <NumericPicker TValue="int" Value="@Value" ValueChanged="@OnValueChanged" Min="1" Max="999" ShowStepButtons="false" Width="Width.Rem( 4 )" Border="Border.Is0" TextAlignment="TextAlignment.Center" aria-label="Number of developers" />
+    <Button Clicked="@OnUpClicked" Color="Color.Light" Disabled="@( Value >= 999 )" aria-label="Add a developer">
+        <Icon Name="IconName.Add" />
+    </Button>
+</Div>
+
+@code {
+    [Parameter] public int Value { get; set; } = 1;
+
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+
+    private Task OnValueChanged( int value )
+        => ValueChanged.InvokeAsync( Math.Clamp( value, 1, 999 ) );
+
+    private Task OnDownClicked()
+        => OnValueChanged( Value - 1 );
+
+    private Task OnUpClicked()
+        => OnValueChanged( Value + 1 );
+}

@@ -1,0 +1,38 @@
+﻿@mixin ant-hero-variant($name, $background, $color) {
+    &.ant-hero-#{$name} {
+        background-color: #{$background};
+        color: #{$color};
+    }
+}
+
+.ant-hero {
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+    background-color: var(--ant-color-fill-quaternary);
+    border-radius: .3rem;
+
+    @media (min-width: 768px) {
+        padding: 4rem 2rem;
+    }
+
+    p:last-child {
+        margin-bottom: 0;
+    }
+
+    h1 {
+        font-weight: 300;
+    }
+
+    .ant-container {
+        max-width: 40rem;
+    }
+
+    &-subtitle {
+        font-size: 1.25rem;
+        font-weight: 300;
+    }
+
+    @each $name, $colors in $hero-variants {
+        @include ant-hero-variant($name, nth($colors, 1), nth($colors, 2));
+    }
+}

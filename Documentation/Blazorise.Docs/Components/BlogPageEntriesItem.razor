@@ -1,0 +1,39 @@
+﻿<Column Class="b-blog-entry" ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnTablet.Is4.OnWidescreen">
+    <Card Class="b-blog-story" Margin="Margin.Is4.FromBottom" Shadow="Shadow.Default" Border="Border.Is0">
+        <CardImage Source="@ImageSource" Text="@ToText" loading="lazy"></CardImage>
+        <CardBody Padding="Padding.Is0.FromBottom">
+            <Heading Size="HeadingSize.Is3">
+                @if ( To != null )
+                {
+                    <Anchor To="@To" Stretched>
+                        @ToText
+                    </Anchor>
+                }
+            </Heading>
+            @if ( ChildContent is not null )
+            {
+                <CardText>@ChildContent</CardText>
+            }
+        </CardBody>
+        <CardBody Padding="Padding.Is0.OnY">
+            <BlogPagePostInfo UserName="@AuthorName" ImageName="@AuthorImage" PostedOn="@PostedOn" Read="@ReadTime" />
+        </CardBody>
+    </Card>
+</Column>
+@code {
+    [Parameter] public string To { get; set; }
+
+    [Parameter] public string ToText { get; set; }
+
+    [Parameter] public string ImageSource { get; set; }
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    [Parameter] public string AuthorName { get; set; }
+
+    [Parameter] public string AuthorImage { get; set; }
+
+    [Parameter] public string PostedOn { get; set; }
+
+    [Parameter] public string ReadTime { get; set; }
+}

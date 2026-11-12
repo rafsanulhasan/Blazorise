@@ -1,0 +1,13 @@
+.EasyMDEContainer {
+    @each $state, $theme in $markdown-validation-states {
+        &.b-markdown-#{$state}.b-markdown-#{$state} {
+            .editor-toolbar,
+            .CodeMirror,
+            .editor-preview-side,
+            .editor-preview-full,
+            .editor-statusbar {
+                border-color: var(--b-theme-#{$theme}, map-get($theme-colors, $theme));
+            }
+        }
+    }
+}

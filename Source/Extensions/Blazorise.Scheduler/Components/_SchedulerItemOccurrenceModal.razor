@@ -1,0 +1,261 @@
+﻿@inherits BaseComponent
+@typeparam TItem
+@using Blazorise.Scheduler.Extensions
+@using Blazorise.Scheduler.Utilities
+<Modal @ref="@modalRef" Centered>
+    <ModalContent>
+        <ModalHeader>
+            <ModalTitle>
+                @ModalTitle
+            </ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Validations @ref="@validationsRef" Mode="ValidationMode.Manual">
+                @if ( TitleAvailable )
+                {
+                    var titleColumn = Scheduler.GetEditableColumn( Scheduler.TitleField );
+
+                    <Validation Validator="@OnValidateTitle">
+                        <Field>
+                            <FieldLabel>@(titleColumn?.Caption ?? Localizer.Localize( Scheduler.Localizers?.TitleLocalizer, LocalizationConstants.Title ))</FieldLabel>
+                            <FieldBody>
+                                @if ( titleColumn is null )
+                                {
+                                    <TextInput @bind-Value="@Title" Autofocus>
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextInput>
+                                }
+                                else
+                                {
+                                    @titleColumn.RenderEdit( EditItem, Title, value => Title = value as string, Blazorise.Scheduler.SchedulerEditState.Edit )
+                                }
+                            </FieldBody>
+                        </Field>
+                    </Validation>
+                }
+                @if ( StartAvailable )
+                {
+                    var startColumn = Scheduler.GetEditableColumn( Scheduler.StartField );
+
+                    if ( startColumn is null )
+                    {
+                        <Fields>
+                            <Validation Validator="@OnValidateStartDate">
+                                <Field ColumnSize="ColumnSizeIs12OnMobileIs6OnTablet">
+                                    <FieldLabel>@Localizer.Localize( Scheduler.Localizers?.StartLocalizer, LocalizationConstants.Start )</FieldLabel>
+                                    <FieldBody>
+                                        <DatePicker TValue="DateOnly" Value="@StartDate" ValueChanged="@OnStartDateChanged" StaticPicker="false" InputMode="DateInputMode.Date" FirstDayOfWeek="@FirstDayOfWeek">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DatePicker>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                            @if ( !AllDayAvailable || !AllDay )
+                            {
+                                <Validation Validator="@OnValidateStartTime">
+                                    <Field ColumnSize="ColumnSizeIs12OnMobileIs6OnTablet">
+                                        <FieldLabel>&nbsp;</FieldLabel>
+                                        <FieldBody>
+                                            <TimePicker TValue="TimeOnly" Value="@StartTime" ValueChanged="@OnStartTimeChanged" StaticPicker="false" TimeAs24hr />
+                                        </FieldBody>
+                                    </Field>
+                                </Validation>
+                            }
+                        </Fields>
+                    }
+                    else
+                    {
+                        <Field>
+                            <FieldLabel>@(startColumn.Caption ?? Localizer.Localize( Scheduler.Localizers?.StartLocalizer, LocalizationConstants.Start ))</FieldLabel>
+                            <FieldBody>
+                                @startColumn.RenderEdit( EditItem, Start, value => SetStart( (DateTime)value ), Blazorise.Scheduler.SchedulerEditState.Edit )
+                            </FieldBody>
+                        </Field>
+                    }
+                }
+                @if ( EndAvailable )
+                {
+                    var endColumn = Scheduler.GetEditableColumn( Scheduler.EndField );
+
+                    if ( endColumn is null )
+                    {
+                        <Fields>
+                            <Validation Validator="@OnValidateEndDate">
+                                <Field ColumnSize="ColumnSizeIs12OnMobileIs6OnTablet">
+                                    <FieldLabel>@Localizer.Localize( Scheduler.Localizers?.EndLocalizer, LocalizationConstants.End )</FieldLabel>
+                                    <FieldBody>
+                                        <DatePicker @bind-Value="@EndDate" StaticPicker="false" InputMode="DateInputMode.Date" FirstDayOfWeek="@FirstDayOfWeek">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DatePicker>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                            @if ( !AllDayAvailable || !AllDay )
+                            {
+                                <Validation Validator="@OnValidateEndTime">
+                                    <Field ColumnSize="ColumnSizeIs12OnMobileIs6OnTablet">
+                                        <FieldLabel>&nbsp;</FieldLabel>
+                                        <FieldBody>
+                                            <TimePicker @bind-Value="@EndTime" StaticPicker="false" TimeAs24hr />
+                                        </FieldBody>
+                                    </Field>
+                                </Validation>
+                            }
+                        </Fields>
+                    }
+                    else
+                    {
+                        <Field>
+                            <FieldLabel>@(endColumn.Caption ?? Localizer.Localize( Scheduler.Localizers?.EndLocalizer, LocalizationConstants.End ))</FieldLabel>
+                            <FieldBody>
+                                @endColumn.RenderEdit( EditItem, End, value => SetEnd( (DateTime)value ), Blazorise.Scheduler.SchedulerEditState.Edit )
+                            </FieldBody>
+                        </Field>
+                    }
+                }
+                @if ( AllDayAvailable )
+                {
+                    var allDayColumn = Scheduler.GetEditableColumn( Scheduler.AllDayField );
+
+                    <Field>
+                        <FieldBody>
+                            @if ( allDayColumn is null )
+                            {
+                                <Check TValue="bool" @bind-Value="@AllDay">
+                                    @Localizer.Localize( Scheduler.Localizers?.AllDayLocalizer, LocalizationConstants.AllDay )
+                                </Check>
+                            }
+                            else
+                            {
+                                @allDayColumn.RenderEdit( EditItem, AllDay, value => AllDay = (bool)value, Blazorise.Scheduler.SchedulerEditState.Edit )
+                            }
+                        </FieldBody>
+                    </Field>
+                }
+
+                @if ( DescriptionAvailable )
+                {
+                    var descriptionColumn = Scheduler.GetEditableColumn( Scheduler.DescriptionField );
+
+                    <Field>
+                        <FieldLabel>@(descriptionColumn?.Caption ?? Localizer.Localize( Scheduler.Localizers?.DescriptionLocalizer, LocalizationConstants.Description ))</FieldLabel>
+                        <FieldBody>
+                            @if ( descriptionColumn is null )
+                            {
+                                <MemoInput @bind-Value="@Description" Rows="4" />
+                            }
+                            else
+                            {
+                                @descriptionColumn.RenderEdit( EditItem, Description, value => Description = value as string, Blazorise.Scheduler.SchedulerEditState.Edit )
+                            }
+                        </FieldBody>
+                    </Field>
+                }
+                @if ( Scheduler.AdditionalEditableColumns.Any() )
+                {
+                    <Fields>
+                        @foreach ( var column in Scheduler.AdditionalEditableColumns )
+                        {
+                            var editTemplate = column.RenderEdit( EditItem, Blazorise.Scheduler.SchedulerEditState.Edit );
+
+                            if ( editTemplate is not null )
+                            {
+                                <Field ColumnSize="@(column.ColumnSize ?? ColumnSizeIsFull)">
+                                    <FieldLabel>@(column.Caption ?? column.Field)</FieldLabel>
+                                    <FieldBody>
+                                        @editTemplate
+                                    </FieldBody>
+                                </Field>
+                            }
+                        }
+                    </Fields>
+                }
+            </Validations>
+            @if ( customValidationErrors.Any() )
+            {
+                <Paragraph TextColor="TextColor.Danger" Margin="MarginIs0FromBottom">
+                    <UnorderedList Margin="MarginIs0FromBottom">
+                        @foreach ( var error in customValidationErrors )
+                        {
+                            <UnorderedListItem>@error</UnorderedListItem>
+                        }
+                    </UnorderedList>
+                </Paragraph>
+            }
+        </ModalBody>
+        <ModalFooter Flex="FlexJustifyContentBetweenAlignItemsCenter">
+            <Div>
+                @if ( EditItem is not null && Scheduler.Commands?.DeleteCommandAllowed != false )
+                {
+                    string deleteText = Localizer.Localize( Scheduler.Localizers?.DeleteOccurrenceLocalizer, LocalizationConstants.DeleteOccurrence );
+
+                    @if ( Scheduler.Commands?.DeleteCommandTemplate is not null )
+                    {
+                        @Scheduler.Commands.DeleteCommandTemplate( new SchedulerDeleteCommandContext<TItem>
+                        {
+                            Item = EditItem,
+                            Clicked = EventCallback.Factory.Create( this, Delete ),
+                            LocalizationString = deleteText,
+                        } )
+                    }
+                    else
+                    {
+                        <Button Color="Color.Danger" Outline Clicked="@Delete">
+                            <Icon Name="IconName.Delete" Margin="MarginIs2FromEnd" />
+                            @deleteText
+                        </Button>
+                    }
+                }
+            </Div>
+            <Div>
+                @if ( EditItem is not null && Scheduler.Commands?.CancelCommandAllowed != false )
+                {
+                    string cancelText = Localizer.Localize( Scheduler.Localizers?.CancelLocalizer, LocalizationConstants.Cancel );
+
+                    @if ( Scheduler.Commands?.CancelCommandTemplate is not null )
+                    {
+                        @Scheduler.Commands.CancelCommandTemplate( new SchedulerCommandContext<TItem>
+                        {
+                            Item = EditItem,
+                            Clicked = EventCallback.Factory.Create( this, Cancel ),
+                            LocalizationString = cancelText,
+                        } )
+                    }
+                    else
+                    {
+                        <Button Color="Color.Secondary" Clicked="@Cancel">
+                            @cancelText
+                        </Button>
+                    }
+                }
+                @if ( EditItem is not null && Scheduler.Commands?.SaveCommandAllowed != false )
+                {
+                    string saveText = Localizer.Localize( Scheduler.Localizers?.SaveLocalizer, LocalizationConstants.Save );
+
+                    @if ( Scheduler.Commands?.SaveCommandTemplate is not null )
+                    {
+                        @Scheduler.Commands.SaveCommandTemplate( new SchedulerCommandContext<TItem>
+                        {
+                            Item = EditItem,
+                            Clicked = EventCallback.Factory.Create( this, Submit ),
+                            LocalizationString = saveText,
+                        } )
+                    }
+                    else
+                    {
+                        <Button Color="Color.Primary" Clicked="@Submit">
+                            @saveText
+                        </Button>
+                    }
+                }
+            </Div>
+        </ModalFooter>
+    </ModalContent>
+</Modal>

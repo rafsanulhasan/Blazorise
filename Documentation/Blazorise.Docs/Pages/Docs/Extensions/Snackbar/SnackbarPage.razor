@@ -1,113 +1,107 @@
 ﻿@page "/docs/extensions/snackbar"
 
-<Seo Canonical="/docs/extensions/snackbar" Title="Blazorise Snackbar" Description="Learn how to use Blazorise Snackbar extension components." />
+<Seo Canonical="/docs/extensions/snackbar" Title="Blazorise Snackbar component" Description="Learn how to use the Blazorise Snackbar component to show brief messages about app processes, confirmations, errors, positions, durations, and actions." />
 
-<DocsPageTitle>
-    Snackbar
+<DocsPageTitle Path="Extensions/Snackbar">
+    Blazorise Snackbar component
 </DocsPageTitle>
 
-<DocsPageParagraph>
-    Snackbar provide brief messages about app processes. The component is also known as a toast.
+<DocsPageLead>
+    Give users brief feedback with an optional action.
+</DocsPageLead>
 
-    The snackbar extension is defined of several different components:
+<DocsPageParagraph>
+    Use a snackbar for status updates, confirmations, or a short message with an action such as Undo.
 </DocsPageParagraph>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code>Snackbar</Code> main snackbar component
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code>SnackbarBody</Code> container for the snackbar content
-            </UnorderedListItem>
-            <UnorderedListItem>
-                <Code>SnackbarAction</Code> snackbar action button
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
 
-<DocsPageSubtitle>
+<DocsPageParagraph>
+    A <Code>Snackbar</Code> combines a message body with an optional action button.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Snackbar component anatomy">
+    <DocsAnatomyRegion Label="Snackbar" Description="Controls the notification and its visibility.">
+        <DocsAnatomyRegion Label="SnackbarBody" Description="Contains the message." />
+        <DocsAnatomyRegion Label="SnackbarAction" Description="An optional action button." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageParagraph>
+    To use the <Code>Snackbar</Code> component, install the <Code>Blazorise.Snackbar</Code> package first.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Snackbar has its own default styling and is not provider-native. If the application does not define theme color variables,
+    Snackbar falls back to its bundled colors. Defining <Code>Theme.ColorOptions</Code>, including <Code>new()</Code> without
+    explicit color assignments, enables the default Blazorise theme colors and generates Snackbar color variables.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
     Installation
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="NuGet">
         Install extension from NuGet.
     </DocsPageSectionHeader>
-    <DocsPageSectionSource Code="SnackbarNugetInstallExample"></DocsPageSectionSource>
+    <DocsPageSectionSource Code="SnackbarNugetInstallExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Imports">
-        In your main Imports.razor add:
+        In your main <Badge Color="Color.Light">_Imports.razor</Badge> add:
     </DocsPageSectionHeader>
-    <DocsPageSectionSource Code="SnackbarImportsExample"></DocsPageSectionSource>
+    <DocsPageSectionSource Code="SnackbarImportsExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Static files">
-        Include CSS link into your <Code>index.html</Code> or <Code>_Host.cshtml</Code> file, depending if you’re using a Blazor WebAssembly or Blazor Server side project.
+        Add these links inside the <Code Tag>head</Code> section:
     </DocsPageSectionHeader>
-    <DocsPageSectionSource Code="SnackbarResourcesExample" />
+    <DocsPageSectionSourceGroup AriaLabel="Blazor project type">
+        <DocsPageSectionSource Code="SnackbarResourcesExample" CodeTitle="WebAssembly">
+            Update <Code>wwwroot/index.html</Code>.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="SnackbarResourcesExample" CodeTitle="Blazor Server">
+            Update <Code>_Layout.cshtml</Code> or <Code>_Host.cshtml</Code>, depending on your project template.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="SnackbarResourcesExample" CodeTitle="Blazor Web App">
+            Update <Code>Components/App.razor</Code> in the server project.
+        </DocsPageSectionSource>
+    </DocsPageSectionSourceGroup>
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic example">
         A basic snackbar that aims to reproduce standard snackbar behavior.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="SnackbarExample" Outlined FullWidth>
         <SnackbarExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="SnackbarExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Variant snackbars">
-        You can also define variant <Blazorise.Link To="docs/helpers/colors/#snackbarcolor" Target="Target.Blank">colors</Blazorise.Link> to override default snackbar style.
+        You can also define variant <Anchor To="docs/helpers/colors">colors</Anchor> to override default snackbar style.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="SnackbarVariantExample" Outlined FullWidth>
         <SnackbarVariantExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="SnackbarVariantExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Stacked snackbars">
         When you want to show multiple snackbars stacked on top of each other you can use a wrapper component <Code>SnackbarStack</Code>.
+        You can specify <Code>Action&lt;SnackbarOptions&gt; options</Code> when calling <Code>PushAsync()</Code> in order to specify the <Code>Snackbar</Code> parameters available below.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="SnackbarStackedExample" Outlined FullWidth>
         <SnackbarStackedExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="SnackbarStackedExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
-
-<DocsAttributes>
-    <DocsAttributesItem Name="Location" Type="SnackbarLocation" Default="Default">
-        Defines the snackbar location.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Color" Type="	SnackbarColor" Default="Default">
-        Defines the snackbar color.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Visible" Type="bool" Default="false">
-        Defines the visibility of snackbar.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Multiline" Type="bool" Default="false">
-        Allow snackbar to show multiple lines of text.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DefaultInterval" Type="double" Default="5000">
-        Defines the interval (in milliseconds) after which the snackbar will be automatically closed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DelayCloseOnClick" Type="bool" Default="false">
-        If clicked on snackbar, a close action will be delayed by increasing the DefaultInterval time (used if no value is provided in the Push method).
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DelayCloseOnClickInterval" Type="double?" Default="null">
-        Defines the interval(in milliseconds) by which the snackbar will be delayed from closing.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Closed" Type="EventCallback<SnackbarClosedEventArgs>" Default="null">
-        Occurs after the snackbar has closed.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/extensions/snackbar/api" Name="<Snackbar />" />
+</DocsPageApi>

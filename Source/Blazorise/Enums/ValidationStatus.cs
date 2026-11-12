@@ -1,23 +1,27 @@
-﻿namespace Blazorise
+namespace Blazorise;
+
+/// <summary>
+/// Defines the validation results.
+/// </summary>
+public enum ValidationStatus
 {
     /// <summary>
-    /// Defines the validation results.
+    /// No validation.
     /// </summary>
-    public enum ValidationStatus
-    {
-        /// <summary>
-        /// No validation.
-        /// </summary>
-        None,
+    None,
 
-        /// <summary>
-        /// Validation has passed the check.
-        /// </summary>
-        Success,
+    /// <summary>
+    /// Validation has passed the check.
+    /// </summary>
+    Success,
 
-        /// <summary>
-        /// Validation has failed.
-        /// </summary>
-        Error,
-    }
+    /// <summary>
+    /// Validation has warnings.
+    /// </summary>
+    Warning,
+
+    /// <summary>
+    /// Validation has failed.
+    /// </summary>
+    Error,
 }

@@ -1,0 +1,137 @@
+@page "/docs/extensions/maps"
+
+<Seo Canonical="/docs/extensions/maps" Title="Blazorise Maps component" Description="Learn how to use the Blazorise Maps component to display interactive maps, markers, popups, shapes, and location data in Blazor applications." />
+
+<DocsPageTitle Path="Extensions/Maps" AddedVersion="2.1" AddedDate="2026-04-14">
+    Blazorise Maps component
+</DocsPageTitle>
+
+<DocsPageLead>
+    Display interactive maps with tile layers, markers, and geographic shapes.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    The Maps extension follows the same abstraction principles as the rest of Blazorise: applications work with Blazorise components and models instead of being coupled directly to a specific map provider.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    The first implementation uses Leaflet internally while keeping the public component model provider-neutral. This allows additional map providers to be supported over time without changing how applications compose maps, layers, markers, and shapes.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    To use the <Code>Map</Code> component, install the <Code>Blazorise.Maps</Code> package first.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A <Code>Map</Code> contains the layers and features to display. Add the tile source, markers, and shapes your map needs.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Map component anatomy">
+    <DocsAnatomyRegion Label="Map" Description="Hosts the map, manages its view, and coordinates child layers.">
+        <DocsAnatomyRegion Label="MapTileLayer" Description="Defines the raster tile source, attribution, zoom range, and tile options." />
+        <DocsAnatomyRegion Label="MapMarker" Description="Displays one location with optional text, icon, popup, and interaction." />
+        <DocsAnatomyRegion Label="MapMarkerLayer" Description="Creates markers from a collection using selectors for location and behavior." />
+        <DocsAnatomyRegion Label="MapCircle" Description="Draws a circular area from a center coordinate and radius." />
+        <DocsAnatomyRegion Label="MapPolyline" Description="Draws a route or path through coordinates." />
+        <DocsAnatomyRegion Label="MapPolygon" Description="Draws closed areas or boundaries with optional stroke and fill." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageParagraph>
+    All layer components derive from <Code>MapLayer</Code>, which provides shared visibility, opacity, ordering, interaction, and registration behavior.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Installation
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="NuGet">
+        Install extension from NuGet.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="MapsNugetInstallExample" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Imports">
+        In your main <Badge Color="Color.Light">_Imports.razor</Badge> add:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="MapsImportsExample" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Service Registration">
+        Register the Maps extension after the Blazorise services.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="MapsServiceRegistrationExample" />
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Basic">
+        Use <Code>MapTileLayer</Code> to define the base map and <Code>MapMarker</Code> to display a location.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MapsBasicExample" Outlined FullWidth>
+        <MapsBasicExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Data markers">
+        Use <Code>MapMarkerLayer&lt;TItem&gt;</Code> to render markers from a collection. Provide <Code>IdSelector</Code> so each marker has a stable identifier across renders.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MapsMarkerLayerExample" Outlined FullWidth>
+        <MapsMarkerLayerExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Shapes">
+        Add circles, polylines, and polygons as child layers inside the map.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MapsShapesExample" Outlined FullWidth>
+        <MapsShapesExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Events">
+        Handle map events and move the map programmatically with the component reference, or by updating the bound <Code>View</Code>.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="MapsEventsExample" Outlined FullWidth>
+        <MapsEventsExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Providers
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    The current provider supports raster XYZ tile services through <Code>MapTileLayer</Code>. You can use OpenStreetMap or another compatible tile service by setting <Code>Source</Code>, <Code>Subdomains</Code>, and <Code>Attribution</Code> according to the service requirements.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Future providers can build on the same Blazorise map concepts, such as <Code>Map</Code>, <Code>MapMarker</Code>, <Code>MapCircle</Code>, <Code>MapPolyline</Code>, and <Code>MapPolygon</Code>, while adapting the rendering details internally.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Attribution is optional in the API, but tile providers often require it. When using OpenStreetMap tiles, set <Code>Attribution</Code> to credit OpenStreetMap contributors.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/extensions/maps/api" Name="<Map />" />
+    <DocsPageApiItem Url="docs/extensions/maps/api" Name="<MapTileLayer />" />
+    <DocsPageApiItem Url="docs/extensions/maps/api" Name="<MapMarker />" />
+    <DocsPageApiItem Url="docs/extensions/maps/api" Name="<MapMarkerLayer />" />
+    <DocsPageApiItem Url="docs/extensions/maps/api" Name="<MapCircle />" />
+    <DocsPageApiItem Url="docs/extensions/maps/api" Name="<MapPolyline />" />
+    <DocsPageApiItem Url="docs/extensions/maps/api" Name="<MapPolygon />" />
+</DocsPageApi>

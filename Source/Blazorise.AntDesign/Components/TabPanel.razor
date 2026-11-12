@@ -1,0 +1,7 @@
+﻿@inherits Blazorise.TabPanel
+<div @ref="@ElementRef" id="@ElementId" class="@ClassNames" style="@StyleNames" role="tabpanel" tabindex="@TabIndex" aria-labelledby="@AriaLabelledBy" aria-hidden="@AriaHidden" @attributes="@Attributes">
+    @if ( RenderMode == TabsRenderMode.Default || ( RenderMode == TabsRenderMode.LazyReload && Active ) || ( RenderMode == TabsRenderMode.LazyLoad && LazyLoaded ) )
+    {
+        @ChildContent
+    }
+</div>

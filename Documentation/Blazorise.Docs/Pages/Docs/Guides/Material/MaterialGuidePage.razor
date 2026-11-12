@@ -1,98 +1,133 @@
 ﻿@page "/docs/usage/material"
 
-<Seo Canonical="/docs/usage/material" Title="Material Usage" Description="Learn all the steps on how to quickly install and setup Blazorise for Material CSS framework and Material icons." />
+<Seo Canonical="/docs/usage/material" Title="Blazorise Material 3 Usage Guide" Description="Install and configure Blazorise Material 3 for Blazor WebAssembly or Server. Learn package setup, static files, service registration, and Material token customization." />
 
-<DocsPageTitle>
-    Material Usage
+<DocsPageTitle Path="Usage/Material">
+    Blazorise Material 3 Usage Guide
 </DocsPageTitle>
+
+<DocsPageLead>
+    Build modern Blazor apps with Blazorise's Material 3 Expressive-inspired provider and customize the experience with Material design tokens.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    Blazorise Material is a <Anchor To="https://m3.material.io/" Target="Target.Blank">Material 3</Anchor> Expressive-inspired provider. It ships with provider styles, behavior, and Material Symbols font files, so you no longer need to download third-party Material CSS files manually.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Material 3 Design is a design system from Google. Blazorise Material is an independent Blazor implementation inspired by Material 3 principles.
+</DocsPageParagraph>
 
 <DocsPageParagraph>
     <Alert Color="Color.Info" Visible>
         <AlertDescription>
-            <Strong>Note:</Strong> Before continuing please make sure that you already have a Blazor project created.
-            If not please go to the <Blazorise.Link To="https://docs.microsoft.com/en-us/aspnet/core/blazor" Target="Target.Blank">official Blazor website</Blazorise.Link> and learn how to create one.
+            <Strong>Note:</Strong> Before proceeding, ensure you have already created a Blazor project. If not, the simplest way to start with Blazorise is by using our <Anchor To="docs/templates" Title="Link to templates">Templates</Anchor>.
         </AlertDescription>
     </Alert>
 </DocsPageParagraph>
 
 <DocsPageParagraph>
-    Since Material CSS is based on a Bootstrap you only need to change the CSS and JS sources. The code in
-    <Strong>Imports.razor</Strong> will stay the same as for the <Blazorise.Link To="docs/usage/bootstrap">Bootstrap provider</Blazorise.Link>.
+    <GuideSeeTheDemo Provider="CssProvider.Material" />
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
-    1. NuGet packages
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Installation Steps
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
-        First step is to install a Material provider for Blazorise:
+        1. Install the Material 3 provider:
     </DocsPageSectionHeader>
     <DocsPageSectionSource Code="MaterialGuideNuget1Example" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
-        You also need to install the icon package:
+        2. Install the Material icons package:
     </DocsPageSectionHeader>
     <DocsPageSectionSource Code="MaterialGuideNuget2Example" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    2. Download CSS
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Include Static Files
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    3. Add static file references in your app host file. The Material provider stylesheet loads its packaged Material Symbols fonts from <Code>_content/Blazorise.Material/fonts/</Code>. The Google Material Icons stylesheet is needed only when you use <Code>Blazorise.Icons.Material</Code>.
+</DocsPageParagraph>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
-        Material CSS is not available through the CDN so you must download it yourself from <Blazorise.Link To="https://djibe.github.io/material/" Target="Target.Blank">djibe</Blazorise.Link> web page.
-        After the download is finished you must extract the CSS and JS to the <Strong>wwwroot</Strong> folder inside of you Blazor project.
+        Add the styles inside the <Code Tag>head</Code> section, and place <Code>blazorise.material.js</Code> near the end of <Code Tag>body</Code> before the Blazor script:
     </DocsPageSectionHeader>
-    <DocsPageSectionSource Code="MaterialGuideFileStructureExample" />
-</DocsPageSection>
-
-<DocsPageSubtitle>
-    3. Source files
-</DocsPageSubtitle>
-
-<DocsPageSection>
-    <DocsPageSectionHeader>
-        The next step is to change your <Code>index.html</Code> or <Code>_Host.cshtml</Code> file and include the CSS and JS source files:
-    </DocsPageSectionHeader>
-    <DocsPageSectionSource Code="MaterialGuideSourceFilesExample" />
+    <DocsPageSectionSourceGroup AriaLabel="Blazor project type">
+        <DocsPageSectionSource Code="MaterialGuideSourceFilesExample" CodeTitle="WebAssembly">
+            Update <Code>wwwroot/index.html</Code>.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="MaterialGuideSourceFilesExample" CodeTitle="Blazor Server">
+            Update <Code>_Layout.cshtml</Code> or <Code>_Host.cshtml</Code>, depending on your project template.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="MaterialGuideSourceFilesExample" CodeTitle="Blazor Web App">
+            Update <Code>Components/App.razor</Code> in the server project.
+        </DocsPageSectionSource>
+    </DocsPageSectionSourceGroup>
 </DocsPageSection>
 
 <Alert Color="Color.Info" Visible>
     <AlertDescription>
-        <Strong>Note:</Strong> Don't forget to remove bootstrap JS and CSS files that comes with the default Blazor project template.
+        <Strong>Note:</Strong> Remove default Bootstrap CSS and JS references from the Blazor template to avoid style and behavior conflicts.
     </AlertDescription>
 </Alert>
 
-<DocsPageSubtitle>
-    4. Usings
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Add Imports
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
-        In your main <Code>_Imports.razor</Code> add:
+        4. In your main <Badge Color="Color.Light">_Imports.razor</Badge> add:
     </DocsPageSectionHeader>
     <DocsPageSectionSource Code="MaterialGuideUsingExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    5. Register Services
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Register Services
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
-        Add the following lines to the relevant sections of <Code>Program.cs</Code>.
+        5. Register Blazorise services in <Code>Program.cs</Code>:
     </DocsPageSectionHeader>
     <DocsPageSectionSource Code="MaterialGuideRegistrationExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    6. PWA & Offline Support
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Customize Material Tokens
+</DocsPageSectionTitle>
 
 <DocsPageParagraph>
-    For information about PWAs & offline support, please take a look at our <Blazorise.Link To="docs/pwa">PWA docs.</Blazorise.Link>
+    Material 3 theming is driven by CSS variables with a <Code>--mui-</Code> prefix. Override them in your own stylesheet loaded after <Code>_content/Blazorise.Material/blazorise.material.css</Code>.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Common tokens include <Code>--mui-primary</Code>, <Code>--mui-on-primary</Code>, <Code>--mui-surface</Code>, <Code>--mui-on-surface</Code>, <Code>--mui-outline</Code>, <Code>--mui-spacing</Code>, and <Code>--mui-font-family</Code>.
+</DocsPageParagraph>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        Example token overrides for global and dark mode theming:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="MaterialGuideFileStructureExample" />
+</DocsPageSection>
+
+<DocsPageParagraph>
+    You can also scope token overrides to a section of the app by applying them to a wrapper selector (for example, <Code>.my-feature-area</Code>) instead of <Code>:root</Code>.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Offline Support
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    For information about PWAs &amp; offline support, please take a look at our <Anchor To="docs/pwa">PWA docs.</Anchor>
 </DocsPageParagraph>

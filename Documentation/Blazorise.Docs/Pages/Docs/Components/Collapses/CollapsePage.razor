@@ -1,0 +1,106 @@
+@page "/docs/components/collapse"
+
+<Seo Canonical="/docs/components/collapse" Title="Blazorise Collapse Component" Description="Learn how to use the Blazorise Collapse component in Blazor to toggle sections, menus, and panels. Includes structure overview, header/body pattern, accessibility tips, and a basic example." />
+
+<DocsPageTitle Path="Components/Collapse">
+    Blazorise Collapse Component
+</DocsPageTitle>
+
+<DocsPageLead>
+    Keep supporting content available without taking up space until users need it.
+</DocsPageLead>
+
+<DocsPageSectionTitle>
+    Overview
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Use the <Code>Collapse</Code> component for filter panels, additional details, and other sections that users can expand or hide. A visible header provides a place for the control that toggles the content.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Using collapsible sections helps organize information, keeping the interface clean and easy to navigate. This approach also complements accordions when you need a single collapsible block rather than multiple linked items.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A <Code>Collapse</Code> contains an always-visible header and a body that expands or collapses.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Collapse component anatomy">
+    <DocsAnatomyRegion Label="Collapse" Description="Manages the expanded or collapsed state.">
+        <DocsAnatomyRegion Label="CollapseHeader" Description="The visible header; can contain a toggle button." />
+        <DocsAnatomyRegion Label="CollapseBody" Description="Contains the content that expands or collapses." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Basic Example">
+        <Paragraph>
+            Click the button to toggle the collapsible content. This example shows the standard header and body structure for collapsible sections.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CollapseBasicExample" Outlined FullWidth>
+        <CollapseBasicExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Programmatic Example">
+        <Paragraph>
+            This example demonstrates programmatic control of the collapse state using a button in the header to toggle visibility.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CollapseToggleExample" Outlined FullWidth>
+        <CollapseToggleExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Animation">
+        <Paragraph>
+            Set <Code>Animated="false"</Code> for immediate transitions, or use <Code>AnimationDuration</Code> to adjust their duration in milliseconds.
+            A duration of zero or less disables transitions. Leaving the duration unset preserves the selected CSS provider's timing.
+        </Paragraph>
+        <Paragraph>
+            These settings control panel transitions where supported. Bootstrap 4 and Bootstrap 5 animate expansion and collapse, using a default duration of 350 milliseconds.
+            The controls apply to this collapse; nested components keep their own settings.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CollapseAnimationExample" Outlined FullWidth>
+        <CollapseAnimationExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Use Clear Toggles
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    The header should describe the hidden content, and the intended toggle must be reachable and operable by keyboard. Keep the expanded state synchronized through one binding or event path, especially when the collapse can also be controlled programmatically.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Essential Information
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Do not place critical status, validation feedback, or the only way to complete a task inside content that starts collapsed. When several related collapsible sections need coordinated behavior, use an <Anchor To="docs/components/accordion">Accordion</Anchor> instead.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/collapse/api" Name="<Collapse />" />
+    <DocsPageApiItem Url="docs/components/collapse/api" Name="<CollapseHeader />" />
+    <DocsPageApiItem Url="docs/components/collapse/api" Name="<CollapseBody />" />
+</DocsPageApi>

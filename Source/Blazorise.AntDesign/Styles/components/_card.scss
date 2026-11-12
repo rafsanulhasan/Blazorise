@@ -1,0 +1,131 @@
+﻿@mixin ant-card-bg-variant($name, $text-color) {
+    .ant-card.bg-#{$name} {
+        --b-ant-card-text-color: #{$text-color};
+        color: var(--b-ant-card-text-color);
+
+        .ant-card-head,
+        .ant-card-head-title,
+        .ant-card-meta-title,
+        .ant-card-meta-description,
+        .ant-card-head-subtitle,
+        .ant-card-text,
+        .ant-card-link,
+        .ant-card-extra,
+        .ant-card-footer {
+            color: var(--b-ant-card-text-color);
+        }
+
+        .ant-card-head-subtitle {
+            opacity: .85;
+        }
+
+        .ant-card-footer {
+            border-top-color: color-mix(in srgb, var(--b-ant-card-text-color) 20%, transparent);
+        }
+    }
+}
+
+.ant-card {
+    border-radius: var(--ant-border-radius-lg);
+
+    &-group {
+        > .ant-card {
+            margin-bottom: var(--ant-margin-xxs);
+        }
+
+        @include media-breakpoint-up(sm) {
+            display: flex;
+            flex-flow: row wrap;
+
+            > .ant-card {
+                flex: 1 0 0%;
+                margin-bottom: 0;
+
+                + .ant-card {
+                    margin-left: 0;
+                    border-left: 0;
+                }
+            }
+        }
+    }
+
+    &-deck {
+        .ant-card {
+            margin-bottom: var(--ant-margin-xxs);
+        }
+
+        @include media-breakpoint-up(sm) {
+            display: flex;
+            flex-flow: row wrap;
+            margin-right: calc(var(--ant-margin-xxs) * -1);
+            margin-left: calc(var(--ant-margin-xxs) * -1);
+
+            .ant-card {
+                flex: 1 0 0%;
+                margin-right: var(--ant-margin-xxs);
+                margin-bottom: 0;
+                margin-left: var(--ant-margin-xxs);
+            }
+        }
+    }
+
+    &-cover {
+        display: block;
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .ant-card-head-wrapper {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: var(--ant-margin-sm);
+
+        > .ant-card-head-title {
+            grid-column: 1;
+            min-width: 0;
+        }
+
+        > .ant-card-extra {
+            grid-column: 2;
+            justify-self: end;
+            margin-inline-start: 0;
+        }
+
+        > .ant-card-head-subtitle {
+            grid-column: 1 / -1;
+            margin-top: calc(var(--ant-margin-xxs) * -1);
+            margin-bottom: 0;
+            color: var(--ant-color-text-description);
+        }
+    }
+
+    .ant-card-body > .ant-card-meta-title,
+    .ant-card-body > .ant-card-meta-description,
+    .ant-card-text {
+        display: block;
+    }
+
+    .ant-card-body > .ant-card-meta-title + .ant-card-meta-description,
+    .ant-card-body > .ant-card-meta-title + .ant-card-text,
+    .ant-card-body > .ant-card-meta-description + .ant-card-text,
+    .ant-card-text + .ant-card-text {
+        margin-top: var(--ant-margin-xs);
+    }
+
+    .ant-card-text {
+        color: var(--ant-color-text);
+    }
+
+    .ant-card-footer {
+        border-top: var(--ant-line-width) var(--ant-line-type) var(--ant-color-border-secondary);
+    }
+
+    &-link + &-link {
+        margin-inline-start: var(--ant-margin-sm);
+    }
+}
+
+@each $name, $text-color in $card-background-variants {
+    @include ant-card-bg-variant($name, $text-color);
+}

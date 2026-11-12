@@ -1,0 +1,71 @@
+﻿@namespace Blazorise
+@inherits BaseComponent
+@foreach ( var message in Messages )
+{
+    <Modal @key="@message.Id" @ref="@message.ModalRef" @bind-Visible="@message.Visible" Closing="@(( eventArgs ) => OnModalClosing( message, eventArgs ))" Closed="@(() => OnModalClosed( message ))" Centered="@GetCenterMessage( message )" Scrollable="@GetScrollableMessage( message )" Size="@GetSize( message )">
+        <ModalContent>
+            <ModalHeader>
+                <ModalTitle Class="@GetTitleClass( message )">
+                    @message.Title
+                </ModalTitle>
+                @if ( GetShowCloseButton( message ) )
+                {
+                    <CloseButton Clicked="@(() => OnCancelClicked( message ))" />
+                }
+            </ModalHeader>
+            <ModalBody TextAlignment="@GetMessageAlignment( message )">
+                @if ( GetShowMessageIcon( message ) )
+                {
+                    <Heading Size="HeadingSize.Is2" TextAlignment="TextAlignment.Center">
+                        <Icon Name="@GetMessageIcon( message )" TextColor="@GetMessageIconColor( message )" />
+                    </Heading>
+                }
+                <Text TextAlignment="@GetMessageAlignment( message )" Class="@GetMessageClass( message )">
+                    @message.Message
+                </Text>
+            </ModalBody>
+            <ModalFooter>
+                @if ( IsConfirmationMessage( message ) )
+                {
+                    <Button Color="@GetCancelButtonColor( message )" Class="@GetCancelButtonClass( message )" Padding="@GetCancelButtonPadding( message )" Clicked="@(() => OnCancelClicked( message ))">
+                        @if ( message.Options?.CancelButtonIcon is not null )
+                        {
+                            <Icon Name="@message.Options.CancelButtonIcon" TextColor="@(message.Options.CancelButtonIconColor ?? TextColor.Default)" Margin="Blazorise.Margin.Is2.FromEnd" />
+                        }
+                        @GetCancelButtonText( message )
+                    </Button>
+                    <Button Color="@GetConfirmButtonColor( message )" Class="@GetConfirmButtonClass( message )" Padding="@GetConfirmButtonPadding( message )" Clicked="@(() => OnConfirmClicked( message ))">
+                        @if ( message.Options?.ConfirmButtonIcon is not null )
+                        {
+                            <Icon Name="@message.Options.ConfirmButtonIcon" TextColor="@(message.Options.ConfirmButtonIconColor ?? TextColor.Default)" Margin="Blazorise.Margin.Is2.FromEnd" />
+                        }
+                        @GetConfirmButtonText( message )
+                    </Button>
+                }
+                else if ( IsChoiceMessage( message ) )
+                {
+                    @foreach ( var choice in GetChoices( message ) )
+                    {
+                        <Button @key="@choice.Key" Color="@choice.Color" Class="@choice.Class" Padding="@choice.Padding" Clicked="@(() => OnChoiceClicked( message, choice ))">
+                            @if ( choice.Icon is not null )
+                            {
+                                <Icon Name="@choice.Icon" TextColor="@(choice.IconColor ?? TextColor.Default)" Margin="Blazorise.Margin.Is2.FromEnd" />
+                            }
+                            @choice.Text
+                        </Button>
+                    }
+                }
+                else
+                {
+                    <Button Color="@GetOkButtonColor( message )" Class="@GetOkButtonClass( message )" Padding="@GetOkButtonPadding( message )" Clicked="@(() => OnOkClicked( message ))">
+                        @if ( message.Options?.OkButtonIcon is not null )
+                        {
+                            <Icon Name="@message.Options.OkButtonIcon" TextColor="@(message.Options.OkButtonIconColor ?? TextColor.Default)" Margin="Blazorise.Margin.Is2.FromEnd" />
+                        }
+                        @GetOkButtonText( message )
+                    </Button>
+                }
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+}

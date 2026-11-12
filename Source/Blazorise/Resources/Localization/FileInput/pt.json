@@ -1,0 +1,10 @@
+{
+  "culture": "pt",
+  "translations": {
+    "No file selected": "Nenhum ficheiro selecionado",
+    "Choose file": "Escolher ficheiro",
+    "Choose files": "Escolher ficheiros",
+    "Choose folder": "escolher pasta",
+    "Choose folders": "escolha as pastas"
+  }
+}

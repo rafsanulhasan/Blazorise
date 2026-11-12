@@ -1,0 +1,122 @@
+<Div ElementId="memo-basic">
+    <MemoInput />
+</Div>
+
+<Div ElementId="memo-bind">
+    <MemoInput @bind-Value="boundValue" />
+    <Span ElementId="memo-bind-result">@boundValue</Span>
+</Div>
+
+<Div ElementId="memo-event">
+    <MemoInput Value="@eventValue" ValueChanged="@OnValueChangedHandler" />
+    <Span ElementId="memo-event-result">@eventValue</Span>
+</Div>
+
+<Div ElementId="memo-validation">
+    <Validation Validator="@ValidationRule.IsNotEmpty">
+        <MemoInput @bind-Value="validatedValue">
+            <Feedback>
+                <ValidationError>A value is required.</ValidationError>
+            </Feedback>
+        </MemoInput>
+    </Validation>
+    <Span ElementId="memo-validation-result">@validatedValue</Span>
+</Div>
+
+<Div ElementId="memo-sizing">
+    <MemoInput ElementId="memo-autosize" AutoSize="@autoSize" Rows="2" @bind-Value="sizedValue" />
+    <Span ElementId="memo-autosize-result">@sizedValue</Span>
+    <Button ElementId="memo-set-long-value" Clicked="@OnSetLongValueHandler">Set long value</Button>
+    <Button ElementId="memo-toggle-autosize" Clicked="@OnToggleAutoSizeHandler">Auto size: @autoSize</Button>
+</Div>
+
+<Div ElementId="memo-editing">
+    <MemoInput ElementId="memo-replace-tab" Autofocus ReplaceTab="@replaceTab" TabSize="@tabSize" SoftTabs="@softTabs" ReadOnly="@readOnly" Immediate="@immediate" Value="@editingValue" ValueChanged="@OnEditingValueChangedHandler" KeyPress="@OnEditingKeyPressHandler" />
+    <Span ElementId="memo-editing-result">@editingValue</Span>
+    <Span ElementId="memo-change-count">@changeCount</Span>
+    <Span ElementId="memo-keypress-count">@keyPressCount</Span>
+    <Button ElementId="memo-toggle-immediate" Clicked="@OnToggleImmediateHandler">Immediate: @immediate</Button>
+    <Button ElementId="memo-toggle-replace-tab" Clicked="@OnToggleReplaceTabHandler">Replace tab: @replaceTab</Button>
+    <Button ElementId="memo-change-tab-size" Clicked="@OnChangeTabSizeHandler">Tab size: @tabSize</Button>
+    <Button ElementId="memo-toggle-soft-tabs" Clicked="@OnToggleSoftTabsHandler">Soft tabs: @softTabs</Button>
+    <Button ElementId="memo-toggle-readonly" Clicked="@OnToggleReadOnlyHandler">Readonly: @readOnly</Button>
+</Div>
+
+@code {
+    private string boundValue = string.Empty;
+
+    private string eventValue = string.Empty;
+
+    private string validatedValue = string.Empty;
+
+    private bool autoSize = true;
+
+    private string sizedValue = "Short value";
+
+    private bool replaceTab = true;
+
+    private int tabSize = 4;
+
+    private bool softTabs = true;
+
+    private bool readOnly;
+
+    private bool immediate = true;
+
+    private string editingValue = string.Empty;
+
+    private int changeCount;
+
+    private int keyPressCount;
+
+    private void OnValueChangedHandler( string value )
+    {
+        eventValue = value;
+    }
+
+    private void OnEditingValueChangedHandler( string value )
+    {
+        editingValue = value;
+        changeCount++;
+    }
+
+    private void OnEditingKeyPressHandler()
+    {
+        keyPressCount++;
+    }
+
+    private void OnToggleImmediateHandler()
+    {
+        immediate = !immediate;
+    }
+
+    private void OnToggleReplaceTabHandler()
+    {
+        replaceTab = !replaceTab;
+    }
+
+    private void OnChangeTabSizeHandler()
+    {
+        tabSize = 2;
+    }
+
+    private void OnToggleSoftTabsHandler()
+    {
+        softTabs = !softTabs;
+    }
+
+    private void OnToggleReadOnlyHandler()
+    {
+        readOnly = !readOnly;
+    }
+
+    private void OnSetLongValueHandler()
+    {
+        sizedValue = string.Join( "\n", Enumerable.Repeat( "A line of programmatically supplied text.", 8 ) );
+    }
+
+    private void OnToggleAutoSizeHandler()
+    {
+        autoSize = !autoSize;
+    }
+}

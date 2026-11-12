@@ -1,37 +1,42 @@
-﻿#region Using directives
+#region Using directives
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Blazorise;
 using Blazorise.Bootstrap;
+using Blazorise.CodeEditor;
 using Blazorise.Icons.FontAwesome;
+using Blazorise.RichTextEdit;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 #endregion
 
-namespace BasicTestApp.Client
+namespace BasicTestApp.Client;
+
+[ExcludeFromCodeCoverage]
+public class Program
 {
-    [ExcludeFromCodeCoverage]
-    public class Program
+    public static async Task Main( string[] args )
     {
-        public static async Task Main( string[] args )
-        {
-            var builder = WebAssemblyHostBuilder.CreateDefault( args );
+        var builder = WebAssemblyHostBuilder.CreateDefault( args );
 
-            builder.Services
-                .AddBlazorise( options =>
-                {
-                    options.Immediate = true;
-                } )
-                .AddBootstrapProviders()
-                .AddFontAwesomeIcons();
+        builder.Services
+            .AddBlazorise( options =>
+            {
+                options.Immediate = true;
+            } )
+            .AddBootstrapProviders()
+            .AddFontAwesomeIcons();
 
-            builder.Services.AddScoped<Blazorise.Shared.Data.EmployeeData>();
-            builder.Services.AddScoped<Blazorise.Shared.Data.CountryData>();
-            builder.RootComponents.Add<Index>( "root" );
+        builder.Services.AddBlazoriseRichTextEdit();
+        builder.Services.AddBlazoriseCodeEditor();
 
-            var host = builder.Build();
+        builder.Services.AddMemoryCache();
+        builder.Services.AddScoped<Blazorise.Shared.Data.EmployeeData>();
+        builder.Services.AddScoped<Blazorise.Shared.Data.CountryData>();
+        builder.RootComponents.Add<Index>( "root" );
 
-            await host.RunAsync();
-        }
+        var host = builder.Build();
+
+        await host.RunAsync();
     }
 }

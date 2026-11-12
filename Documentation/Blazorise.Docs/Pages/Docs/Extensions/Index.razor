@@ -1,0 +1,72 @@
+﻿@page "/docs/extensions"
+@using Blazorise.Docs.Models
+@using Blazorise.Docs.Services.Search
+
+<Seo Canonical="/docs/extensions" Title="Blazorise extensions" Description="Learn about Blazorise UI extensions and how to properly install and use them to build your Blazor single page application." />
+
+<DocsPageTitle Path="Extensions">
+    Blazorise extensions
+</DocsPageTitle>
+
+<DocsPageLead>
+    Learn about Blazorise extensions and how to properly install them to build your application.
+</DocsPageLead>
+
+<Row RowColumns="RowColumns.Are4.OnTablet.Are2.OnMobile">
+    @foreach ( var info in ExtensionLandingEntries )
+    {
+        <Column Margin="Margin.Is3.FromBottom" Display="Display.Flex">
+            <DocsPageComponentInfo @key="@info" Name="@info.Name" Description="@info.Description" To="@info.Url" IllustrationKey="@info.Url" ExtensionIllustration />
+        </Column>
+    }
+</Row>
+
+@code {
+    private static readonly string[] LandingEntryUrls =
+    [
+        "docs/extensions/animate",
+        "docs/extensions/autocomplete",
+        "docs/extensions/barcode",
+        "docs/extensions/captcha",
+        "docs/extensions/chart",
+        "docs/extensions/code-editor",
+        "docs/extensions/cropper",
+        "docs/extensions/datagrid/getting-started",
+        "docs/extensions/dropdownlist",
+        "docs/extensions/fluent-validation",
+        "docs/extensions/gantt",
+        "docs/extensions/icons",
+        "docs/extensions/list-view",
+        "docs/extensions/loadingindicator",
+        "docs/extensions/lottie-animation",
+        "docs/extensions/maps",
+        "docs/extensions/markdown",
+        "docs/extensions/onetimeinput",
+        "docs/extensions/passwordstrength",
+        "docs/extensions/pdf",
+        "docs/extensions/pdfviewer",
+        "docs/extensions/pivotgrid",
+        "docs/extensions/reporting",
+        "docs/extensions/qrcode",
+        "docs/extensions/ribbon",
+        "docs/extensions/richtextedit",
+        "docs/extensions/routertabs",
+        "docs/extensions/scheduler",
+        "docs/extensions/selectlist",
+        "docs/extensions/sidebar",
+        "docs/extensions/snackbar",
+        "docs/extensions/spinkit",
+        "docs/extensions/splitter",
+        "docs/extensions/svg-chart",
+        "docs/extensions/transferlist",
+        "docs/extensions/treeview",
+        "docs/extensions/video",
+    ];
+
+    private static IEnumerable<PageEntry> ExtensionLandingEntries
+        => ManualPageEntries.WithDescriptionAndUrl( "docs/extensions" )
+            .Where( IsExtensionLandingEntry );
+
+    private static bool IsExtensionLandingEntry( PageEntry entry )
+        => LandingEntryUrls.Contains( entry.Url );
+}

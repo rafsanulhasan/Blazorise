@@ -7,33 +7,6 @@
     @return if(breakpoint-min($name, $breakpoints) == null, "", "-#{$name}");
 }
 
-@function color-yiq($color, $dark: $yiq-text-dark, $light: $yiq-text-light) {
-    $r: red($color);
-    $g: green($color);
-    $b: blue($color);
-
-    $yiq: (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
-
-    @if ($yiq >= $yiq-contrasted-threshold) {
-        @return $dark;
-    }
-    @else {
-        @return $light;
-    }
-}
-
-@function theme-color($key: "primary") {
-    @return map-get($theme-colors, $key);
-}
-
-@function theme-color-level($color-name: "primary", $level: 0) {
-    $color: theme-color($color-name);
-    $color-base: if($level > 0, $black, $white);
-    $level: abs($level);
-
-    @return mix($color-base, $color, $level * $theme-color-interval);
-}
-
 @function max($v1, $v2) {
     @return if($v1 > $v2, $v1, $v2);
 }
@@ -125,4 +98,12 @@
 @function hsv_to_color($h, $s: 0, $v: 0) {
     $hsl: hsv_to_hsl($h, $s, $v);
     @return hsl(nth($hsl, 1), nth($hsl, 2), nth($hsl, 3));
+}
+
+@function tint-color($color, $weight) {
+    @return mix(white, $color, $weight);
+}
+
+@function shade-color($color, $weight) {
+    @return mix(black, $color, $weight);
 }

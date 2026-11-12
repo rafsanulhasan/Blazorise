@@ -1,0 +1,103 @@
+<Container Padding="Padding.Is5.OnY">
+    <Div TextAlignment="TextAlignment.Center" Margin="Margin.Is4.FromBottom">
+        <Heading Size="HeadingSize.Is2" TextWeight="TextWeight.Bold">
+            What developers say about Blazorise
+        </Heading>
+        <Lead TextColor="TextColor.Muted">
+            Hear from teams using Blazorise in their products.
+        </Lead>
+    </Div>
+
+    <Row>
+        @foreach ( Testimonial item in Testimonials )
+        {
+            <Column @key="@item.Name" ColumnSize="ColumnSize.Is12.Is4.OnDesktop" Margin="Margin.Is4.FromBottom">
+                <Card Border="Border.Rounded"
+                      Shadow="Shadow.Small"
+                      Height="Height.Is100">
+                    <CardBody Display="Display.Flex" Flex="Flex.Column">
+                        <Rating SelectedValue="5" ReadOnly />
+                        <Blockquote Margin="Margin.Is0.FromBottom">
+                            @GetTestimonialPreview( item.Quote )@( CanExpandTestimonial( item.Quote ) && !IsTestimonialExpanded( item.Name ) ? "..." : null )
+                        </Blockquote>
+                        @if ( CanExpandTestimonial( item.Quote ) && IsTestimonialExpanded( item.Name ) )
+                        {
+                            <Animate Animation="Animations.Fade" Trigger="AnimationTrigger.Render" AnimatedSize="AnimatedSize.Height" DurationMilliseconds="180">
+                                <Blockquote Margin="Margin.Is0.FromTop">
+                                    @GetTestimonialContinuation( item.Quote )
+                                </Blockquote>
+                            </Animate>
+                        }
+                        <Div Margin="Margin.IsAuto.FromTop" Padding="Padding.Is3.FromTop">
+                            <Strong>@item.Name</Strong>
+                            <Paragraph TextColor="TextColor.Muted" Margin="Margin.Is1.FromTop.Is0.FromBottom">@item.Company</Paragraph>
+                            @if ( CanExpandTestimonial( item.Quote ) )
+                            {
+                                <Button Color="Color.Link"
+                                        Padding="Padding.Is0"
+                                        Margin="Margin.Is3.FromTop"
+                                        Clicked="@(() => ToggleTestimonial( item.Name ))"
+                                        aria-expanded="@( IsTestimonialExpanded( item.Name ) ? "true" : "false" )">
+                                    @( IsTestimonialExpanded( item.Name ) ? "Show less" : "Read full testimonial" )
+                                </Button>
+                            }
+                        </Div>
+                    </CardBody>
+                </Card>
+            </Column>
+        }
+    </Row>
+</Container>
+
+@code {
+    private const int TestimonialPreviewLength = 180;
+
+    private string expandedTestimonialName;
+
+    private bool IsTestimonialExpanded( string name )
+        => string.Equals( expandedTestimonialName, name, StringComparison.Ordinal );
+
+    private void ToggleTestimonial( string name )
+    {
+        expandedTestimonialName = IsTestimonialExpanded( name )
+            ? null
+            : name;
+    }
+
+    private static string GetTestimonialPreview( string quote )
+    {
+        if ( string.IsNullOrWhiteSpace( quote ) || quote.Length <= TestimonialPreviewLength )
+        {
+            return quote;
+        }
+
+        int lastSpace = quote.LastIndexOf( ' ', TestimonialPreviewLength );
+
+        return quote[..( lastSpace > 0 ? lastSpace : TestimonialPreviewLength )];
+    }
+
+    private static string GetTestimonialContinuation( string quote )
+    {
+        if ( string.IsNullOrWhiteSpace( quote ) || quote.Length <= TestimonialPreviewLength )
+        {
+            return string.Empty;
+        }
+
+        int lastSpace = quote.LastIndexOf( ' ', TestimonialPreviewLength );
+        int splitIndex = lastSpace > 0 ? lastSpace : TestimonialPreviewLength;
+
+        return quote[splitIndex..].TrimStart();
+    }
+
+    private static bool CanExpandTestimonial( string quote )
+        => !string.IsNullOrWhiteSpace( GetTestimonialContinuation( quote ) );
+
+    private static readonly Testimonial[] Testimonials =
+    [
+        new( "Cristian Recoseanu", "Pebble", "Blazorise has been a key framework which allowed us to quickly build new products while focusing on distinguishing features. The diverse offering of components and compelling documentation made thinking about new features and visualising them much quicker. The customisation layer offered is also excellent and allows us to really make our products and solutions feel coherent and in line with the company brand." ),
+        new( "Mark Davis", "Dark Matter Consulting", "We moved from Radzen to Blazorise a year ago and never looked back. Being able to target Bootstrap on the desktop and Material for mobile with the same markup is amazing." ),
+        new( "ABP Framework", "ABP", "Blazorise is one of the most complete Blazor component libraries. It provides built-in solutions for all the essential UI requirements. It is easy to learn, use, and customize. We trust it in our solutions, and it is highly recommended." )
+    ];
+
+    private sealed record Testimonial( string Name, string Company, string Quote );
+}

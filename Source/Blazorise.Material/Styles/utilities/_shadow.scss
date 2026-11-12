@@ -1,0 +1,17 @@
+.mui-shadow {
+    box-shadow: var(--mui-elevate2) !important;
+}
+
+.mui-shadow {
+    &-sm {
+        box-shadow: var(--mui-elevate1) !important;
+    }
+
+    &-lg {
+        box-shadow: var(--mui-elevate3) !important;
+    }
+
+    &-none {
+        box-shadow: none !important;
+    }
+}

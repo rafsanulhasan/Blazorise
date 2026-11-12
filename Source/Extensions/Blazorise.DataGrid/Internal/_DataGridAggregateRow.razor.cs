@@ -1,0 +1,86 @@
+#region Using directives
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Components;
+#endregion
+
+namespace Blazorise.DataGrid.Internal;
+
+/// <summary>
+/// Supports data grid aggregate row rendering and interaction in a DataGrid.
+/// </summary>
+public partial class _DataGridAggregateRow<TItem> : BaseDataGridComponent
+{
+    #region Methods
+
+    /// <summary>
+    /// Resolves an aggregate by column name before falling back to aggregates that only specify a field.
+    /// </summary>
+    protected DataGridAggregate<TItem> ResolveAggregate( DataGridColumn<TItem> column )
+    {
+        if ( !string.IsNullOrEmpty( column.Name ) )
+        {
+            var namedAggregate = Aggregates.FirstOrDefault( x => x.ColumnName == column.Name );
+
+            if ( namedAggregate is not null )
+            {
+                return namedAggregate;
+            }
+        }
+
+        return Aggregates.FirstOrDefault( x => string.IsNullOrEmpty( x.ColumnName ) && x.Field == column.Field );
+    }
+
+    /// <summary>
+    /// Calculates aggregate values for the current grid data.
+    /// </summary>
+    protected object Calculate( DataGridAggregate<TItem> aggregate, DataGridColumn<TItem> column )
+        => aggregate?.AggregationFunction?.Invoke( Data, column );
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Data consumed by the data grid aggregate row.
+    /// </summary>
+    protected IEnumerable<TItem> Data
+        => ParentDataGrid.ManualReadMode ? ParentDataGrid.AggregateData : ParentDataGrid.FilteredData;
+
+    /// <summary>
+    /// List of columns used to build this row.
+    /// </summary>
+    [Parameter] public IEnumerable<DataGridColumn<TItem>> Columns { get; set; }
+
+    /// <summary>
+    /// List of aggregate columns used to build this row.
+    /// </summary>
+    [Parameter] public IEnumerable<DataGridAggregate<TItem>> Aggregates { get; set; }
+
+    /// <summary>
+    /// Custom css classname.
+    /// </summary>
+    [Parameter] public string Class { get; set; }
+
+    /// <summary>
+    /// Custom html style.
+    /// </summary>
+    [Parameter] public string Style { get; set; }
+
+    /// <summary>
+    /// Custom background.
+    /// </summary>
+    [Parameter] public Background Background { get; set; }
+
+    /// <summary>
+    /// Custom color.
+    /// </summary>
+    [Parameter] public Color Color { get; set; }
+
+    /// <summary>
+    /// Specifies the parent <see cref="DataGrid{TItem}"/> of the this component.
+    /// </summary>
+    [CascadingParameter] public DataGrid<TItem> ParentDataGrid { get; set; }
+
+    #endregion
+}

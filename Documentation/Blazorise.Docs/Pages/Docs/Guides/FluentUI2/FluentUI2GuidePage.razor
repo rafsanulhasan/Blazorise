@@ -1,0 +1,157 @@
+@page "/docs/usage/fluent2"
+
+<Seo Canonical="/docs/usage/fluent2" Title="Blazorise Fluent 2 Usage" Description="Learn all the steps on how to quickly install and setup Blazorise for Fluent 2 design system and Fluent icons." />
+
+<DocsPageTitle Path="Usage/Fluent 2" AddedVersion="1.5" AddedDate="2024-02-16">
+    Blazorise Fluent 2 Usage Guide
+</DocsPageTitle>
+
+<DocsPageLead>
+    Quickly install Blazorise with Fluent 2 design system, one of the world's most popular Blazor UI framework.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    Welcome to the quick start guide for integrating the Blazorise Fluent 2 design system into your Blazor applications. Blazorise is among the most popular UI frameworks for Blazor, and with the Fluent 2 provider, you can leverage the modern and intuitive design language of <Anchor To="https://fluent2.microsoft.design/" Title="Link to Microsoft's Fluent 2">Microsoft's Fluent 2</Anchor>.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    <Alert Color="Color.Info" Visible>
+        <AlertDescription>
+            <Strong>Note:</Strong> Before proceeding, ensure you have already created a Blazor project. If not, the simplest way to start with Blazorise is by using our <Anchor To="docs/templates" Title="Link to templates">Templates</Anchor>.
+        </AlertDescription>
+    </Alert>
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    <GuideSeeTheDemo Provider="CssProvider.FluentUi2" />
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Installation Steps
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle Title="1. Install Packages" />
+
+<DocsPageParagraph>
+    To integrate Fluent 2 design with Blazorise, you need to install two NuGet packages:
+</DocsPageParagraph>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        Fluent 2 Provider for Blazorise:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="FluentUI2GuideNuget1Example" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        Fluent Icon Package for Blazorise:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="FluentUI2GuideNuget2Example" />
+</DocsPageSection>
+
+<DocsPageSubsectionTitle Title="2. Static Files" />
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        Add these lines inside the <Code Tag>head</Code> section:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSourceGroup AriaLabel="Blazor project type">
+        <DocsPageSectionSource Code="FluentUI2GuideSourceFiles1Example" CodeTitle="WebAssembly">
+            Update <Code>wwwroot/index.html</Code>.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="FluentUI2GuideSourceFiles1Example" CodeTitle="Blazor Server">
+            Update <Code>_Layout.cshtml</Code> or <Code>_Host.cshtml</Code>, depending on your project template.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="FluentUI2GuideSourceFiles1Example" CodeTitle="Blazor Web App">
+            Update <Code>Components/App.razor</Code> in the server project.
+        </DocsPageSectionSource>
+    </DocsPageSectionSourceGroup>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Optional: SVG icons">
+        Fluent icons use the CSS font by default. To render inline SVG icons instead, replace the Fluent font stylesheet shown above with the SVG stylesheet. Keep the remaining Fluent 2 stylesheets unchanged.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSourceGroup AriaLabel="Blazor project type">
+        <DocsPageSectionSource Code="FluentUI2GuideSvgSourceFilesExample" CodeTitle="WebAssembly">
+            Update <Code>wwwroot/index.html</Code>.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="FluentUI2GuideSvgSourceFilesExample" CodeTitle="Blazor Server">
+            Update <Code>_Layout.cshtml</Code> or <Code>_Host.cshtml</Code>, depending on your project template.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="FluentUI2GuideSvgSourceFilesExample" CodeTitle="Blazor Web App">
+            Update <Code>Components/App.razor</Code> in the server project.
+        </DocsPageSectionSource>
+    </DocsPageSectionSourceGroup>
+</DocsPageSection>
+
+<Alert Color="Color.Info" Visible>
+    <AlertDescription>
+        <Strong>Important:</Strong> Remove any Bootstrap JS and CSS references that come by default with the Blazor project template to avoid conflicts.
+    </AlertDescription>
+</Alert>
+
+<DocsPageSubsectionTitle Title="3. Update Imports" />
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        In the <Strong>_Imports.razor</Strong> file at the root of your project, add the following namespace declarations:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="FluentUI2GuideUsingExample" />
+</DocsPageSection>
+
+<DocsPageSubsectionTitle Title="4. Register Services" />
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        Configure your <Strong>Program.cs</Strong> to register Blazorise services, including the Fluent 2 providers and icons:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="FluentUI2GuideRegistrationExample" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Optional SVG Icons">
+        When using the SVG icon stylesheet, also enable SVG rendering in the Fluent UI icon provider options.
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="FluentUI2GuideSvgRegistrationExample" />
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Customizing the Theme
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Blazorise exposes a powerful theming system based on CSS variables. You can override these tokens globally, or for specific sections of your app.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    We've published a <Anchor To="blog/how-to-override-fluent-design-tokens" Title="Link to detailed blog post">detailed blog post</Anchor> showing how to extend and customize Fluent UI theming in Blazorise.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Be sure to check it out if you want deeper customization, like changing brand colors or adjusting component spacing.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Dark Mode
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader>
+        Fluent UI tokens are already prepared for dark theme. To enable it, set the <Code>data-theme="dark"</Code> attribute on your <Code Tag>html</Code> element:
+    </DocsPageSectionHeader>
+    <DocsPageSectionSource Code="FluentUI2GuideDarkThemeExample" />
+</DocsPageSection>
+
+<DocsPageParagraph>
+    That's all it takes. Your entire Blazorise Fluent UI app will switch to dark mode.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Offline Support
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    To enhance your application with Progressive Web App (PWA) capabilities and offline support, refer to our <Anchor To="docs/pwa" Title="Link to PWA documentation">PWA documentation</Anchor>. This step is optional but recommended for applications intended to offer a rich, offline-capable user experience.
+</DocsPageParagraph>

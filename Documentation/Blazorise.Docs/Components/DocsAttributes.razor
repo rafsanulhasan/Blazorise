@@ -2,44 +2,76 @@
     @ChildContent
 </CascadingValue>
 
+@if ( !string.IsNullOrWhiteSpace( ElementId ) )
+{
+    <Div ElementId="@ElementId" />
+}
+
 @if ( Title != null )
 {
-    <Heading Class="docs-page-attributes-title" Size="HeadingSize.Is3">
+    <Heading Size="HeadingSize.Is4" Margin="Margin.Is3.FromBottom">
         @Title
     </Heading>
 }
 
-<Table Class="b-docs-attributes" Responsive>
-    <TableHeader ThemeContrast="ThemeContrast.Light">
-        <TableRow>
-            <TableHeaderCell>Name</TableHeaderCell>
-            <TableHeaderCell>Description</TableHeaderCell>
-            <TableHeaderCell>Type</TableHeaderCell>
-            <TableHeaderCell>Default</TableHeaderCell>
-        </TableRow>
-    </TableHeader>
-    <TableBody>
-        @foreach ( var DocsAttributesItem in DocsAttributesItems )
-        {
+<Div Border="Border.Is1.Rounded" Overflow="Overflow.Hidden" Margin="Margin.Is4.FromBottom">
+    <Table Responsive Borderless Margin="Margin.Is0">
+        <TableHeader ThemeContrast="@ThemeContrast">
             <TableRow>
-                <TableRowCell>
-                    <Code>@DocsAttributesItem.Name</Code>
-                </TableRowCell>
-                <TableRowCell>
-                    @DocsAttributesItem.ChildContent
-                </TableRowCell>
-                <TableRowCell>
-                    <Code Tag="@DocsAttributesItem.TypeTag">@DocsAttributesItem.Type</Code>
-                </TableRowCell>
-                <TableRowCell Class="@DocsAttributesItem.DefaultClassNames">
-                    @if ( @DocsAttributesItem.Default != null )
-                    {
-                        <Code>@DocsAttributesItem.Default</Code>
-                    }
-                </TableRowCell>
+                <TableHeaderCell Width="Width.Is33" Padding="Padding.Is3" TextSize="TextSize.Small" TextWeight="TextWeight.SemiBold" scope="col">@Name</TableHeaderCell>
+                @if ( ShowDefaults )
+                {
+                    <TableHeaderCell Width="Width.Is25" Padding="Padding.Is3" TextSize="TextSize.Small" TextWeight="TextWeight.SemiBold" scope="col">Default</TableHeaderCell>
+                }
+                <TableHeaderCell Padding="Padding.Is3" TextSize="TextSize.Small" TextWeight="TextWeight.SemiBold" scope="col">Type</TableHeaderCell>
             </TableRow>
+        </TableHeader>
+        @foreach ( var docsAttributesItem in DocsAttributesItems )
+        {
+            <TableBody @key="@docsAttributesItem" Border="Border.Is1.OnTop">
+                <TableRow>
+                    <TableRowHeader Padding="Padding.Is3" VerticalAlignment="VerticalAlignment.Top" scope="rowgroup">
+                        @if ( !string.IsNullOrEmpty( docsAttributesItem.ObsoleteMessage ) )
+                        {
+                            <Tooltip Text="@docsAttributesItem.ObsoleteMessage" Inline>
+                                <Icon Name="IconName.ExclamationTriangle" TextColor="TextColor.Warning" />
+                            </Tooltip>
+                        }
+                        <Code TextWeight="TextWeight.SemiBold">@docsAttributesItem.Name</Code>
+                    </TableRowHeader>
+                    @if ( ShowDefaults )
+                    {
+                        <TableRowCell Padding="Padding.Is3" VerticalAlignment="VerticalAlignment.Top">
+                            @if ( docsAttributesItem.Default != null )
+                            {
+                                <Code TextColor="@docsAttributesItem.DefaultTextColor">@docsAttributesItem.Default</Code>
+                            }
+                            else
+                            {
+                                <Span TextColor="TextColor.Secondary" aria-label="Default not specified">—</Span>
+                            }
+                        </TableRowCell>
+                    }
+                    <TableRowCell Padding="Padding.Is3" VerticalAlignment="VerticalAlignment.Top">
+                        @if ( !string.IsNullOrWhiteSpace( docsAttributesItem.Type ) )
+                        {
+                            <Code Tag="@docsAttributesItem.TypeTag">@docsAttributesItem.Type</Code>
+                        }
+                        else
+                        {
+                            <Span TextColor="TextColor.Secondary" aria-label="Type not specified">—</Span>
+                        }
+                    </TableRowCell>
+                </TableRow>
+                <TableRow>
+                    <TableRowCell ColumnSpan="@(ShowDefaults ? 3 : 2)" Padding="Padding.Is0">
+                        <Divider DividerType="DividerType.Dashed" Margin="Margin.Is0" />
+                        <Div Padding="Padding.Is3">
+                            @docsAttributesItem.ChildContent
+                        </Div>
+                    </TableRowCell>
+                </TableRow>
+            </TableBody>
         }
-    </TableBody>
-</Table>
-
-
+    </Table>
+</Div>

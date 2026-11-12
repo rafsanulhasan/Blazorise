@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <PrimaryTargetFramework>net11.0</PrimaryTargetFramework>
+    <Configurations>Debug;DebugNet11;Release</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'DebugNet11'">
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+    <DebuggerSupport>true</DebuggerSupport>
+    <MetadataUpdaterSupport>true</MetadataUpdaterSupport>
+    <EnableHotReloadInRuntimeConfigDevFile>true</EnableHotReloadInRuntimeConfigDevFile>
+    <WasmEnableHotReload>true</WasmEnableHotReload>
+  </PropertyGroup>
+</Project>

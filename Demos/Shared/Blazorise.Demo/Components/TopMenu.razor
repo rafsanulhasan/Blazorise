@@ -1,0 +1,550 @@
+@using Blazorise.Localization
+@using System
+@using System.Collections.Generic
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<Bar @bind-Visible="@topbarVisible" Breakpoint="Breakpoint.Desktop" Background="Background.White" Shadow="Shadow.Default" ThemeContrast="ThemeContrast.Light">
+    <BarBrand>
+        <BarItem>
+            <BarLink To="">
+                <BarIcon IconName="IconName.Dashboard" />
+                Blazorise Demo
+            </BarLink>
+        </BarItem>
+    </BarBrand>
+    <BarToggler />
+    <BarMenu>
+        <BarStart>
+            <BarItem>
+                <BarLink To="https://blazorise.com/">Home</BarLink>
+            </BarItem>
+            <BarItem>
+                <BarLink To="https://blazorise.com/docs/">Documentation</BarLink>
+            </BarItem>
+            <BarItem>
+                <BarDropdown>
+                    <BarDropdownToggle>More</BarDropdownToggle>
+                    <BarDropdownMenu>
+                        <BarDropdownItem To="https://blazorise.com/docs/start/">
+                            Quick-Start Guide
+                        </BarDropdownItem>
+                        <BarDropdownDivider />
+                        <BarDropdownItem To="https://blazorise.com/docs/usage/">
+                            Usage
+                        </BarDropdownItem>
+                    </BarDropdownMenu>
+                </BarDropdown>
+            </BarItem>
+            <BarItem>
+                <BarDropdown>
+                    <BarDropdownToggle>Layout</BarDropdownToggle>
+                    <BarDropdownMenu>
+                        <BarDropdownItem Clicked="@(() => OnLayoutTypeChecked( "fixed-header" ))">
+                            @if ( LayoutType == "fixed-header" )
+                            {
+                                <Icon Name="IconName.CheckCircle" TextColor="TextColor.Success" />
+                            }
+                            Fixed Header
+                        </BarDropdownItem>
+                        <BarDropdownItem Clicked="@(() => OnLayoutTypeChecked( "fixed-header-footer-only" ))">
+                            @if ( LayoutType == "fixed-header-footer-only" )
+                            {
+                                <Icon Name="IconName.CheckCircle" TextColor="TextColor.Success" />
+                            }
+                            Fixed Header and Footer only
+                        </BarDropdownItem>
+                        <BarDropdownItem Clicked="@(() => OnLayoutTypeChecked( "sider-with-header-on-top" ))">
+                            @if ( LayoutType == "sider-with-header-on-top" )
+                            {
+                                <Icon Name="IconName.CheckCircle" TextColor="TextColor.Success" />
+                            }
+                            Sider with Header on top
+                        </BarDropdownItem>
+                    </BarDropdownMenu>
+                </BarDropdown>
+            </BarItem>
+
+            <BarItem>
+                <BarDropdown>
+                    <BarDropdownToggle>Level1</BarDropdownToggle>
+                    <BarDropdownMenu>
+                        <BarDropdownItem>Level1.1</BarDropdownItem>
+                        <BarDropdown>
+                            <BarDropdownToggle>Level2</BarDropdownToggle>
+                            <BarDropdownMenu>
+                                <BarDropdownItem>Level2.1</BarDropdownItem>
+                                <BarDropdown>
+                                    <BarDropdownToggle>Level3</BarDropdownToggle>
+                                    <BarDropdownMenu>
+                                        <BarDropdownItem>Level3.1</BarDropdownItem>
+                                    </BarDropdownMenu>
+                                </BarDropdown>
+                            </BarDropdownMenu>
+                        </BarDropdown>
+                    </BarDropdownMenu>
+                </BarDropdown>
+            </BarItem>
+        </BarStart>
+        <BarEnd>
+            <BarItem>
+                <BarLink Clicked="@ShowSettings" aria-label="Settings">
+                    <Icon Name="IconName.Settings" />
+                </BarLink>
+            </BarItem>
+            @if ( gitHubDemoUrl != null )
+            {
+                <BarItem>
+                    <BarLink To="@gitHubDemoUrl" Target="Target.Blank">
+                        <Icon Name="IconName.Code" />
+                    </BarLink>
+                </BarItem>
+            }
+            <BarItem>
+                <BarLink To="https://github.com/Megabit/Blazorise" Target="Target.Blank">GitHub</BarLink>
+            </BarItem>
+        </BarEnd>
+    </BarMenu>
+</Bar>
+
+<Offcanvas @ref="settingsOffcanvas" Placement="Placement.End" Size="OffcanvasSize.Large" ShowBackdrop="false">
+    <OffcanvasHeader>
+        Settings
+        <CloseButton Clicked="@HideSettings" />
+    </OffcanvasHeader>
+    <OffcanvasBody>
+        <Heading Size="HeadingSize.Is5" Margin="Margin.Is3.FromBottom">Language</Heading>
+        <Field Margin="Margin.Is4.FromBottom">
+            <FieldLabel>Display language</FieldLabel>
+            <Select TValue="string" Value="@LocalizationService.SelectedCulture.Name" ValueChanged="@SelectCulture">
+                @foreach ( var cultureInfo in LocalizationService.AvailableCultures )
+                {
+                    <SelectItem @key="@cultureInfo.Name" Value="@cultureInfo.Name">
+                        @if ( cultureInfo.IsNeutralCulture )
+                        {
+                            @cultureInfo.EnglishName
+                        }
+                        else
+                        {
+                            @cultureInfo.Parent.EnglishName
+                        }
+                    </SelectItem>
+                }
+            </Select>
+        </Field>
+
+        <Divider Margin="Margin.Is4.OnY" />
+
+        <Heading Size="HeadingSize.Is5" Margin="Margin.Is3.FromBottom">Theme</Heading>
+        <Fields>
+            <Field ColumnSize="ColumnSize.Is12">
+                <Switch TValue="bool" Value="@(Theme?.Enabled == true)" ValueChanged="@ThemeEnabledChanged">Theme enabled</Switch>
+            </Field>
+            <Field ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Primary</FieldLabel>
+                <FieldBody>
+                    <ColorPicker Value="@(Theme?.ColorOptions?.Primary)" ValueChanged="@( value => OnThemeColorChanged( Color.Primary, value ))" ShowClearButton="false" ShowCancelButton="false" ShowOpacitySlider="false" />
+                </FieldBody>
+            </Field>
+            <Field ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Secondary</FieldLabel>
+                <FieldBody>
+                    <ColorPicker Value="@(Theme?.ColorOptions?.Secondary)" ValueChanged="@( value => OnThemeColorChanged( Color.Secondary, value ))" ShowClearButton="false" ShowCancelButton="false" ShowOpacitySlider="false" />
+                </FieldBody>
+            </Field>
+            <Field ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Success</FieldLabel>
+                <FieldBody>
+                    <ColorPicker Value="@(Theme?.ColorOptions?.Success)" ValueChanged="@( value => OnThemeColorChanged( Color.Success, value ))" ShowClearButton="false" ShowCancelButton="false" ShowOpacitySlider="false" />
+                </FieldBody>
+            </Field>
+            <Field ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Danger</FieldLabel>
+                <FieldBody>
+                    <ColorPicker Value="@(Theme?.ColorOptions?.Danger)" ValueChanged="@( value => OnThemeColorChanged( Color.Danger, value ))" ShowClearButton="false" ShowCancelButton="false" ShowOpacitySlider="false" />
+                </FieldBody>
+            </Field>
+            <Field ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Warning</FieldLabel>
+                <FieldBody>
+                    <ColorPicker Value="@(Theme?.ColorOptions?.Warning)" ValueChanged="@( value => OnThemeColorChanged( Color.Warning, value ))" ShowClearButton="false" ShowCancelButton="false" ShowOpacitySlider="false" />
+                </FieldBody>
+            </Field>
+            <Field ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Info</FieldLabel>
+                <FieldBody>
+                    <ColorPicker Value="@(Theme?.ColorOptions?.Info)" ValueChanged="@( value => OnThemeColorChanged( Color.Info, value ))" ShowClearButton="false" ShowCancelButton="false" ShowOpacitySlider="false" />
+                </FieldBody>
+            </Field>
+            <Field ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Light</FieldLabel>
+                <FieldBody>
+                    <ColorPicker Value="@(Theme?.ColorOptions?.Light)" ValueChanged="@( value => OnThemeColorChanged( Color.Light, value ))" ShowClearButton="false" ShowCancelButton="false" ShowOpacitySlider="false" />
+                </FieldBody>
+            </Field>
+            <Field ColumnSize="ColumnSize.Is6">
+                <FieldLabel>Dark</FieldLabel>
+                <FieldBody>
+                    <ColorPicker Value="@(Theme?.ColorOptions?.Dark)" ValueChanged="@( value => OnThemeColorChanged( Color.Dark, value ))" ShowClearButton="false" ShowCancelButton="false" ShowOpacitySlider="false" />
+                </FieldBody>
+            </Field>
+        </Fields>
+
+        <Divider Margin="Margin.Is4.OnY" />
+
+        <Heading Size="HeadingSize.Is5" Margin="Margin.Is3.FromBottom">Accessibility</Heading>
+        <Field>
+            <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Gap="Gap.Is3">
+                <Switch TValue="bool" Value="@OnScreenKeyboardEnabled" ValueChanged="@OnScreenKeyboardEnabledChanged">On-screen keyboard</Switch>
+                <Tooltip Text="Shows a virtual keyboard when supported text inputs receive focus." Placement="TooltipPlacement.Left" Multiline>
+                    <Icon Name="IconName.QuestionCircle" TextColor="TextColor.Secondary" />
+                </Tooltip>
+            </Div>
+        </Field>
+        <Field>
+            <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Gap="Gap.Is3">
+                <Switch TValue="bool" Value="@UseLabelForAttribute" ValueChanged="@UseLabelForAttributeChanged">Label for attributes</Switch>
+                <Tooltip Text="Connects labels to inputs with the HTML for attribute." Placement="TooltipPlacement.Left" Multiline>
+                    <Icon Name="IconName.QuestionCircle" TextColor="TextColor.Secondary" />
+                </Tooltip>
+            </Div>
+        </Field>
+        <Field>
+            <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Gap="Gap.Is3">
+                <Switch TValue="bool" Value="@UseAriaLabelledByAttribute" ValueChanged="@UseAriaLabelledByAttributeChanged">aria-labelledby attributes</Switch>
+                <Tooltip Text="Adds aria-labelledby so assistive technologies can announce related labels." Placement="TooltipPlacement.Left" Multiline>
+                    <Icon Name="IconName.QuestionCircle" TextColor="TextColor.Secondary" />
+                </Tooltip>
+            </Div>
+        </Field>
+        <Field>
+            <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Gap="Gap.Is3">
+                <Switch TValue="bool" Value="@UseAutoAriaInvalidAttribute" ValueChanged="@UseAutoAriaInvalidAttributeChanged">aria-invalid attributes</Switch>
+                <Tooltip Text="Sets aria-invalid automatically when validation marks an input invalid." Placement="TooltipPlacement.Left" Multiline>
+                    <Icon Name="IconName.QuestionCircle" TextColor="TextColor.Secondary" />
+                </Tooltip>
+            </Div>
+        </Field>
+        <Field>
+            <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Gap="Gap.Is3">
+                <Switch TValue="bool" Value="@UseAutoAriaDescribedByAttribute" ValueChanged="@UseAutoAriaDescribedByAttributeChanged">aria-describedby attributes</Switch>
+                <Tooltip Text="Sets aria-describedby automatically for validation or help text associated with an input." Placement="TooltipPlacement.Left" Multiline>
+                    <Icon Name="IconName.QuestionCircle" TextColor="TextColor.Secondary" />
+                </Tooltip>
+            </Div>
+        </Field>
+        <Field>
+            <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Gap="Gap.Is3">
+                <Switch TValue="bool" Value="@UseAutoAriaRequiredAttribute" ValueChanged="@UseAutoAriaRequiredAttributeChanged">aria-required attributes</Switch>
+                <Tooltip Text="Sets aria-required automatically for required inputs." Placement="TooltipPlacement.Left" Multiline>
+                    <Icon Name="IconName.QuestionCircle" TextColor="TextColor.Secondary" />
+                </Tooltip>
+            </Div>
+        </Field>
+        <Field>
+            <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Gap="Gap.Is3">
+                <Switch TValue="bool" Value="@UseValidationOnBlur" ValueChanged="@UseValidationOnBlurChanged">Validate on blur</Switch>
+                <Tooltip Text="Runs validation when an input loses focus." Placement="TooltipPlacement.Left" Multiline>
+                    <Icon Name="IconName.QuestionCircle" TextColor="TextColor.Secondary" />
+                </Tooltip>
+            </Div>
+        </Field>
+
+        <Divider Margin="Margin.Is4.OnY" />
+
+        <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Gap="Gap.Is3" Margin="Margin.Is3.FromBottom">
+            <Heading Size="HeadingSize.Is5" Margin="Margin.Is0">Animations</Heading>
+            <Tooltip Text="These settings apply only to selected demo components that support animation controls." Placement="TooltipPlacement.Left" Multiline>
+                <Icon Name="IconName.QuestionCircle" TextColor="TextColor.Secondary" />
+            </Tooltip>
+        </Div>
+        <Field>
+            <Switch TValue="bool" Value="@AppSettings.AnimationSettings.Animated" ValueChanged="@OnAnimatedChanged">Animate transitions</Switch>
+        </Field>
+        <Field>
+            <FieldLabel>Animation duration</FieldLabel>
+            <Select TValue="int?" Value="@AppSettings.AnimationSettings.AnimationDuration" ValueChanged="@OnAnimationDurationChanged" Disabled="@(!AppSettings.AnimationSettings.Animated)">
+                <SelectItem TValue="int?" Value="@((int?)null)">Provider default</SelectItem>
+                <SelectItem TValue="int?" Value="0">Immediate</SelectItem>
+                <SelectItem TValue="int?" Value="100">100 ms</SelectItem>
+                <SelectItem TValue="int?" Value="200">200 ms</SelectItem>
+                <SelectItem TValue="int?" Value="400">400 ms</SelectItem>
+                <SelectItem TValue="int?" Value="1000">1000 ms</SelectItem>
+            </Select>
+        </Field>
+    </OffcanvasBody>
+</Offcanvas>
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await SelectCulture( "en-US" );
+
+        await base.OnInitializedAsync();
+    }
+
+    Task SelectCulture( string name )
+    {
+        LocalizationService.ChangeLanguage( name );
+
+        return Task.CompletedTask;
+    }
+
+    private Task ShowSettings()
+    {
+        return settingsOffcanvas.Show();
+    }
+
+    private Task HideSettings()
+    {
+        return settingsOffcanvas.Hide();
+    }
+
+    private bool topbarVisible = false;
+
+    private Offcanvas settingsOffcanvas;
+
+    Task OnLayoutTypeChecked( string layoutType )
+    {
+        LayoutType = layoutType;
+
+        return LayoutTypeChanged.InvokeAsync( layoutType );
+    }
+
+    private async Task OnScreenKeyboardEnabledChanged( bool value )
+    {
+        OnScreenKeyboardOptions.Enabled = value;
+
+        if ( !value )
+        {
+            await OnScreenKeyboardService.Hide();
+        }
+
+        StateHasChanged();
+    }
+
+    private Task OnAnimatedChanged( bool value )
+    {
+        return AppSettingsChanged.InvokeAsync( AppSettings with
+        {
+            AnimationSettings = AppSettings.AnimationSettings with { Animated = value }
+        } );
+    }
+
+    private Task OnAnimationDurationChanged( int? value )
+    {
+        return AppSettingsChanged.InvokeAsync( AppSettings with
+        {
+            AnimationSettings = AppSettings.AnimationSettings with { AnimationDuration = value }
+        } );
+    }
+
+    private Task SetAccessibilityOption( Action<BlazoriseAccessibilityOptions> action )
+    {
+        action?.Invoke( AccessibilityOptions );
+
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    private Task UseLabelForAttributeChanged( bool value )
+    {
+        return SetAccessibilityOption( option => option.UseLabelForAttribute = value );
+    }
+
+    private Task UseAriaLabelledByAttributeChanged( bool value )
+    {
+        return SetAccessibilityOption( option => option.UseAriaLabelledByAttribute = value );
+    }
+
+    private Task UseAutoAriaInvalidAttributeChanged( bool value )
+    {
+        return SetAccessibilityOption( option => option.UseAutoAriaInvalidAttribute = value );
+    }
+
+    private Task UseAutoAriaDescribedByAttributeChanged( bool value )
+    {
+        return SetAccessibilityOption( option => option.UseAutoAriaDescribedByAttribute = value );
+    }
+
+    private Task UseAutoAriaRequiredAttributeChanged( bool value )
+    {
+        return SetAccessibilityOption( option => option.UseAutoAriaRequiredAttribute = value );
+    }
+
+    private Task UseValidationOnBlurChanged( bool value )
+    {
+        return SetAccessibilityOption( option => option.UseValidationOnBlur = value );
+    }
+
+    Dictionary<string, string> demoToGitHubMapping = new Dictionary<string, string>
+    {
+        { "", "Pages/Dashboard.razor" },
+        { "tests/alerts", "Pages/AlertsPage.razor" },
+        { "tests/animate", "Blazorise.Demo.Extensions/Pages/AnimatePage.razor" },
+        { "tests/autocomplete", "Blazorise.Demo.Components/Pages/AutocompletesPage.razor" },
+        { "tests/badges", "Pages/BadgesPage.razor" },
+        { "tests/barcode", "Blazorise.Demo.Extensions/Pages/BarcodePage.razor" },
+        { "tests/utilities/borders", "Pages/BordersPage.razor" },
+        { "tests/breadcrumbs", "Pages/BreadcrumbsPage.razor" },
+        { "tests/buttons", "Pages/ButtonsPage.razor" },
+        { "tests/cards", "Pages/CardsPage.razor" },
+        { "tests/carousel", "Pages/CarouselPage.razor" },
+        { "tests/charts/annotations", "Blazorise.Demo.Charts/Pages/ChartsAnnotationsPage.razor" },
+        { "tests/charts/datalabels", "Blazorise.Demo.Charts/Pages/ChartsDataLabelsPage.razor" },
+        { "tests/charts/svg/animation", "Blazorise.Demo.Charts/Pages/ChartsSvgAnimationPage.razor" },
+        { "tests/charts/svg/annotations", "Blazorise.Demo.Charts/Pages/ChartsSvgAnnotationsPage.razor" },
+        { "tests/charts/svg/data-drag", "Blazorise.Demo.Charts/Pages/ChartsSvgDataDragPage.razor" },
+        { "tests/charts/svg/data-labels", "Blazorise.Demo.Charts/Pages/ChartsSvgDataLabelsPage.razor" },
+        { "tests/charts/svg/streaming", "Blazorise.Demo.Charts/Pages/ChartsSvgStreamingPage.razor" },
+        { "tests/charts/svg/trendlines", "Blazorise.Demo.Charts/Pages/ChartsSvgTrendlinesPage.razor" },
+        { "tests/charts/svg/zoom", "Blazorise.Demo.Charts/Pages/ChartsSvgZoomPage.razor" },
+        { "tests/charts/svg/regular", "Blazorise.Demo.Charts/Pages/ChartsSvgPage.razor" },
+        { "tests/charts/svg", "Blazorise.Demo.Charts/Pages/ChartsSvgPage.razor" },
+        { "tests/charts", "Blazorise.Demo.Charts/Pages/ChartsPage.razor" },
+        { "tests/codeeditor", "Blazorise.Demo.Extensions/Pages/CodeEditorPage.razor" },
+        { "tests/collapse", "Pages/CollapsePage.razor" },
+        { "tests/cropper", "Blazorise.Demo.Extensions/Pages/CropperPage.razor" },
+        { "tests/dragdrop", "Pages/DragDropPage.razor" },
+        { "tests/dropdownlist", "Blazorise.Demo.Components/Pages/DropdownListPage.razor" },
+        { "tests/dropdowns", "Pages/DropdownsPage.razor" },
+        { "tests/context-menu", "Pages/ContextMenuPage.razor" },
+        { "tests/dock-layout", "Pages/DockLayoutPage.razor" },
+        { "tests/figures", "Pages/FigurePage.razor" },
+        { "tests/file-picker", "Pages/FilePickerPage.razor" },
+        { "tests/gestures", "Pages/GesturesPage.razor" },
+        { "tests/utilities/flex", "Pages/FlexPage.razor" },
+        { "tests/focus-trap", "Pages/FocusTrapPage.razor" },
+        { "tests/forms", "Pages/FormsPage.razor" },
+        { "tests/utilities/grid", "Pages/GridPage.razor" },
+        { "tests/icons", "Pages/IconsPage.razor" },
+        { "tests/jumbotrons", "Pages/JumbotronsPage.razor" },
+        { "tests/utilities/layout", "Pages/LayoutPage.razor" },
+        { "tests/listgroup", "Pages/ListGroupPage.razor" },
+        { "tests/listview", "Blazorise.Demo.Components/Pages/ListViewPage.razor" },
+        { "tests/livecharts", "Pages/LiveChartsPage.razor" },
+        { "tests/loadingindicator", "Blazorise.Demo.Extensions/Pages/LoadingIndicatorPage.razor" },
+        { "tests/lottie-animation", "Blazorise.Demo.Extensions/Pages/LottieAnimationPage.razor" },
+        { "tests/markdown", "Blazorise.Demo.Extensions/Pages/MarkdownPage.razor" },
+        { "tests/misc-forms", "Pages/MiscFormPage.razor" },
+        { "tests/modal-provider", "Pages/ModalProviderPage.razor" },
+        { "tests/modals", "Pages/ModalsPage.razor" },
+        { "tests/offcanvas", "Pages/OffcanvasPage.razor" },
+        { "tests/utilities/overflow", "Pages/OverflowPage.razor" },
+        { "tests/paginations", "Pages/PaginationsPage.razor" },
+        { "tests/pickers", "Pages/PickersPage.razor" },
+        { "tests/passwordstrength", "Blazorise.Demo.Components/Pages/PasswordStrengthPage.razor" },
+        { "tests/pdf-generator", "Blazorise.Demo.Reporting/Pages/PdfGeneratorPage.razor" },
+        { "tests/utilities/position", "Pages/PositionsPage.razor" },
+        { "tests/progressbars", "Pages/ProgressBarsPage.razor" },
+        { "tests/qrcode", "Blazorise.Demo.Extensions/Pages/QRCodePage.razor" },
+        { "tests/ratings", "Pages/RatingPage.razor" },
+        { "tests/repeater", "Blazorise.Demo.Components/Pages/RepeaterPage.razor" },
+        { "tests/reporting", "Blazorise.Demo.Reporting/Pages/ReportingPage.razor" },
+        { "tests/richtextedit", "Blazorise.Demo.Extensions/Pages/RichTextEditPage.razor" },
+        { "tests/selectlist", "Blazorise.Demo.Components/Pages/SelectListPage.razor" },
+        { "tests/utilities/services", "Pages/ServicesPage.razor" },
+        { "tests/utilities/shadows", "Pages/ShadowPage.razor" },
+        { "tests/signaturepad", "Blazorise.Demo.Extensions/Pages/SignaturePadPage.razor" },
+        { "tests/utilities/sizing", "Pages/SizingPage.razor" },
+        { "tests/snackbar", "Blazorise.Demo.Extensions/Pages/SnackbarsPage.razor" },
+        { "tests/spinkit", "Blazorise.Demo.Extensions/Pages/SpinKitPage.razor" },
+        { "tests/splitter", "Blazorise.Demo.Extensions/Pages/SplitterPage.razor" },
+        { "tests/steps", "Pages/StepsPage.razor" },
+        { "tests/tables", "Pages/TablesPage.razor" },
+        { "tests/tabs", "Pages/TabsPage.razor" },
+        { "tests/theming", "Pages/ThemingPage.razor" },
+        { "tests/tests/tooltips", "Pages/TooltipsPage.razor" },
+        { "tests/treeview", "Blazorise.Demo.Extensions/Pages/TreeViewPage.razor" },
+        { "tests/typography", "Pages/TypographyPage.razor" },
+        { "tests/validations", "Pages/ValidationsPage.razor" },
+        { "tests/vertical-align", "Pages/VerticalAlignPage.razor" },
+        { "tests/video", "Blazorise.Demo.Extensions/Pages/VideoPage.razor" },
+    };
+
+    private string gitHubDemoUrl;
+
+    protected override void OnInitialized()
+    {
+        if ( NavigationManager is not null )
+        {
+            DetermineCurrentUrl();
+
+            NavigationManager.LocationChanged += OnLocationChanged;
+        }
+    }
+
+    private void OnLocationChanged( object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e )
+    {
+        DetermineCurrentUrl();
+
+        InvokeAsync( StateHasChanged );
+    }
+
+    private void DetermineCurrentUrl()
+    {
+        var url = NavigationManager.ToBaseRelativePath( NavigationManager.Uri );
+
+        if ( demoToGitHubMapping.TryGetValue( url, out var gh ) )
+        {
+            gitHubDemoUrl = gh.StartsWith( "Blazorise.Demo", StringComparison.Ordinal )
+                ? $"https://github.com/Megabit/Blazorise/blob/master/Demos/Shared/{gh}"
+                : $"https://github.com/Megabit/Blazorise/blob/master/Demos/Shared/Blazorise.Demo/{gh}";
+        }
+        else
+        {
+            gitHubDemoUrl = null;
+        }
+    }
+
+    private Task OnThemeColorChanged( Color variant, string value )
+    {
+        return ThemeColorChanged.InvokeAsync( new( variant, value ) );
+    }
+
+    void IDisposable.Dispose()
+    {
+        if ( NavigationManager is not null )
+        {
+            NavigationManager.LocationChanged -= OnLocationChanged;
+        }
+    }
+
+    [Parameter] public EventCallback<bool> ThemeEnabledChanged { get; set; }
+
+    [Parameter] public EventCallback<ThemeColorChangedEventArgs> ThemeColorChanged { get; set; }
+
+    [Parameter] public EventCallback<AppSettings> AppSettingsChanged { get; set; }
+
+    [Parameter] public string LayoutType { get; set; }
+
+    [Parameter] public EventCallback<string> LayoutTypeChanged { get; set; }
+
+    [Inject] protected ITextLocalizerService LocalizationService { get; set; }
+
+    [Inject] protected BlazoriseOptions BlazoriseOptions { get; set; }
+
+    [Inject] protected IOnScreenKeyboardService OnScreenKeyboardService { get; set; }
+
+    [CascadingParameter] protected Theme Theme { get; set; }
+
+    [CascadingParameter] protected AppSettings AppSettings { get; set; }
+
+    private BlazoriseAccessibilityOptions AccessibilityOptions => BlazoriseOptions.AccessibilityOptions ??= new();
+
+    private BlazoriseOnScreenKeyboardOptions OnScreenKeyboardOptions => AccessibilityOptions.OnScreenKeyboard ??= new();
+
+    private bool OnScreenKeyboardEnabled => OnScreenKeyboardOptions.Enabled;
+
+    private bool UseLabelForAttribute => AccessibilityOptions.UseLabelForAttribute;
+
+    private bool UseAriaLabelledByAttribute => AccessibilityOptions.UseAriaLabelledByAttribute;
+
+    private bool UseAutoAriaInvalidAttribute => AccessibilityOptions.UseAutoAriaInvalidAttribute;
+
+    private bool UseAutoAriaDescribedByAttribute => AccessibilityOptions.UseAutoAriaDescribedByAttribute;
+
+    private bool UseAutoAriaRequiredAttribute => AccessibilityOptions.UseAutoAriaRequiredAttribute;
+
+    private bool UseValidationOnBlur => AccessibilityOptions.UseValidationOnBlur;
+}

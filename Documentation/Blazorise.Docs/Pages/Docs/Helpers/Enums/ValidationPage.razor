@@ -1,10 +1,40 @@
-﻿@page "/docs/helpers/enums/validation"
+@page "/docs/helpers/enums/validation"
 
-<Seo Canonical="/docs/helpers/enums/validation" Title="Enums: Validation" Description="Learn about the Blazorise Validation enums." />
+<Seo Canonical="/docs/helpers/enums/validation" Title="Blazorise Validation Enums - Modes and Status" Description="Validation enums define when validation runs and how results are represented. Learn ValidationMode and ValidationStatus values." />
 
 <DocsPageTitle>
     Enums: Validation
 </DocsPageTitle>
+
+<DocsPageLead>
+    Control when validation runs and how results are represented.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    Validation enums let you choose automatic or manual validation and interpret the outcome consistently.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    How it works
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Use <Code>ValidationMode</Code> to decide when validation executes and <Code>ValidationStatus</Code> to represent outcomes.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<UnorderedList>
+    <UnorderedListItem><Code>ValidationMode.Auto</Code> to validate on each input change.</UnorderedListItem>
+    <UnorderedListItem><Code>ValidationMode.Manual</Code> to validate on submit.</UnorderedListItem>
+    <UnorderedListItem><Code>ValidationStatus.Error</Code> to flag failed validation.</UnorderedListItem>
+</UnorderedList>
+
+<DocsPageSectionTitle>
+    Reference
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="ValidationMode">

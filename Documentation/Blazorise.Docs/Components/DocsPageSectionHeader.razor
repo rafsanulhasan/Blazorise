@@ -1,15 +1,38 @@
-﻿<div class="docs-page-section-header">
+﻿@inherits DocsTocComponent
+
+<Div Margin="Margin.Is4.FromBottom">
     @if ( Title != null )
     {
-        <Heading Size="HeadingSize.Is3">
+        <Heading Class="b-docs-heading" Size="HeadingSize.Is3" ElementId="@HeadingElementId" Flex="Flex.JustifyContent.Between.AlignItems.Center">
             @Title
+            @if ( !string.IsNullOrEmpty( AddedVersion ) )
+            {
+                <DocsSectionNewFeatureBadge AddedVersion="@AddedVersion" AddedDate="@AddedDate" />
+            }
         </Heading>
     }
     @ChildContent
-</div>
+</Div>
 
 @code {
-    [Parameter] public string Title { get; set; }
+    private static readonly Version currentVersion = Version.Parse( Models.DocsPageChanges.CurrentVersion.Split( '-', '+' )[0] );
 
-    [Parameter] public RenderFragment ChildContent { get; set; }
+    protected override int TocLevel => 3;
+
+    protected override bool IsNewTocEntry
+        => Version.TryParse( AddedVersion, out var version )
+            && version.Major == currentVersion.Major
+            && ( version.Minor == currentVersion.Minor || version.Minor == currentVersion.Minor - 1 );
+
+    protected override RenderFragment TocContent => Title is null ? null : builder => builder.AddContent( 0, Title );
+
+    /// <summary>
+    /// Gets or sets the version that introduced the section, without the display prefix.
+    /// </summary>
+    [Parameter] public string AddedVersion { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date the section was added, in yyyy-MM-dd format.
+    /// </summary>
+    [Parameter] public string AddedDate { get; set; }
 }

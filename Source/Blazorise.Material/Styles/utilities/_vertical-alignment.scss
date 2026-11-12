@@ -1,0 +1,5 @@
+@each $name, $value in $mui-vertical-alignment-values {
+    .mui-vertical-align-#{$name} {
+        vertical-align: $value !important;
+    }
+}

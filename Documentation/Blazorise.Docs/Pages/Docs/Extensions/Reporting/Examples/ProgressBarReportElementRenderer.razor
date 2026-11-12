@@ -1,0 +1,21 @@
+@namespace Blazorise.Docs.Docs.Examples
+@inherits BaseReportElementRenderer
+
+<Div Height="Height.Is100"
+     Width="Width.Is100"
+     Flex="Flex.Column.JustifyContent.Between">
+    <Div Flex="Flex.JustifyContent.Between.AlignItems.Center"
+         TextWeight="TextWeight.Bold"
+         TextColor="@(new TextColor( "#212529" ))"
+         Style="height:14pt; font-size:9pt; line-height:14pt;">
+        <Span>@ProgressBarReportElementPlugin.GetCaption( Context.Element )</Span>
+        <Span>@($"{Value}%")</Span>
+    </Div>
+    <Div Overflow="Overflow.Hidden" Background="@(new Background( "#E9ECEF" ))" Style="height:12pt;">
+        <Div Height="Height.Is100" Width="Width.Percent( Value )" Background="@(new Background( ProgressBarReportElementPlugin.GetColor( Context.Element ) ))" />
+    </Div>
+</Div>
+
+@code {
+    private int Value => ProgressBarReportElementPlugin.GetValue( Context.Element );
+}

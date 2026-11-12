@@ -1,0 +1,96 @@
+name: "\U0001F41E Bug report"
+description: Create a report to help us improve
+title: "[Bug]: "
+type: "bug"
+labels: ["Type: Bug \U0001F41E", "Triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before submitting a bug report**
+
+        The issue list is reserved for bug reports and feature requests. If you have a usage question, you can:
+
+        - Read the [documentation](https://blazorise.com/docs)
+        - Start a discussion on [Blazorise](https://github.com/Megabit/Blazorise/discussions)
+        - Ask questions on [Discord](https://discord.io/blazorise)
+
+        Also, try to search for your issue/feature - another user may have already requested something similar; Thanks!
+
+  - type: input
+    id: version
+    attributes:
+      label: Blazorise Version
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: What Blazorise provider are you running on?
+      multiple: false
+      options:
+        - AntDesign
+        - Bootstrap4
+        - Bootstrap5
+        - FluentUI2
+        - Bulma
+        - Material
+        - Tailwind
+  - type: textarea
+    id: reproduction-link
+    attributes:
+      label: Link to minimal reproduction or a simple code snippet
+      description: |
+        Provide a public GitHub repository (or code snippet). For easy setup, you can use the Blazorise Bug Report Template for each provider: 
+        [Bootstrap4](https://github.com/Blazorise/BugReportBootstrap4),
+        [Bootstrap5](https://github.com/Blazorise/BugReportBootstrap5), 
+        [Tailwind](https://github.com/Blazorise/BugReportTailwind),
+        [Material](https://github.com/Blazorise/BugReportMaterial),
+        [AntDesign](https://github.com/Blazorise/BugReportAntDesign),
+        [Bulma](https://github.com/Blazorise/BugReportBulma), or
+        [FluentUI2](https://github.com/Blazorise/BugReportFluentUI2).
+  
+        The reproduction should be **minimal**, containing only the essential code needed to demonstrate the bug.
+      placeholder: Reproduction Link
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce & bug description
+      description: |
+        What must we do after opening your repro to make the bug happen? Clear and concise reproduction instructions are important for us to be able to triage your issue in a timely manner. Note that you can use [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#quoting-code) to format lists and code.
+      placeholder: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What is expected?
+    validations:
+      required: true
+  - type: textarea
+    id: actually-happening
+    attributes:
+      label: What is actually happening?
+    validations:
+      required: true
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: What browsers do you see the problem on?
+      multiple: true
+      options:
+        - Chrome
+        - Microsoft Edge
+        - Safari
+        - Firefox
+        - Vivaldi
+        - Brave
+        - Other
+  - type: textarea
+    id: additional-comments
+    attributes:
+      label: Any additional comments?
+      description: For example, provide some background/context on how you ran into this bug.

@@ -1,11 +1,7 @@
-export function open(element, scrollToTop) {
-    if (scrollToTop) {
-        const modalBody = element.querySelector('.modal-card-body');
+import { scrollModalBodyToTop } from "../Blazorise/modal.js?v=__BLAZORISE_VERSION__";
 
-        if (modalBody) {
-            modalBody.scrollTop = 0;
-        }
-    }
+export function open(element, scrollToTop) {
+    scrollModalBodyToTop(element, scrollToTop, ".modal-card-body");
 }
 
 export function close(element) {

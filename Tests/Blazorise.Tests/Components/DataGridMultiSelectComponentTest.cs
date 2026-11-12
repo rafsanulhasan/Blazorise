@@ -1,39 +1,35 @@
-﻿#region Using directives
-using System.Linq;
-using BasicTestApp.Client;
-using Blazorise.Tests.Helpers;
+#region Using directives
+using System.Threading.Tasks;
 using Bunit;
 using Xunit;
 #endregion
 
-namespace Blazorise.Tests.Components
-{
+namespace Blazorise.Tests.Components;
 
-    public class DataGridMultiSelectComponentTest : TestContext
+public class DataGridMultiSelectComponentTest : BunitContext
+{
+    public DataGridMultiSelectComponentTest()
     {
-        public DataGridMultiSelectComponentTest()
+        Services.AddBlazoriseTests().AddBootstrapProviders().AddEmptyIconProvider().AddTestData();
+        JSInterop.AddBlazoriseDataGrid();
+    }
+
+    [Fact]
+    public async Task MultipleSelectAll_Should_Select_Unselect_AllRows()
+    {
+        var comp = Render<DataGridMultiSelectComponent>();
+        await comp.Find( "input[type=checkbox]:first-child" ).ChangeAsync( "true" );
+        var allCheckbox = comp.FindAll( "input[type=checkbox]" );
+        foreach ( var checkbox in allCheckbox )
         {
-            BlazoriseConfig.AddBootstrapProviders( Services );
-            BlazoriseConfig.JSInterop.AddDataGrid( this.JSInterop );
+            Assert.NotNull( checkbox.GetAttribute( "checked" ) );
         }
 
-        [Fact]
-        public void MultipleSelectAll_Should_Select_Unselect_AllRows()
+        await comp.Find( "input[type=checkbox]:first-child" ).ChangeAsync( "false" );
+        allCheckbox = comp.FindAll( "input[type=checkbox]" );
+        foreach ( var checkbox in allCheckbox )
         {
-            var comp = RenderComponent<DataGridMultiSelectComponent>();
-            comp.Find( "input[type=checkbox]:first-child" ).Change( true );
-            var allCheckbox = comp.FindAll( "input[type=checkbox]" );
-            foreach ( var checkbox in allCheckbox )
-            {
-                Assert.NotNull( checkbox.GetAttribute( "checked" ) );
-            }
-
-            comp.Find( "input[type=checkbox]:first-child" ).Change( false );
-            allCheckbox = comp.FindAll( "input[type=checkbox]" );
-            foreach ( var checkbox in allCheckbox )
-            {
-                Assert.Null( checkbox.GetAttribute( "checked" ) );
-            }
+            Assert.Null( checkbox.GetAttribute( "checked" ) );
         }
     }
 }

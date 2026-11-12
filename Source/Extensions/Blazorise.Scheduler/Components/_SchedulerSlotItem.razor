@@ -1,0 +1,53 @@
+﻿@typeparam TItem
+@using Blazorise.Scheduler.Extensions
+@using Blazorise.Scheduler.Utilities
+@{
+    var itemStyling = GetItemStyling( ViewItem.Item );
+    var itemTemplate = Scheduler.ItemTemplate;
+
+    <Span Class="@GetItemClass( itemStyling.Class )" Style="@GetItemStyle( ViewItem, ItemIndex, TotalItems, itemStyling.Style )" Position="PositionAbsolute" Border="BorderRounded" Background="@GetItemBackground( itemStyling )" TextColor="@itemStyling.TextColor" TextAlignment="@itemStyling.TextAlignment" TextTransform="@itemStyling.TextTransform" TextDecoration="@itemStyling.TextDecoration" TextWeight="@itemStyling.TextWeight" TextSize="@itemStyling.TextSize" Flex="FlexJustifyContentBetweenAlignItemsStart" Padding="PaddingIs1" TextOverflow="@(itemStyling.TextOverflow ?? TextOverflow.Truncate)" Overflow="Overflow.Hidden" @onclick:stopPropagation @onmousedown:stopPropagation draggable="@DraggableAttribute" @ondragstart="@OnDragStart">
+        @if ( itemTemplate is not null )
+        {
+            @itemTemplate( new SchedulerItemContext<TItem>( ViewItem.Item, ViewItem.IsRecurring ) )
+        }
+        else
+        {
+            @if ( ViewItem.IsRecurring )
+            {
+                <Span>
+                    <Icon Name="IconName.Sync" />
+                </Span>
+            }
+            <Span @onclick="@(() => OnEditItemClicked( ViewItem ))" TextOverflow="@(itemStyling.TextOverflow ?? TextOverflow.Truncate)" Overflow="Overflow.Hidden" Width="WidthIs100" Height="HeightIs100">
+                @Scheduler?.GetItemTitle( ViewItem.Item )
+                @foreach ( var column in Scheduler.DisplayableColumns )
+                {
+                    var displayTemplate = column.RenderDisplay( ViewItem.Item, ViewItem.IsRecurring );
+
+                    if ( displayTemplate is not null )
+                    {
+                        @displayTemplate
+                    }
+                }
+            </Span>
+            @if ( Scheduler.Commands?.DeleteCommandAllowed != false )
+            {
+                @if ( Scheduler.Commands?.DeleteCommandTemplate is not null )
+                {
+                    @Scheduler.Commands.DeleteCommandTemplate( new SchedulerDeleteCommandContext<TItem>
+                    {
+                        Item = ViewItem.Item,
+                        Clicked = EventCallback.Factory.Create( this, () => OnDeleteItemClicked( ViewItem ) ),
+                        LocalizationString = Localizer.Localize( Scheduler.Localizers?.DeleteLocalizer, LocalizationConstants.Delete ),
+                    } )
+                }
+                else
+                {
+                    <Span @onclick="@(() => OnDeleteItemClicked( ViewItem ))" Padding="PaddingIs1">
+                        <Icon Name="IconName.Delete" />
+                    </Span>
+                }
+            }
+        }
+    </Span>
+}

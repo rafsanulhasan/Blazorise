@@ -1,0 +1,123 @@
+@page "/docs/extensions/datagrid/features/filtering"
+
+<Seo Canonical="/docs/extensions/datagrid/features/filtering" Title="Blazorise DataGrid Filtering" Description="Learn Blazorise by the example. Quickly search and filter by any column, or customize filter options to fit your needs." />
+
+<DocsPageTitle Path="Extensions/DataGrid/Features/Filtering">
+    Blazorise DataGrid: Filtering
+</DocsPageTitle>
+
+<DocsPageLead>
+    Help users find relevant records quickly, from a single name to a combination of dates, categories, and other criteria.
+</DocsPageLead>
+
+<DocsPageSectionTitle>
+    Overview
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Column filters make everyday searches easy, while menus and custom controls support more specific questions. Combining criteria helps users narrow a large dataset to the records they need.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Filtering">
+        <Paragraph>
+            Find matching records without leaving the grid. Filters beneath each heading let users narrow the list by the values they recognize, such as a name or city.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DataGridFilterExample" FullWidth Outlined AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridFilterExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Column Filtering">
+        <Paragraph>
+            Per-column filtering lets each field use the matching rule that suits its data. Users can combine partial text searches in one column with exact matches in another to narrow results more precisely.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DataGridColumnFilteringExample" FullWidth Outlined AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridColumnFilteringExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Menu filtering">
+        <Paragraph>
+            Keep the grid compact while giving users more control over their search. Column menus offer comparisons such as exact matches and numeric ranges without keeping every filter visible.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DataGridFilterModeColumnFilteringExample" FullWidth Outlined AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridFilterModeColumnFilteringExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Date-only filtering" AddedVersion="2.5" AddedDate="2026-10-28">
+        <Paragraph>
+            Date-only filtering lets users search by calendar date even when the underlying values include a time.
+            It removes the need to match an exact timestamp while preserving the original date and time values.
+        </Paragraph>
+        <Paragraph>
+            Timestamps on the same day compare equally, and date ranges include the whole start and end days.
+            This makes date searches useful for reporting periods, transaction histories, and other data where the day matters more than the precise time.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DataGridDateRangeFilteringExample" FullWidth Outlined CopyFullExample>
+        <DataGridDateRangeFilteringExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Deferred filtering" AddedVersion="2.5" AddedDate="2026-10-28">
+        <Paragraph>
+            Deferred filtering lets users prepare several criteria and apply them together. Pending edits do not affect the current search, and paging and sorting continue to use the last applied criteria.
+        </Paragraph>
+        <Paragraph>
+            This gives users control over when results change and reduces repeated requests for server-loaded data, avoiding unnecessary work and loading interruptions while a search is still being prepared.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DataGridDeferredFilteringExample" FullWidth Outlined AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridDeferredFilteringExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Filter template">
+        <Paragraph>
+            Filter templates give you control over filter inputs and their layout. Controls suited to the data make search criteria easier to enter and fit the filtering experience to the user's workflow.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DataGridFilterModeColumnTemplateFilteringExample" FullWidth Outlined AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridFilterModeColumnTemplateFilteringExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom Filtering">
+        <Paragraph>
+            Custom filtering supports application-specific matching rules beyond the built-in comparisons. It can consider several fields together or apply business rules to determine which records appear in the results.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DataGridCustomFilteringExample" FullWidth Outlined AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridCustomFilteringExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Column filter">
+        <Paragraph>
+            Custom column filters give individual fields their own matching logic and input controls. They let users search through meaningful categories or choices while the application handles the underlying comparisons.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DataGridCustomColumnFilteringExample" FullWidth Outlined AdditionalCodes="@DocsCodeSources.DataGridSharedData" CopyFullExample>
+        <DataGridCustomColumnFilteringExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/extensions/datagrid/api" Name="<DataGrid />" />
+</DocsPageApi>

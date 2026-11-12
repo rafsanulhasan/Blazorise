@@ -1,0 +1,104 @@
+﻿@using System.Globalization
+
+<Card Class="b-pricing-card" Border="Border.Rounded" Shadow="Shadow.Small" Height="Height.Is100" TextAlignment="TextAlignment.Start">
+    <CardBody Padding="Padding.Is4" Display="Display.Flex" Flex="Flex.Column">
+        <Heading Size="HeadingSize.Is3" TextSize="TextSize.Heading4" Margin="Margin.Is2.FromBottom" TextWeight="TextWeight.SemiBold" TextColor="@TextAccentColor">
+            @PlanName
+        </Heading>
+        <Paragraph TextColor="TextColor.Muted" Margin="Margin.Is4.FromBottom">
+            @PlanDescription
+        </Paragraph>
+        @if ( ShowPlan )
+        {
+            <Div Margin="Margin.Is4.FromBottom">
+                <Paragraph TextSize="TextSize.Heading2" TextWeight="TextWeight.Bold" Margin="Margin.Is1.FromBottom">
+                    @if ( PlanPrice > 0 )
+                    {
+                        <Span>@CurrencySymbol</Span><Span>@TotalPlanPriceString</Span>
+                    }
+                    else
+                    {
+                        @TotalPlanPriceString
+                    }
+                </Paragraph>
+                @if ( PlanPrice > 0 )
+                {
+                    <Paragraph TextColor="TextColor.Muted" TextSize="TextSize.Small" Margin="Margin.Is0">
+                        @CurrencyCode / @PlanUnit for @Quantity @( Quantity == 1 ? "developer" : "developers" )
+                    </Paragraph>
+                    @if ( ShowHigherPlan && ShowDiscount )
+                    {
+                        <Div Flex="Flex.AlignItems.Center.Wrap" Gap="Gap.Is2" Margin="Margin.Is2.FromTop">
+                            <Span TextSize="TextSize.Small" TextColor="TextColor.Muted" TextDecoration="TextDecoration.LineThrough">@($"{CurrencySymbol}{TotalHigherPlanPriceString}")</Span>
+                            <Badge Color="Color.Success" Subtle Pill>Save @PercentageDiscountString annually</Badge>
+                        </Div>
+                    }
+                }
+                else
+                {
+                    <Paragraph TextColor="TextColor.Muted" TextSize="TextSize.Small" Margin="Margin.Is0">
+                        @( PlanPrice == 0 ? "For eligible individual developers" : "A tailored plan for your organization" )
+                    </Paragraph>
+                }
+            </Div>
+        }
+        <Divider />
+        @if ( IncludesContent is not null )
+        {
+            <Div TextWeight="TextWeight.SemiBold" TextSize="TextSize.Small" Margin="Margin.Is3.FromBottom">
+                @IncludesContent
+            </Div>
+        }
+        @ChildContent
+        @if ( ButtonContent is not null )
+        {
+            <Div Margin="Margin.IsAuto.FromTop" Padding="Padding.Is4.FromTop">
+                @ButtonContent
+            </Div>
+        }
+    </CardBody>
+</Card>
+
+@code {
+    private string TotalPlanPriceString => PlanPrice switch
+    {
+        0 => "Free",
+        -1 => "Custom",
+        _ => ( PlanPrice * Quantity ).ToString( "N0", CultureInfo.InvariantCulture )
+    };
+
+    private string TotalHigherPlanPriceString
+        => ShowHigherPlan ? ( HigherPlanPrice * Quantity ).ToString( "N0", CultureInfo.InvariantCulture ) : null;
+
+    private decimal HigherPlanPrice => ( PlanPrice * 12 ) / 10;
+
+    private string PercentageDiscountString => $"{( 100 - ( ( PlanPrice / HigherPlanPrice ) * 100 ) ).ToString( "F0", CultureInfo.InvariantCulture )}%";
+
+    [Parameter] public string PlanName { get; set; }
+
+    [Parameter] public string PlanDescription { get; set; }
+
+    [Parameter] public bool ShowPlan { get; set; }
+
+    [Parameter] public bool ShowHigherPlan { get; set; }
+
+    [Parameter] public bool ShowDiscount { get; set; }
+
+    [Parameter] public decimal Quantity { get; set; }
+
+    [Parameter] public decimal PlanPrice { get; set; }
+
+    [Parameter] public string PlanUnit { get; set; }
+
+    [Parameter] public string CurrencySymbol { get; set; }
+
+    [Parameter] public string CurrencyCode { get; set; }
+
+    [Parameter] public TextColor TextAccentColor { get; set; }
+
+    [Parameter] public RenderFragment ButtonContent { get; set; }
+
+    [Parameter] public RenderFragment IncludesContent { get; set; }
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+}

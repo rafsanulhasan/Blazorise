@@ -1,0 +1,13 @@
+@inherits DocsTocComponent
+
+<Heading ElementId="@HeadingElementId" Size="@Size" Margin="@Margin">
+    @TocContent
+</Heading>
+
+@code {
+    protected override int TocLevel => (int)Size + 1;
+
+    [Parameter] public HeadingSize Size { get; set; } = HeadingSize.Is3;
+
+    [Parameter] public IFluentSpacing Margin { get; set; }
+}

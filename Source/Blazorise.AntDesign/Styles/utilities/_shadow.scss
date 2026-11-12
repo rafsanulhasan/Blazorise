@@ -1,0 +1,7 @@
+﻿@each $name, $value in $shadow-values {
+    $suffix: if($name == default, "", "-#{$name}");
+
+    .ant-shadow#{$suffix} {
+        box-shadow: $value !important;
+    }
+}

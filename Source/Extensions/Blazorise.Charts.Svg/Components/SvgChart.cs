@@ -1,0 +1,3524 @@
+#region Using directives
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text.Encodings.Web;
+using System.Threading.Tasks;
+using Blazorise.Extensions;
+using Blazorise.Licensing;
+using Blazorise.Utilities;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
+using static Blazorise.Charts.Svg.SvgChartGeometry;
+using static Blazorise.Charts.Svg.SvgChartOptionsMapper;
+using static Blazorise.Charts.Svg.SvgChartTextRenderer;
+using static Blazorise.Charts.Svg.SvgChartZoomController;
+#endregion
+
+namespace Blazorise.Charts.Svg;
+
+/// <summary>
+/// Renders a native SVG chart.
+/// </summary>
+/// <typeparam name="TItem">The chart item type.</typeparam>
+[CascadingTypeParameter( nameof( TItem ) )]
+public class SvgChart<TItem> : SvgChartBase
+{
+    #region Members
+
+    private readonly List<object> seriesComponents = [];
+
+    private readonly List<object> categoryAxisComponents = [];
+
+    private readonly List<SvgChartValueAxis> valueAxisComponents = [];
+
+    private readonly List<SvgChartTitle> titleComponents = [];
+
+    private readonly List<SvgChartLegend> legendComponents = [];
+
+    private readonly List<SvgChartTooltip> tooltipComponents = [];
+
+    private readonly List<ISvgChartPlugin> pluginComponents = [];
+
+    private static readonly TimeSpan PanRenderInterval = TimeSpan.FromMilliseconds( 16 );
+
+    private static readonly IReadOnlyList<ISvgChartSeriesRenderer> BuiltInSeriesRenderers =
+    [
+        new SvgChartAreaSeriesRenderer(),
+        new SvgChartColumnSeriesRenderer(),
+        new SvgChartBarSeriesRenderer(),
+        new SvgChartLineSeriesRenderer(),
+        new SvgChartPointSeriesRenderer(),
+        new SvgChartRadialSeriesRenderer(),
+        new SvgChartRadarSeriesRenderer()
+    ];
+
+    private readonly HashSet<string> hiddenSeries = [];
+
+    private readonly HashSet<string> hiddenDataPoints = [];
+
+    private readonly Dictionary<(int SeriesIndex, string SeriesName, int PointIndex), SvgChartPointInteraction> pointInteractions = [];
+
+    private readonly HashSet<(int SeriesIndex, SvgChartType Type, string Name)> materializedSeries = [];
+
+    private readonly Dictionary<(int SeriesIndex, int PointIndex), SvgChartDataPointOverride> dataPointOverrides = [];
+
+    private SvgChartData<double?> internalChartData;
+
+    private SvgChartTooltipContext activeTooltip;
+
+    private bool tooltipInitialized;
+
+    private string activeTooltipKey;
+
+    private IReadOnlyDictionary<string, SvgChartPointBounds> previousAnimationPointBounds = new Dictionary<string, SvgChartPointBounds>();
+
+    private IReadOnlyDictionary<string, string> previousAnimationPathValues = new Dictionary<string, string>();
+
+    private bool activeTooltipPinned;
+
+    private bool renderedOnce;
+
+    private int animationVersion;
+
+    private bool streamingPaused;
+
+    private int streamingAnimationVersion;
+
+    private bool runStreamingAnimationAfterRender;
+
+    private bool panning;
+
+    private double panStartClientX;
+
+    private double panStartClientY;
+
+    private SvgChartViewport panStartViewport;
+
+    private SvgChartViewport panLastViewport;
+
+    private SvgChartViewport panRenderedViewport;
+
+    private SvgChartViewport panFullViewport;
+
+    private SvgChartPlotArea panPlot;
+
+    private SvgChartZoomOptions panZoom;
+
+    private DateTimeOffset lastPanRender = DateTimeOffset.MinValue;
+
+    private SvgChartDataDragState dataDragState;
+
+    private DotNetObjectReference<SvgChartDataDragAdapter<TItem>> dataDragDotNetRef;
+
+    private bool dataDragInitialized;
+
+    private SvgChartViewport internalViewport;
+
+    private IJSObjectReference jsModule;
+
+    private bool zoomWheelInitialized;
+
+    private DateTimeOffset lastStreamingRender = DateTimeOffset.MinValue;
+
+    private bool isSurfacePannable;
+
+    private bool isSurfaceDataDragEnabled;
+
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// A default <see cref="SvgChart{TItem}"/> constructor.
+    /// </summary>
+    public SvgChart()
+    {
+        SurfaceClassBuilder = new( BuildSurfaceClasses );
+    }
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc />
+    protected override void BuildClasses( ClassBuilder builder )
+    {
+        builder.Append( "svg-chart" );
+
+        base.BuildClasses( builder );
+    }
+
+    /// <summary>
+    /// Builds the class names for the SVG surface element.
+    /// </summary>
+    /// <param name="builder">Class builder used to append the class names.</param>
+    private void BuildSurfaceClasses( ClassBuilder builder )
+    {
+        builder.Append( "svg-chart-surface" );
+        builder.Append( "svg-chart-pannable", isSurfacePannable );
+        builder.Append( "svg-chart-data-drag-enabled", isSurfaceDataDragEnabled );
+    }
+
+    /// <inheritdoc/>
+    protected override void DirtyClasses()
+    {
+        SurfaceClassBuilder.Dirty();
+
+        base.DirtyClasses();
+    }
+
+    /// <inheritdoc/>
+    public override Task SetParametersAsync( ParameterView parameters )
+    {
+        parameters.TryGetParameter( Type, out var paramType );
+        parameters.TryGetParameter( Items, out var paramItems );
+        parameters.TryGetParameter( Data, out var paramData );
+        parameters.TryGetParameter( Animation, out var paramAnimation );
+
+        if ( paramType.Changed || paramItems.Changed || paramData.Changed || paramAnimation.Changed )
+        {
+            ClearTooltip();
+        }
+
+        if ( paramType.Changed || paramItems.Changed || paramData.Changed )
+        {
+            dataPointOverrides.Clear();
+            dataDragState = null;
+        }
+
+        if ( paramType.Changed || paramAnimation.Changed )
+        {
+            previousAnimationPointBounds = new Dictionary<string, SvgChartPointBounds>();
+            previousAnimationPathValues = new Dictionary<string, string>();
+            animationVersion = 0;
+        }
+
+        if ( paramData.Changed )
+        {
+            internalChartData = null;
+        }
+
+        return base.SetParametersAsync( parameters );
+    }
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree( RenderTreeBuilder builder )
+    {
+        var sequence = 0;
+
+        builder.OpenComponent<CascadingValue<SvgChartBase>>( sequence++ );
+        builder.AddAttribute( sequence++, "Value", this );
+        builder.AddAttribute( sequence++, "IsFixed", true );
+        builder.AddAttribute( sequence++, "ChildContent", ChildContent );
+        builder.CloseComponent();
+
+        builder.OpenComponent<SvgChartContent>( sequence++ );
+        builder.AddAttribute( sequence++, nameof( SvgChartContent.ChildContent ), (RenderFragment)BuildChartContent );
+        builder.CloseComponent();
+    }
+
+    private void BuildChartContent( RenderTreeBuilder builder )
+    {
+        var sequence = 0;
+        var model = BuildModel();
+        var options = ResolveOptions();
+        var legend = ResolveLegend( options );
+        var title = ResolveTitleOptions( options, titleComponents );
+        var subtitle = ResolveSubtitleOptions( options, titleComponents );
+        var hasTopLegend = legend.Visible && legend.Position == SvgChartLegendPosition.Top;
+        var hasBottomLegend = legend.Visible && legend.Position == SvgChartLegendPosition.Bottom;
+        var plot = BuildPlotArea( options, title, subtitle, legend, model );
+        var streamingAnimation = ResolveStreamingAnimation( model, plot );
+        var chartAnimation = dataDragState is null ? ResolveAnimation( options, streamingAnimation.Enabled ) : new SvgChartResolvedAnimation();
+        var currentAnimationPointBounds = new Dictionary<string, SvgChartPointBounds>();
+        var currentAnimationPathValues = new Dictionary<string, string>();
+        var pluginContext = CreatePluginRenderContext( model, plot );
+        var dataDrag = ResolveDataDrag( options );
+
+        if ( ResolveStreaming().Enabled )
+            dataDrag.Enabled = false;
+
+        var seriesRendererContext = new SvgChartSeriesRendererContext(
+            pluginContext,
+            chartAnimation,
+            previousAnimationPointBounds,
+            currentAnimationPointBounds,
+            previousAnimationPathValues,
+            currentAnimationPathValues,
+            pointInteractions,
+            materializedSeries,
+            model.Tooltip?.Enabled == true && !model.Tooltip.Intersect,
+            dataDrag,
+            ResolveCategoryFormatterKey( model ),
+            ( value, index ) => FormatCategory( model, value, index ) );
+
+        var zoom = model.Zoom;
+
+        UpdateSurfaceClasses( zoom?.Enabled == true && zoom.Pan, dataDrag.Enabled );
+
+        runStreamingAnimationAfterRender = streamingAnimation.Enabled;
+
+        builder.OpenElement( sequence++, "div" );
+        builder.AddMultipleAttributes( sequence++, Attributes );
+        builder.AddAttribute( sequence++, "id", ElementId );
+        builder.AddAttribute( sequence++, "class", ClassNames );
+        builder.AddAttribute( sequence++, "style", StyleNames );
+        builder.AddElementReferenceCapture( sequence++, elementRef => ElementRef = elementRef );
+
+        builder.OpenElement( sequence++, "div" );
+        builder.AddAttribute( sequence++, "style", options.Responsive
+            ? "position:relative;"
+            : $"position:relative;width:{Format( options.Width )}px;" );
+
+        builder.OpenElement( sequence++, "svg" );
+        builder.AddAttribute( sequence++, "xmlns", "http://www.w3.org/2000/svg" );
+        builder.AddAttribute( sequence++, "class", SurfaceClassNames );
+        builder.AddAttribute( sequence++, "draggable", "false" );
+        builder.AddAttribute( sequence++, "role", ResolveAccessibilityRole() );
+        builder.AddAttribute( sequence++, "aria-label", ResolveAccessibilityLabel( title ) );
+        builder.AddAttribute( sequence++, "viewBox", $"0 0 {Format( options.Width )} {Format( options.Height )}" );
+        builder.AddAttribute( sequence++, "style", ResolveSvgStyle( options, zoom, panning ) );
+
+        if ( TabIndex.HasValue )
+            builder.AddAttribute( sequence++, "tabindex", TabIndex.Value );
+
+        if ( zoom.Enabled && !IsRadialChart( model ) )
+        {
+            if ( zoom.Wheel )
+            {
+                builder.AddAttribute( sequence++, "onwheel", EventCallback.Factory.Create<WheelEventArgs>( this, HandleChartWheel ) );
+                builder.AddAttribute( sequence++, "onwheel:preventDefault", true );
+                builder.AddAttribute( sequence++, "onwheel:stopPropagation", true );
+            }
+
+            if ( zoom.Pan )
+            {
+                builder.AddAttribute( sequence++, "onmousedown", EventCallback.Factory.Create<MouseEventArgs>( this, HandleChartMouseDown ) );
+                builder.AddAttribute( sequence++, "onmousemove", EventCallback.Factory.Create<MouseEventArgs>( this, HandleChartMouseMove ) );
+                builder.AddAttribute( sequence++, "onmouseup", EventCallback.Factory.Create<MouseEventArgs>( this, HandleChartMouseUp ) );
+                builder.AddAttribute( sequence++, "onmouseleave", EventCallback.Factory.Create<MouseEventArgs>( this, HandleChartMouseLeave ) );
+                builder.AddAttribute( sequence++, "onmousedown:preventDefault", true );
+                builder.AddAttribute( sequence++, "onmousemove:preventDefault", true );
+            }
+        }
+
+        SvgChartRenderHelpers.AddFontFamilyAttribute( builder, ref sequence, options.Font?.Family );
+
+        RenderAccessibilityText( builder, ref sequence, model );
+        RenderFocusStyles( builder, ref sequence );
+        RenderPlugins( builder, ref sequence, pluginContext, SvgChartRenderLayer.Background );
+
+        SvgChartTextRenderer.Render( builder, ref sequence, options, title, subtitle );
+
+        if ( hasTopLegend )
+            SvgChartLegendRenderer.Render( builder, ref sequence, model, options, legend, title, subtitle, this, ToggleSeries, ToggleDataPoint, IsDataPointHidden );
+
+        if ( IsBarChart( model ) )
+            SvgChartAxesRenderer.RenderHorizontalGridAndAxes( builder, ref sequence, model, plot );
+        else if ( !IsRadialChart( model ) )
+            SvgChartAxesRenderer.RenderGridAndAxes( builder, ref sequence, model, plot, streamingAnimation, GetPlotClipPathId(), GetCategoryAxisLabelsClipPathId() );
+
+        if ( !IsRadialChart( model ) )
+            RenderPlotClipPath( builder, ref sequence, plot, options );
+
+        RenderTooltipHitRegions( builder, ref sequence, model, plot );
+
+        if ( !IsBarChart( model ) && !IsRadialChart( model ) && streamingAnimation.Enabled )
+            SvgChartAxesRenderer.RenderCategoryAxisLabels( builder, ref sequence, model, plot, streamingAnimation, GetCategoryAxisLabelsClipPathId() );
+
+        if ( IsRadialChart( model ) )
+        {
+            RenderSeriesCore( builder, ref sequence, seriesRendererContext, static series => IsRadialChart( series.Type ) );
+            RenderPlugins( builder, ref sequence, pluginContext, SvgChartRenderLayer.SeriesOverlay );
+        }
+
+        if ( !IsRadialChart( model ) )
+            RenderCartesianSeries( builder, ref sequence, model, streamingAnimation, pluginContext, seriesRendererContext );
+
+        if ( hasBottomLegend )
+            SvgChartLegendRenderer.Render( builder, ref sequence, model, options, legend, title, subtitle, this, ToggleSeries, ToggleDataPoint, IsDataPointHidden );
+
+        RenderPlugins( builder, ref sequence, pluginContext, SvgChartRenderLayer.InteractionOverlay );
+        RenderPlugins( builder, ref sequence, pluginContext, SvgChartRenderLayer.Tooltip );
+
+        builder.CloseElement();
+        RenderActiveTooltip( builder, ref sequence, model );
+        builder.CloseElement();
+        builder.CloseElement();
+
+        previousAnimationPointBounds = currentAnimationPointBounds;
+        previousAnimationPathValues = currentAnimationPathValues;
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync( bool firstRender )
+    {
+        var options = ResolveOptions();
+        var zoom = ResolveZoom( options );
+        var dataDrag = ResolveDataDrag( options );
+        var shouldPreventWheelScroll = zoom.Enabled && zoom.Wheel;
+        var shouldInitializeDataDrag = dataDrag.Enabled && !ResolveStreaming().Enabled;
+        var shouldRunAnimations = ShouldRunAnimations();
+        var shouldRunStreamingAnimations = runStreamingAnimationAfterRender;
+
+        if ( shouldPreventWheelScroll && !zoomWheelInitialized )
+        {
+            jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>( "import", "./_content/Blazorise.Charts.Svg/svgChart.js" );
+            await jsModule.InvokeVoidAsync( "initializeZoomWheel", ElementRef );
+            zoomWheelInitialized = true;
+        }
+        else if ( !shouldPreventWheelScroll && zoomWheelInitialized )
+        {
+            await DestroyZoomWheel();
+        }
+
+        if ( shouldInitializeDataDrag && !dataDragInitialized )
+        {
+            await DocumentObserver.EnsureInitializedAsync();
+            jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>( "import", "./_content/Blazorise.Charts.Svg/svgChart.js" );
+            dataDragDotNetRef ??= DotNetObjectReference.Create( new SvgChartDataDragAdapter<TItem>( this ) );
+            await jsModule.InvokeVoidAsync( "initializeDataDrag", ElementRef, dataDragDotNetRef );
+            dataDragInitialized = true;
+        }
+        else if ( !shouldInitializeDataDrag && dataDragInitialized )
+        {
+            await DestroyDataDrag();
+        }
+
+        if ( shouldRunAnimations )
+        {
+            jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>( "import", "./_content/Blazorise.Charts.Svg/svgChart.js" );
+            await jsModule.InvokeVoidAsync( "runAnimations", ElementRef );
+        }
+
+        if ( shouldRunStreamingAnimations )
+        {
+            jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>( "import", "./_content/Blazorise.Charts.Svg/svgChart.js" );
+            await jsModule.InvokeVoidAsync( "runStreamingAnimations", ElementRef );
+        }
+
+        if ( activeTooltip is not null )
+        {
+            jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>( "import", "./_content/Blazorise.Charts.Svg/svgChart.js" );
+            await jsModule.InvokeVoidAsync( "updateTooltip", ElementRef );
+            tooltipInitialized = true;
+        }
+        else if ( tooltipInitialized )
+        {
+            await jsModule.InvokeVoidAsync( "destroyTooltip", ElementRef );
+            tooltipInitialized = false;
+        }
+
+        renderedOnce = true;
+
+        await base.OnAfterRenderAsync( firstRender );
+    }
+
+    /// <inheritdoc/>
+    protected override async ValueTask DisposeAsync( bool disposing )
+    {
+        if ( disposing )
+        {
+            await DestroyDataDrag( true );
+            await DestroyZoomWheel();
+
+            if ( jsModule is not null )
+            {
+                try
+                {
+                    if ( tooltipInitialized )
+                    {
+                        await jsModule.InvokeVoidAsync( "destroyTooltip", ElementRef );
+                        tooltipInitialized = false;
+                    }
+
+                    await jsModule.InvokeVoidAsync( "destroyAnimations", ElementRef );
+                    await jsModule.DisposeAsync();
+                }
+                catch ( JSDisconnectedException )
+                {
+                }
+
+                jsModule = null;
+            }
+
+            dataDragDotNetRef?.Dispose();
+            dataDragDotNetRef = null;
+        }
+
+        await base.DisposeAsync( disposing );
+    }
+
+    private async ValueTask DestroyZoomWheel()
+    {
+        if ( jsModule is null || !zoomWheelInitialized )
+            return;
+
+        try
+        {
+            await jsModule.InvokeVoidAsync( "destroyZoomWheel", ElementRef );
+        }
+        catch ( JSDisconnectedException )
+        {
+        }
+
+        zoomWheelInitialized = false;
+    }
+
+    private async ValueTask DestroyDataDrag( bool disposing = false )
+    {
+        if ( jsModule is null || !dataDragInitialized )
+            return;
+
+        if ( dataDragState is not null && !disposing )
+            await HandleDataDragEnd( true );
+        else if ( disposing )
+            dataDragState = null;
+
+        try
+        {
+            await jsModule.InvokeVoidAsync( "destroyDataDrag", ElementRef );
+        }
+        catch ( JSDisconnectedException )
+        {
+        }
+
+        dataDragInitialized = false;
+    }
+
+    private static void RenderFocusStyles( RenderTreeBuilder builder, ref int sequence )
+    {
+        builder.OpenElement( sequence++, "style" );
+        builder.AddContent( sequence++, ".svg-chart-surface [tabindex]:focus{outline:none;}.svg-chart-surface [data-svg-chart-animation-initial='true']{visibility:hidden;}.svg-chart-surface.svg-chart-pannable,.svg-chart-surface.svg-chart-pannable *,.svg-chart-surface.svg-chart-data-drag-enabled,.svg-chart-surface.svg-chart-data-drag-enabled *{user-select:none;-webkit-user-select:none;-webkit-user-drag:none;}" );
+        builder.CloseElement();
+    }
+
+    private static string ResolveSvgStyle( SvgChartOptions options, SvgChartZoomOptions zoom, bool panning )
+    {
+        var style = options.Responsive
+            ? "display:block;width:100%;height:auto;overflow:visible;"
+            : $"display:block;width:{Format( options.Width )}px;height:{Format( options.Height )}px;overflow:visible;";
+
+        if ( zoom?.Enabled == true )
+            style += "touch-action:none;";
+
+        if ( zoom?.Enabled == true && zoom.Wheel )
+            style += "overscroll-behavior:contain;";
+
+        if ( zoom?.Enabled == true && zoom.Pan )
+            style += panning ? "cursor:grabbing;" : "cursor:grab;";
+
+        return style;
+    }
+
+    private void UpdateSurfaceClasses( bool isPannable, bool isDataDragEnabled )
+    {
+        if ( isSurfacePannable == isPannable && isSurfaceDataDragEnabled == isDataDragEnabled )
+            return;
+
+        isSurfacePannable = isPannable;
+        isSurfaceDataDragEnabled = isDataDragEnabled;
+        SurfaceClassBuilder.Dirty();
+    }
+
+    private SvgChartPluginRenderContext CreatePluginRenderContext( SvgChartRenderModel model, SvgChartPlotArea plot )
+    {
+        var pointXScale = ResolvePointXScale( model );
+
+        return new(
+            model.Type,
+            model.Options,
+            new()
+            {
+                Left = plot.Left,
+                Top = plot.Top,
+                Right = plot.Right,
+                Bottom = plot.Bottom
+            },
+            model.Labels,
+            model.Series.Select( x => new SvgChartPluginSeries
+            {
+                Name = x.Name,
+                Type = x.Type,
+                Values = x.Values,
+                XValues = x.XValues,
+                YValues = x.YValues,
+                RadiusValues = x.RadiusValues,
+                Color = x.RenderColor,
+                PointColors = x.PointColors,
+                Hidden = x.Hidden,
+                Draggable = x.Draggable,
+                Order = x.Order,
+                CategoryAxisId = x.CategoryAxisId,
+                ValueAxisId = x.ValueAxisId,
+                Stack = x.Stack,
+                StackBaseValues = x.StackBaseValues,
+                StackEndValues = x.StackEndValues,
+                BorderRadius = x.BorderRadius,
+                StrokeWidth = x.StrokeWidth,
+                OutlineColor = x.OutlineColor,
+                OutlineStrokeWidth = x.OutlineStrokeWidth,
+                OutlineOpacity = x.OutlineOpacity,
+                MarkerRadius = x.MarkerRadius,
+                FillOpacity = x.FillOpacity,
+                Interpolation = x.Interpolation,
+                Tension = x.Tension
+            } ).ToList(),
+            IsRadialChart( model ),
+            model.Min,
+            model.Max,
+            valueAxisId => ResolveValueAxis( model, valueAxisId ).Min,
+            valueAxisId => ResolveValueAxis( model, valueAxisId ).Max,
+            GetCategorySlotCount( model ),
+            model.CategoryScaleKind,
+            this,
+            ( value, categoryAxisId ) => GetCategoryX( (int)Math.Round( value, MidpointRounding.AwayFromZero ), plot, model ),
+            ( value, categoryAxisId ) => GetCategoryBoundaryX( value, plot, model ),
+            ( value, valueAxisId ) =>
+            {
+                if ( pointXScale is not null )
+                    return GetX( value, plot, pointXScale.Min, pointXScale.Max );
+
+                var axis = ResolveValueAxis( model, valueAxisId );
+
+                return GetX( value, plot, axis.Min, axis.Max );
+            },
+            ( value, valueAxisId ) =>
+            {
+                var axis = ResolveValueAxis( model, valueAxisId );
+
+                return GetX( value, plot, axis.Min, axis.Max );
+            },
+            ( value, valueAxisId ) => GetY( value, plot, ResolveValueAxis( model, valueAxisId ) ),
+            ( value, fallback ) => ResolveAnnotationX( model, plot, value, pointXScale, fallback ),
+            ( value, valueAxisId, fallback ) => ResolveAnnotationY( model, plot, value, valueAxisId, fallback ),
+            IsDataPointHidden,
+            HandlePointClicked,
+            HandlePointHovered,
+            HandleDataLabelClicked,
+            HandleDataLabelHovered,
+            HandlePointLeft,
+            ShowTooltip,
+            () => InvokeAsync( StateHasChanged ) );
+    }
+
+    private void RenderPlugins( RenderTreeBuilder builder, ref int sequence, SvgChartPluginRenderContext context, SvgChartRenderLayer layer )
+    {
+        var plugins = ResolveRenderablePlugins( context.Options )
+            .Where( x => x.RendersContent && x.Layer == layer )
+            .OrderBy( ResolvePluginOrder )
+            .ToList();
+
+        if ( plugins.Count == 0 )
+            return;
+
+        builder.OpenElement( sequence++, "g" );
+        builder.AddAttribute( sequence++, "class", $"svg-chart-plugins svg-chart-plugins-{layer.ToString().ToLowerInvariant()}" );
+
+        foreach ( var plugin in plugins )
+            plugin.Render( context, builder, ref sequence );
+
+        builder.CloseElement();
+    }
+
+    private List<ISvgChartPlugin> ResolveRenderablePlugins( SvgChartOptions options )
+    {
+        var result = new List<ISvgChartPlugin>();
+
+        if ( options.Annotations is not null )
+            result.AddRange( options.Annotations.Select( SvgChartAnnotationPluginFactory.Create ).Where( x => x is not null ) );
+
+        if ( options.Trendlines is not null )
+            result.AddRange( options.Trendlines.Select( SvgChartTrendline.Create ) );
+
+        if ( options.DataLabels?.Visible == true && !pluginComponents.OfType<SvgChartDataLabels>().Any() )
+            result.Add( SvgChartDataLabels.Create( options.DataLabels ) );
+
+        result.AddRange( pluginComponents.Select( plugin => plugin is SvgChartDataLabels dataLabels
+            ? SvgChartDataLabels.Create( options.DataLabels, dataLabels )
+            : plugin ) );
+
+        return result;
+    }
+
+    private static int ResolvePluginOrder( ISvgChartPlugin plugin )
+    {
+        return plugin switch
+        {
+            SvgChartLineAnnotation annotation => annotation.Order ?? 0,
+            SvgChartBoxAnnotation annotation => annotation.Order ?? 0,
+            SvgChartLabelAnnotation annotation => annotation.Order ?? 0,
+            SvgChartPointAnnotation annotation => annotation.Order ?? 0,
+            SvgChartEllipseAnnotation annotation => annotation.Order ?? 0,
+            SvgChartTrendline trendline => trendline.Order ?? 0,
+            _ => 0
+        };
+    }
+
+    private void RenderPlotClipPath( RenderTreeBuilder builder, ref int sequence, SvgChartPlotArea plot, SvgChartOptions options )
+    {
+        builder.OpenElement( sequence++, "defs" );
+        builder.OpenElement( sequence++, "clipPath" );
+        builder.AddAttribute( sequence++, "id", GetPlotClipPathId() );
+
+        builder.OpenElement( sequence++, "rect" );
+        builder.AddAttribute( sequence++, "x", Format( plot.Left + 0.5 ) );
+        builder.AddAttribute( sequence++, "y", Format( plot.Top ) );
+        builder.AddAttribute( sequence++, "width", Format( Math.Max( 0, plot.Width - 0.5 ) ) );
+        builder.AddAttribute( sequence++, "height", Format( plot.Height ) );
+        builder.CloseElement();
+
+        builder.CloseElement();
+
+        builder.OpenElement( sequence++, "clipPath" );
+        builder.AddAttribute( sequence++, "id", GetCategoryAxisLabelsClipPathId() );
+
+        builder.OpenElement( sequence++, "rect" );
+        builder.AddAttribute( sequence++, "x", Format( plot.Left + 0.5 ) );
+        builder.AddAttribute( sequence++, "y", Format( plot.Bottom ) );
+        builder.AddAttribute( sequence++, "width", Format( Math.Max( 0, plot.Width - 0.5 ) ) );
+        builder.AddAttribute( sequence++, "height", Format( Math.Max( 0, options.Height - plot.Bottom ) ) );
+        builder.CloseElement();
+
+        builder.CloseElement();
+        builder.CloseElement();
+    }
+
+    private void RenderCartesianSeries( RenderTreeBuilder builder, ref int sequence, SvgChartRenderModel model, SvgChartStreamingAnimation animation, SvgChartPluginRenderContext pluginContext, SvgChartSeriesRendererContext seriesRendererContext )
+    {
+        var clipped = animation.Enabled || model.Zoom?.Enabled == true;
+
+        if ( clipped )
+        {
+            builder.OpenElement( sequence++, "g" );
+            builder.AddAttribute( sequence++, "class", "svg-chart-streaming-viewport" );
+            builder.AddAttribute( sequence++, "clip-path", $"url(#{GetPlotClipPathId()})" );
+        }
+
+        if ( animation.Enabled )
+        {
+            builder.OpenElement( sequence++, "g" );
+            builder.SetKey( $"streaming-animation-{streamingAnimationVersion}" );
+            builder.AddAttribute( sequence++, "class", "svg-chart-streaming-content" );
+            builder.AddAttribute( sequence++, "style", ResolveStreamingAnimationStyle( animation ) );
+            AddStreamingAnimationAttributes( builder, ref sequence, animation );
+        }
+
+        RenderPlugins( builder, ref sequence, pluginContext, SvgChartRenderLayer.BeforeSeries );
+        RenderSeriesCore( builder, ref sequence, seriesRendererContext, static series => !IsRadialChart( series.Type ) );
+
+        RenderPlugins( builder, ref sequence, pluginContext, SvgChartRenderLayer.SeriesOverlay );
+
+        if ( animation.Enabled )
+        {
+            builder.CloseElement();
+        }
+
+        if ( clipped )
+        {
+            builder.CloseElement();
+        }
+    }
+
+    private void RenderSeriesCore( RenderTreeBuilder builder, ref int sequence, SvgChartSeriesRendererContext context, Func<SvgChartPluginSeries, bool> filter )
+    {
+        var renderers = ResolveSeriesRenderers();
+
+        var rendererItems = context.Chart.Series
+            .Where( filter )
+            .Select( series => new { Series = series, Renderer = ResolveSeriesRenderer( renderers, series ) } )
+            .Where( x => x.Renderer is not null )
+            .Select( x => new { x.Series, x.Renderer, Order = x.Renderer.GetRenderOrder( x.Series ) } )
+            .GroupBy( x => x.Order )
+            .OrderBy( x => x.Key )
+            .ToList();
+
+        foreach ( var renderOrder in rendererItems )
+        {
+            foreach ( var renderer in renderers )
+            {
+                var series = renderOrder
+                    .Where( x => ReferenceEquals( x.Renderer, renderer ) )
+                    .Select( x => x.Series )
+                    .ToList();
+
+                if ( series.Count > 0 )
+                    renderer.Render( context, series, builder, ref sequence );
+            }
+        }
+    }
+
+    private static ISvgChartSeriesRenderer ResolveSeriesRenderer( IReadOnlyList<ISvgChartSeriesRenderer> renderers, SvgChartPluginSeries series )
+    {
+        return renderers.FirstOrDefault( x => x.CanRender( series ) );
+    }
+
+    internal virtual IReadOnlyList<ISvgChartSeriesRenderer> ResolveSeriesRenderers()
+    {
+        return BuiltInSeriesRenderers;
+    }
+
+    private void RenderActiveTooltip( RenderTreeBuilder builder, ref int sequence, SvgChartRenderModel model )
+    {
+        var tooltip = model.Tooltip;
+        var context = activeTooltip;
+
+        if ( context is null || tooltip is null || !tooltip.Enabled )
+            return;
+
+        var anchorX = ( context.Bounds.X + context.Bounds.Width / 2 ) / model.Options.Width * 100;
+        var anchorY = context.Bounds.Y / model.Options.Height * 100;
+        var left = $"clamp(0px, calc({Format( anchorX )}% + {Format( tooltip.OffsetX )}px), calc(100% - {Format( context.Width )}px))";
+        var top = $"clamp(0px, calc({Format( anchorY )}% - {Format( context.Height + tooltip.OffsetY )}px), calc(100% - {Format( context.Height )}px))";
+
+        var size = tooltip.AutoSize
+            ? $"width:max-content;min-width:min(100%,{Format( context.Width )}px);min-height:{Format( context.Height )}px;"
+            : $"width:{Format( context.Width )}px;height:{Format( context.Height )}px;";
+
+        var textStyle = tooltip.AutoSize
+            ? "white-space:normal;overflow-wrap:anywhere;"
+            : "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+
+        builder.OpenElement( sequence++, "div" );
+        builder.AddAttribute( sequence++, "class", "svg-chart-tooltip" );
+        builder.AddAttribute( sequence++, "style", $"position:absolute;left:{left};top:{top};{size}max-width:100%;pointer-events:none;z-index:1;" );
+        builder.AddAttribute( sequence++, "data-anchor-x", Format( anchorX / 100 ) );
+        builder.AddAttribute( sequence++, "data-anchor-y", Format( anchorY / 100 ) );
+        builder.AddAttribute( sequence++, "data-offset-x", Format( tooltip.OffsetX ) );
+        builder.AddAttribute( sequence++, "data-offset-y", Format( tooltip.OffsetY ) );
+
+        builder.OpenElement( sequence++, "div" );
+        builder.AddAttribute( sequence++, "class", "svg-chart-tooltip-content" );
+        builder.AddAttribute( sequence++, "style", ResolveTooltipStyle( model.Options, tooltip, context ) );
+
+        if ( tooltip.Template is not null )
+        {
+            builder.AddContent( sequence++, tooltip.Template( context ) );
+        }
+        else
+        {
+            builder.OpenElement( sequence++, "div" );
+            builder.AddAttribute( sequence++, "style", $"font-weight:600;line-height:1.2;{textStyle}" );
+            builder.AddContent( sequence++, context.Items.Count > 1 ? FormatCategory( model, context.Category, context.PointIndex ) : context.SeriesName );
+            builder.CloseElement();
+
+            if ( tooltip.Formatter is not null || context.Items.Count <= 1 )
+            {
+                builder.OpenElement( sequence++, "div" );
+                builder.AddAttribute( sequence++, "style", $"line-height:1.35;opacity:.86;{textStyle}" );
+                builder.AddContent( sequence++, tooltip.Formatter?.Invoke( context ) ?? context.Text );
+                builder.CloseElement();
+            }
+            else
+            {
+                foreach ( var item in context.Items )
+                {
+                    builder.OpenElement( sequence++, "div" );
+                    builder.AddAttribute( sequence++, "style", $"display:flex;align-items:center;gap:.35rem;line-height:1.35;opacity:.86;{textStyle}" );
+
+                    builder.OpenElement( sequence++, "span" );
+                    builder.AddAttribute( sequence++, "style", $"display:inline-block;width:.55rem;height:.55rem;border-radius:50%;background:{item.Color};flex:0 0 auto;" );
+                    builder.CloseElement();
+
+                    builder.OpenElement( sequence++, "span" );
+                    builder.AddAttribute( sequence++, "style", $"min-width:0;{textStyle}" );
+                    builder.AddContent( sequence++, $"{item.SeriesName}: {item.Value}" );
+                    builder.CloseElement();
+                    builder.CloseElement();
+                }
+            }
+        }
+
+        builder.CloseElement();
+        builder.CloseElement();
+    }
+
+    private void RenderTooltipHitRegions( RenderTreeBuilder builder, ref int sequence, SvgChartRenderModel model, SvgChartPlotArea plot )
+    {
+        var tooltip = model.Tooltip;
+
+        if ( tooltip is null || !tooltip.Enabled || tooltip.Intersect || IsRadialChart( model ) )
+            return;
+
+        var hitPoints = ResolveTooltipHitPoints( model, plot );
+
+        if ( hitPoints.Count == 0 )
+            return;
+
+        builder.OpenElement( sequence++, "g" );
+        builder.AddAttribute( sequence++, "class", "svg-chart-tooltip-hit-regions" );
+        builder.AddAttribute( sequence++, "aria-hidden", "true" );
+
+        for ( var i = 0; i < hitPoints.Count; i++ )
+        {
+            var hitPoint = hitPoints[i];
+            var start = i == 0 ? hitPoint.Start : ( hitPoints[i - 1].Position + hitPoint.Position ) / 2;
+            var end = i == hitPoints.Count - 1 ? hitPoint.End : ( hitPoint.Position + hitPoints[i + 1].Position ) / 2;
+
+            builder.OpenElement( sequence++, "rect" );
+            builder.AddAttribute( sequence++, "class", "svg-chart-tooltip-hit-region" );
+            builder.AddAttribute( sequence++, "x", Format( hitPoint.Horizontal ? start : plot.Left ) );
+            builder.AddAttribute( sequence++, "y", Format( hitPoint.Horizontal ? plot.Top : start ) );
+            builder.AddAttribute( sequence++, "width", Format( hitPoint.Horizontal ? Math.Max( 0, end - start ) : plot.Width ) );
+            builder.AddAttribute( sequence++, "height", Format( hitPoint.Horizontal ? plot.Height : Math.Max( 0, end - start ) ) );
+            builder.AddAttribute( sequence++, "fill", "transparent" );
+            builder.AddAttribute( sequence++, "onmouseenter", EventCallback.Factory.Create<MouseEventArgs>( this, () => ShowTooltip( hitPoint.Point, hitPoint.Color, false ) ) );
+            builder.AddAttribute( sequence++, "onmouseleave", EventCallback.Factory.Create<MouseEventArgs>( this, HandlePointLeft ) );
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    }
+
+    private static List<SvgChartTooltipHitPoint> ResolveTooltipHitPoints( SvgChartRenderModel model, SvgChartPlotArea plot )
+    {
+        var horizontal = !IsBarChart( model );
+
+        var categoryScale = horizontal && model.CategoryScaleKind == SvgChartAxisScaleKind.Continuous
+            ? ResolvePointXScale( model )
+            : null;
+
+        var result = new List<SvgChartTooltipHitPoint>();
+
+        for ( var pointIndex = 0; pointIndex < model.CategorySlotCount; pointIndex++ )
+        {
+            var series = model.Series.FirstOrDefault( x => !x.Hidden && pointIndex < ResolveTooltipValues( x ).Count && ResolveTooltipValues( x )[pointIndex].HasValue );
+
+            if ( series is null )
+                continue;
+
+            var values = ResolveTooltipValues( series );
+            var value = values[pointIndex].Value;
+            var category = ResolveTooltipCategory( model, pointIndex, null );
+            var seriesIndex = model.Series.IndexOf( series );
+
+            var renderedValue = pointIndex < series.StackEndValues.Count && series.StackEndValues[pointIndex].HasValue
+                ? series.StackEndValues[pointIndex].Value
+                : value;
+
+            double position;
+            double anchorX;
+            double anchorY;
+
+            if ( horizontal )
+            {
+                position = categoryScale is not null && pointIndex < series.XValues.Count && series.XValues[pointIndex].HasValue
+                    ? GetX( series.XValues[pointIndex].Value, plot, categoryScale.Min, categoryScale.Max )
+                    : GetCategoryX( pointIndex, plot, model );
+
+                anchorX = position;
+                anchorY = GetY( renderedValue, plot, model, series );
+            }
+            else
+            {
+                position = plot.Top + plot.Height * ( pointIndex + 0.5 ) / Math.Max( model.CategorySlotCount, 1 );
+                anchorX = GetX( renderedValue, plot, model, series );
+                anchorY = position;
+            }
+
+            result.Add( new(
+                position,
+                horizontal ? plot.Left : plot.Top,
+                horizontal ? plot.Right : plot.Bottom,
+                horizontal,
+                ResolvePointColor( series, pointIndex ),
+                new()
+                {
+                    SeriesName = series.Name,
+                    SeriesIndex = seriesIndex,
+                    PointIndex = pointIndex,
+                    Category = category,
+                    Value = value,
+                    Bounds = new()
+                    {
+                        X = anchorX,
+                        Y = anchorY,
+                        Width = 0,
+                        Height = 0
+                    }
+                } ) );
+        }
+
+        return result.Where( x => x.Position >= x.Start && x.Position <= x.End )
+            .OrderBy( x => x.Position )
+            .ToList();
+    }
+
+    private sealed record SvgChartTooltipHitPoint(
+        double Position,
+        double Start,
+        double End,
+        bool Horizontal,
+        string Color,
+        SvgChartPointEventArgs Point );
+
+    private SvgChartRenderModel BuildModel( bool applyStreamingViewport = true, bool applyZoomViewport = true )
+    {
+        var model = new SvgChartModelBuilder<TItem>(
+            Type,
+            Items,
+            Data,
+            Options,
+            Streaming,
+            internalViewport,
+            internalChartData,
+            seriesComponents,
+            categoryAxisComponents,
+            valueAxisComponents,
+            pluginComponents,
+            tooltipComponents,
+            hiddenSeries,
+            dataPointOverrides,
+            BlazoriseLicenseLimitsHelper.GetChartsRowsLimit( ComponentLicenseChecker ) ).Build( applyStreamingViewport, applyZoomViewport );
+
+        return ApplyDataDragScales( model );
+    }
+
+    private SvgChartRenderModel ApplyDataDragScales( SvgChartRenderModel model )
+    {
+        if ( dataDragState is null )
+            return model;
+
+        var valueAxes = model.ValueAxes.Select( axis => AreAxisIdsEqual( axis.Id, dataDragState.ValueAxis.Id ) ? dataDragState.ValueAxis : axis ).ToList();
+        var primaryValueAxis = AreAxisIdsEqual( model.PrimaryValueAxis.Id, dataDragState.ValueAxis.Id ) ? dataDragState.ValueAxis : model.PrimaryValueAxis;
+        var categoryScale = dataDragState.CanDragX && dataDragState.XScale is not null ? dataDragState.XScale : model.CategoryScale;
+
+        return new()
+        {
+            Type = model.Type,
+            Options = model.Options,
+            Zoom = model.Zoom,
+            Viewport = model.Viewport,
+            Labels = model.Labels,
+            CategorySlotCount = model.CategorySlotCount,
+            CategoryLabelIndexes = model.CategoryLabelIndexes,
+            CategoryMin = model.CategoryMin,
+            CategoryMax = model.CategoryMax,
+            CategoryScaleKind = categoryScale is null ? model.CategoryScaleKind : SvgChartAxisScaleKind.Continuous,
+            CategoryScale = categoryScale,
+            CategoryAxis = model.CategoryAxis,
+            CategoryTickFormatter = model.CategoryTickFormatter,
+            CategoryValueFormatter = model.CategoryValueFormatter,
+            Series = model.Series,
+            Min = primaryValueAxis.Min,
+            Max = primaryValueAxis.Max,
+            Ticks = primaryValueAxis.Ticks,
+            ValueAxes = valueAxes,
+            PrimaryValueAxis = primaryValueAxis,
+            Tooltip = model.Tooltip
+        };
+    }
+
+    private static bool AreAxisIdsEqual( string first, string second )
+    {
+        return string.Equals( first ?? string.Empty, second ?? string.Empty, StringComparison.Ordinal );
+    }
+
+    private SvgChartOptions ResolveOptions()
+    {
+        return Options ?? new();
+    }
+
+    private SvgChartStreamingOptions ResolveStreaming()
+    {
+        var streamingComponent = pluginComponents.OfType<SvgChartStreaming>().LastOrDefault();
+
+        if ( streamingComponent is not null )
+            return SvgChartStreamingResolver.Resolve( streamingComponent, Streaming ?? ResolveOptions().Streaming );
+
+        return Streaming ?? ResolveOptions().Streaming ?? new() { Enabled = false };
+    }
+
+    private bool ShouldRunAnimations()
+    {
+        var animationComponent = pluginComponents.OfType<SvgChartAnimation>().LastOrDefault();
+        var animationOptions = Animation ?? ResolveOptions().Animation ?? new();
+        var animation = CreateAnimationOptions( animationComponent?.ResolveOptions( animationOptions ) ?? animationOptions );
+
+        return animation?.Enabled == true && IsAnyAnimationTargetEnabled( animation );
+    }
+
+    private SvgChartResolvedAnimation ResolveAnimation( SvgChartOptions options, bool streamingAnimationEnabled )
+    {
+        var animationComponent = pluginComponents.OfType<SvgChartAnimation>().LastOrDefault();
+        var animationOptions = Animation ?? options.Animation ?? new();
+        var animation = CreateAnimationOptions( animationComponent?.ResolveOptions( animationOptions ) ?? animationOptions );
+
+        if ( streamingAnimationEnabled
+             || !animation.Enabled
+             || !IsAnyAnimationTargetEnabled( animation ) )
+            return new();
+
+        var geometry = ResolveGeometryAnimation( animation );
+        var opacity = ResolveOpacityAnimation( animation );
+        var stroke = ResolveAnimationTarget( animation.Stroke, animation );
+        var transform = ResolveAnimationTarget( animation.Transform, animation );
+        var path = ResolveAnimationTarget( animation.Path, animation );
+
+        if ( !geometry.Enabled && !opacity.Enabled && !stroke.Enabled && !transform.Enabled && !path.Enabled )
+            return new();
+
+        return new()
+        {
+            Enabled = true,
+            InitialRender = !renderedOnce,
+            Version = ++animationVersion,
+            Geometry = geometry,
+            Opacity = opacity,
+            Stroke = stroke,
+            Transform = transform,
+            Path = path
+        };
+    }
+
+    private SvgChartResolvedGeometryAnimation ResolveGeometryAnimation( SvgChartAnimationOptions animation )
+    {
+        var target = ResolveAnimationTarget( animation.Geometry, animation );
+
+        return new()
+        {
+            Enabled = target.Enabled,
+            AnimateInitial = target.AnimateInitial,
+            AnimateUpdates = target.AnimateUpdates,
+            Duration = target.Duration,
+            Delay = target.Delay,
+            KeySplines = target.KeySplines,
+            AnimatePosition = animation.Geometry?.AnimatePosition ?? true,
+            AnimateSize = animation.Geometry?.AnimateSize ?? true
+        };
+    }
+
+    private SvgChartResolvedOpacityAnimation ResolveOpacityAnimation( SvgChartAnimationOptions animation )
+    {
+        var target = ResolveAnimationTarget( animation.Opacity, animation );
+
+        return new()
+        {
+            Enabled = target.Enabled,
+            AnimateInitial = target.AnimateInitial,
+            AnimateUpdates = target.AnimateUpdates,
+            Duration = target.Duration,
+            Delay = target.Delay,
+            KeySplines = target.KeySplines,
+            From = Format( animation.Opacity?.From ?? 0 )
+        };
+    }
+
+    private SvgChartResolvedAnimationTarget ResolveAnimationTarget( SvgChartAnimationTargetOptions target, SvgChartAnimationOptions animation )
+    {
+        var duration = target?.Duration ?? animation.Duration;
+
+        return new()
+        {
+            Enabled = target?.Enabled == true && duration > TimeSpan.Zero,
+            AnimateInitial = !renderedOnce && ( target?.AnimateOnLoad ?? animation.AnimateOnLoad ),
+            AnimateUpdates = target?.AnimateOnUpdate ?? animation.AnimateOnUpdate,
+            Duration = FormatDuration( duration ),
+            Delay = FormatDuration( target?.Delay ?? animation.Delay ),
+            KeySplines = ResolveAnimationKeySplines( target?.Easing ?? animation.Easing )
+        };
+    }
+
+    private static SvgChartAnimationOptions CreateAnimationOptions( SvgChartAnimationOptions options )
+    {
+        if ( options is null )
+            return new();
+
+        return new()
+        {
+            Enabled = options.Enabled,
+            Duration = options.Duration,
+            Delay = options.Delay,
+            Easing = options.Easing,
+            AnimateOnLoad = options.AnimateOnLoad,
+            AnimateOnUpdate = options.AnimateOnUpdate,
+            Geometry = CreateGeometryAnimationOptions( options.Geometry ),
+            Opacity = CreateOpacityAnimationOptions( options.Opacity ),
+            Stroke = CreateStrokeAnimationOptions( options.Stroke ),
+            Transform = CreateTransformAnimationOptions( options.Transform ),
+            Path = CreatePathAnimationOptions( options.Path )
+        };
+    }
+
+    private static SvgChartGeometryAnimationOptions CreateGeometryAnimationOptions( SvgChartGeometryAnimationOptions options )
+    {
+        return new()
+        {
+            Enabled = options?.Enabled ?? true,
+            Duration = options?.Duration,
+            Delay = options?.Delay,
+            Easing = options?.Easing,
+            AnimateOnLoad = options?.AnimateOnLoad,
+            AnimateOnUpdate = options?.AnimateOnUpdate,
+            AnimatePosition = options?.AnimatePosition ?? true,
+            AnimateSize = options?.AnimateSize ?? true
+        };
+    }
+
+    private static SvgChartOpacityAnimationOptions CreateOpacityAnimationOptions( SvgChartOpacityAnimationOptions options )
+    {
+        return new()
+        {
+            Enabled = options?.Enabled ?? true,
+            Duration = options?.Duration,
+            Delay = options?.Delay,
+            Easing = options?.Easing,
+            AnimateOnLoad = options?.AnimateOnLoad,
+            AnimateOnUpdate = options?.AnimateOnUpdate,
+            From = options?.From ?? 0
+        };
+    }
+
+    private static SvgChartStrokeAnimationOptions CreateStrokeAnimationOptions( SvgChartStrokeAnimationOptions options )
+    {
+        return new()
+        {
+            Enabled = options?.Enabled == true,
+            Duration = options?.Duration,
+            Delay = options?.Delay,
+            Easing = options?.Easing,
+            AnimateOnLoad = options?.AnimateOnLoad,
+            AnimateOnUpdate = options?.AnimateOnUpdate,
+            AnimateWidth = options?.AnimateWidth ?? true,
+            AnimateDashPattern = options?.AnimateDashPattern ?? true
+        };
+    }
+
+    private static SvgChartTransformAnimationOptions CreateTransformAnimationOptions( SvgChartTransformAnimationOptions options )
+    {
+        return new()
+        {
+            Enabled = options?.Enabled == true,
+            Duration = options?.Duration,
+            Delay = options?.Delay,
+            Easing = options?.Easing,
+            AnimateOnLoad = options?.AnimateOnLoad,
+            AnimateOnUpdate = options?.AnimateOnUpdate,
+            ScaleFrom = options?.ScaleFrom ?? 0.95,
+            ScaleTo = options?.ScaleTo ?? 1
+        };
+    }
+
+    private static SvgChartPathAnimationOptions CreatePathAnimationOptions( SvgChartPathAnimationOptions options )
+    {
+        return new()
+        {
+            Enabled = options?.Enabled == true,
+            Duration = options?.Duration,
+            Delay = options?.Delay,
+            Easing = options?.Easing,
+            AnimateOnLoad = options?.AnimateOnLoad,
+            AnimateOnUpdate = options?.AnimateOnUpdate,
+            AnimateShape = options?.AnimateShape ?? true,
+            AnimateLength = options?.AnimateLength ?? true
+        };
+    }
+
+    private static bool IsAnyAnimationTargetEnabled( SvgChartAnimationOptions animation )
+    {
+        return IsAnimationTargetEnabled( animation.Geometry, animation )
+            || IsAnimationTargetEnabled( animation.Opacity, animation )
+            || IsAnimationTargetEnabled( animation.Stroke, animation )
+            || IsAnimationTargetEnabled( animation.Transform, animation )
+            || IsAnimationTargetEnabled( animation.Path, animation );
+    }
+
+    private static bool IsAnimationTargetEnabled( SvgChartAnimationTargetOptions target, SvgChartAnimationOptions animation )
+    {
+        return target?.Enabled == true && ( target.Duration ?? animation.Duration ) > TimeSpan.Zero;
+    }
+
+    private static string ResolveAnimationKeySplines( SvgChartAnimationEasing easing )
+    {
+        return easing switch
+        {
+            SvgChartAnimationEasing.Ease => "0.25 0.1 0.25 1",
+            SvgChartAnimationEasing.EaseIn => "0.42 0 1 1",
+            SvgChartAnimationEasing.EaseInOut => "0.42 0 0.58 1",
+            SvgChartAnimationEasing.EaseOut => "0 0 0.58 1",
+            _ => null
+        };
+    }
+
+    private SvgChartLegendOptions ResolveLegend( SvgChartOptions options )
+    {
+        var legendComponent = legendComponents.LastOrDefault();
+        var legendOptions = options.Legend ?? new();
+
+        return legendComponent?.ResolveOptions( legendOptions ) ?? legendOptions;
+    }
+
+    private SvgChartTooltipOptions ResolveTooltip( SvgChartOptions options )
+    {
+        var tooltipComponent = tooltipComponents.LastOrDefault();
+        var tooltipOptions = options.Tooltip ?? new();
+
+        return tooltipComponent?.ResolveOptions( tooltipOptions ) ?? tooltipOptions;
+    }
+
+    private SvgChartZoomOptions ResolveZoom( SvgChartOptions options )
+    {
+        var zoomComponent = pluginComponents.OfType<SvgChartZoom>().LastOrDefault();
+        var zoomOptions = options.Zoom ?? new();
+
+        if ( zoomComponent is null )
+            return CreateZoomOptions( zoomOptions );
+
+        return zoomComponent.ResolveOptions( zoomOptions );
+    }
+
+    private SvgChartDataDragOptions ResolveDataDrag( SvgChartOptions options )
+    {
+        var dataDragComponent = pluginComponents.OfType<SvgChartDataDrag>().LastOrDefault();
+        var dataDragOptions = options.DataDrag ?? new();
+
+        if ( dataDragComponent is null )
+            return CreateDataDragOptions( dataDragOptions );
+
+        return dataDragComponent.ResolveOptions( dataDragOptions );
+    }
+
+    private static SvgChartDataDragOptions CreateDataDragOptions( SvgChartDataDragOptions options )
+    {
+        if ( options is null )
+            return new();
+
+        return new()
+        {
+            Enabled = options.Enabled,
+            Mode = options.Mode,
+            XStep = options.XStep,
+            YStep = options.YStep,
+            HitRadius = options.HitRadius,
+            ShowTooltip = options.ShowTooltip,
+            CanDrag = options.CanDrag
+        };
+    }
+
+    private static SvgChartZoomOptions CreateZoomOptions( SvgChartZoomOptions options )
+    {
+        if ( options is null )
+            return new();
+
+        return new()
+        {
+            Enabled = options.Enabled,
+            Mode = options.Mode,
+            Wheel = options.Wheel,
+            Pan = options.Pan,
+            MinZoom = options.MinZoom,
+            MaxZoom = options.MaxZoom,
+            Viewport = CloneViewport( options.Viewport )
+        };
+    }
+
+    private static bool SupportsStreamingAnimation( SvgChartRenderModel model )
+    {
+        return model.Series.Any( x => !x.Hidden && x.Type is SvgChartType.Column or SvgChartType.Line or SvgChartType.Area );
+    }
+
+    private static int GetCategorySlotCount( SvgChartRenderModel model )
+    {
+        return Math.Max( model.CategorySlotCount > 0 ? model.CategorySlotCount : model.Labels.Count, 1 );
+    }
+
+    private async Task HandlePointClicked( SvgChartPointEventArgs point, string color )
+    {
+        ShowTooltip( point, color, true );
+
+        await Clicked.InvokeAsync( point );
+    }
+
+    private async Task HandlePointHovered( SvgChartPointEventArgs point, string color )
+    {
+        ShowTooltip( point, color, false );
+
+        await Hovered.InvokeAsync( point );
+    }
+
+    private async Task HandleDataLabelClicked( SvgChartPointEventArgs point, string color )
+    {
+        var dataLabelsComponent = pluginComponents.OfType<SvgChartDataLabels>().LastOrDefault();
+
+        ShowTooltip( point, color, true );
+
+        if ( dataLabelsComponent is not null )
+            await dataLabelsComponent.Clicked.InvokeAsync( point );
+
+        await Clicked.InvokeAsync( point );
+    }
+
+    private async Task HandleDataLabelHovered( SvgChartPointEventArgs point, string color )
+    {
+        var dataLabelsComponent = pluginComponents.OfType<SvgChartDataLabels>().LastOrDefault();
+
+        ShowTooltip( point, color, false );
+
+        if ( dataLabelsComponent is not null )
+            await dataLabelsComponent.Hovered.InvokeAsync( point );
+
+        await Hovered.InvokeAsync( point );
+    }
+
+    private void HandlePointLeft()
+    {
+        if ( activeTooltipPinned )
+            return;
+
+        ClearTooltip();
+    }
+
+    private void ShowTooltip( SvgChartPointEventArgs point, string color, bool pinned )
+    {
+        if ( dataDragState is not null && !dataDragState.ShouldShowTooltip )
+            return;
+
+        var tooltipKey = CreateTooltipKey( point, pinned );
+
+        if ( activeTooltip is not null && string.Equals( activeTooltipKey, tooltipKey, StringComparison.Ordinal ) )
+            return;
+
+        var model = BuildModel();
+        var options = model.Options;
+        var tooltip = model.Tooltip;
+
+        if ( !tooltip.Enabled )
+            return;
+
+        activeTooltip = BuildTooltipContext( point, color, model, tooltip );
+        activeTooltipKey = tooltipKey;
+        activeTooltipPinned = pinned;
+    }
+
+    private void ClearTooltip()
+    {
+        activeTooltip = null;
+        activeTooltipKey = null;
+        activeTooltipPinned = false;
+    }
+
+    private static string CreateTooltipKey( SvgChartPointEventArgs point, bool pinned )
+    {
+        return $"{point.SeriesIndex}:{point.PointIndex}:{pinned}";
+    }
+
+    private static SvgChartTooltipContext BuildTooltipContext( SvgChartPointEventArgs point, string color, SvgChartRenderModel model, SvgChartTooltipOptions tooltip )
+    {
+        var options = model.Options;
+        var anchorX = point.Bounds.X + point.Bounds.Width / 2;
+        var anchorY = point.Bounds.Y;
+        var items = ResolveTooltipItems( point, color, model, tooltip.InteractionMode );
+        var width = Math.Max( 1, tooltip.Width );
+        var height = Math.Max( 1, tooltip.Height );
+        var x = Math.Min( Math.Max( anchorX + tooltip.OffsetX, 0 ), Math.Max( options.Width - width, 0 ) );
+        var y = Math.Min( Math.Max( anchorY - height - tooltip.OffsetY, 0 ), Math.Max( options.Height - height, 0 ) );
+
+        return new()
+        {
+            SeriesName = point.SeriesName,
+            SeriesIndex = point.SeriesIndex,
+            PointIndex = point.PointIndex,
+            Category = point.Category,
+            Value = point.Value,
+            InteractionMode = tooltip.InteractionMode,
+            Items = items,
+            Bounds = point.Bounds,
+            Color = color,
+            Text = GetPointLabel( point, model ),
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            Point = point
+        };
+    }
+
+    private static IReadOnlyList<SvgChartTooltipItemContext> ResolveTooltipItems( SvgChartPointEventArgs point, string color, SvgChartRenderModel model, SvgChartInteractionMode mode )
+    {
+        return mode switch
+        {
+            SvgChartInteractionMode.Index => ResolveIndexTooltipItems( point, model ),
+            SvgChartInteractionMode.Dataset => ResolveDatasetTooltipItems( point, model ),
+            _ => [CreateTooltipItem( point, color )]
+        };
+    }
+
+    private static IReadOnlyList<SvgChartTooltipItemContext> ResolveIndexTooltipItems( SvgChartPointEventArgs point, SvgChartRenderModel model )
+    {
+        if ( point.PointIndex < 0 )
+            return [CreateTooltipItem( point, null )];
+
+        return model.Series.Where( x => !x.Hidden && point.PointIndex < ResolveTooltipValues( x ).Count )
+            .Select( series =>
+            {
+                var values = ResolveTooltipValues( series );
+                var value = values[point.PointIndex];
+                var seriesIndex = model.Series.IndexOf( series );
+
+                return value.HasValue
+                    ? CreateTooltipItem( point, series, seriesIndex, point.PointIndex, value.Value, ResolveTooltipCategory( model, point.PointIndex, point.Category ) )
+                    : null;
+            } )
+            .Where( x => x is not null )
+            .ToList();
+    }
+
+    private static IReadOnlyList<SvgChartTooltipItemContext> ResolveDatasetTooltipItems( SvgChartPointEventArgs point, SvgChartRenderModel model )
+    {
+        var series = model.Series.ElementAtOrDefault( point.SeriesIndex );
+
+        if ( series is null )
+            return [CreateTooltipItem( point, null )];
+
+        var values = ResolveTooltipValues( series );
+        var result = new List<SvgChartTooltipItemContext>();
+
+        for ( var i = 0; i < values.Count; i++ )
+        {
+            var value = values[i];
+
+            if ( value.HasValue )
+                result.Add( CreateTooltipItem( point, series, point.SeriesIndex, i, value.Value, ResolveTooltipCategory( model, i, point.Category ) ) );
+        }
+
+        return result;
+    }
+
+    private static IReadOnlyList<double?> ResolveTooltipValues( SvgChartRenderSeries series )
+    {
+        return IsPointChart( series.Type ) ? series.YValues : series.Values;
+    }
+
+    private static SvgChartTooltipItemContext CreateTooltipItem( SvgChartPointEventArgs point, string color )
+    {
+        return new()
+        {
+            SeriesName = point.SeriesName,
+            SeriesIndex = point.SeriesIndex,
+            PointIndex = point.PointIndex,
+            Category = point.Category,
+            Value = point.Value,
+            Color = color ?? "currentColor",
+            Point = point
+        };
+    }
+
+    private static object ResolveTooltipCategory( SvgChartRenderModel model, int pointIndex, object fallback )
+    {
+        return pointIndex >= 0 && pointIndex < model.Labels.Count ? model.Labels[pointIndex] : fallback;
+    }
+
+    private static SvgChartTooltipItemContext CreateTooltipItem( SvgChartPointEventArgs sourcePoint, SvgChartRenderSeries series, int seriesIndex, int pointIndex, double value, object category )
+    {
+        return new()
+        {
+            SeriesName = series.Name,
+            SeriesIndex = seriesIndex,
+            PointIndex = pointIndex,
+            Category = category,
+            Value = value,
+            Color = ResolvePointColor( series, pointIndex ),
+            Point = new()
+            {
+                SeriesName = series.Name,
+                SeriesIndex = seriesIndex,
+                PointIndex = pointIndex,
+                Category = category,
+                Value = value,
+                Bounds = sourcePoint.Bounds
+            }
+        };
+    }
+
+    private static string GetPointLabel( SvgChartPointEventArgs point, SvgChartRenderModel model )
+    {
+        return $"{FormatCategory( model, point.Category, point.PointIndex )}, {point.Value}. {point.SeriesName}.";
+    }
+
+    private static string FormatCategory( SvgChartRenderModel model, object value, int index )
+    {
+        return model.CategoryValueFormatter?.Invoke( new()
+        {
+            Value = value,
+            Index = index,
+            CategoryAxis = true,
+            AxisId = model.CategoryAxis?.Id
+        } ) ?? SvgChartRenderHelpers.FormatDataLabelValue( value );
+    }
+
+    private object ResolveCategoryFormatterKey( SvgChartRenderModel model )
+    {
+        var timeAxes = categoryAxisComponents.OfType<SvgChartTimeAxis<TItem>>();
+        var axisId = model.CategoryAxis?.Id;
+
+        var timeAxis = !string.IsNullOrWhiteSpace( axisId )
+            ? timeAxes.LastOrDefault( x => string.Equals( x.Id, axisId, StringComparison.Ordinal ) )
+            : null;
+
+        timeAxis ??= timeAxes.LastOrDefault();
+
+        if ( timeAxis is null )
+        {
+            return null;
+        }
+
+        return (
+            timeAxis.Scale,
+            timeAxis.Unit,
+            timeAxis.Format,
+            timeAxis.Culture,
+            CultureInfo.CurrentCulture.Name,
+            timeAxis.TimeZone ?? TimeZoneInfo.Local);
+    }
+
+    private static string ResolvePointColor( SvgChartRenderSeries series, int pointIndex )
+    {
+        return pointIndex >= 0 && pointIndex < ( series.PointColors?.Count ?? 0 ) && !string.IsNullOrWhiteSpace( series.PointColors[pointIndex] )
+            ? series.PointColors[pointIndex]
+            : series.RenderColor;
+    }
+
+    private static string ResolveTooltipStyle( SvgChartOptions options, SvgChartTooltipOptions tooltip, SvgChartTooltipContext context )
+    {
+        var font = CreateFontOptions( options?.Font, tooltip.Font );
+
+        var color = SvgChartRenderHelpers.IsDefaultColor( font?.Color )
+            ? "var(--b-tooltip-color,#fff)"
+            : SvgChartRenderHelpers.ResolveFontColor( font );
+
+        var fontSize = font?.Size is null
+            ? "var(--b-tooltip-font-size,.875rem)"
+            : $"{Format( font.Size.Value )}px";
+
+        var fontFamily = string.IsNullOrWhiteSpace( font?.Family )
+            ? null
+            : $"font-family:{font.Family};";
+
+        var padding = tooltip.Padding is null
+            ? "var(--b-tooltip-padding,.5rem .75rem)"
+            : $"{Format( Math.Max( 0, tooltip.Padding.Top ) )}px {Format( Math.Max( 0, tooltip.Padding.End ) )}px {Format( Math.Max( 0, tooltip.Padding.Bottom ) )}px {Format( Math.Max( 0, tooltip.Padding.Start ) )}px";
+
+        var size = tooltip.AutoSize ? $"min-height:{Format( context.Height )}px;" : "height:100%;overflow:hidden;";
+        var fontWeight = string.IsNullOrWhiteSpace( font?.Weight ) ? null : $"font-weight:{font.Weight};";
+
+        return $"{size}box-sizing:border-box;border-left:3px solid {context.Color};background:rgba(var(--b-tooltip-background-color-r,33),var(--b-tooltip-background-color-g,37),var(--b-tooltip-background-color-b,41),var(--b-tooltip-background-opacity,.94));color:{color};border-radius:var(--b-tooltip-border-radius,.375rem);padding:{padding};font-size:{fontSize};{fontFamily}{fontWeight}box-shadow:0 .35rem 1rem rgba(0,0,0,.18);";
+    }
+
+    private static string Format( double value )
+    {
+        return SvgChartRenderHelpers.Format( value );
+    }
+
+    private static string FormatDuration( TimeSpan value )
+    {
+        return SvgChartRenderHelpers.FormatDuration( value );
+    }
+
+    private string ResolveStreamingAnimationStyle( SvgChartStreamingAnimation animation )
+    {
+        return "transform:translateX(0px);transition:none;will-change:transform;";
+    }
+
+    private static void AddStreamingAnimationAttributes( RenderTreeBuilder builder, ref int sequence, SvgChartStreamingAnimation animation )
+    {
+        builder.AddAttribute( sequence++, "data-svg-chart-streaming-animation", "true" );
+        builder.AddAttribute( sequence++, "data-svg-chart-streaming-version", animation.Version.ToString( CultureInfo.InvariantCulture ) );
+        builder.AddAttribute( sequence++, "data-svg-chart-streaming-offset", SvgChartRenderHelpers.Format( animation.OffsetX ) );
+        builder.AddAttribute( sequence++, "data-svg-chart-streaming-duration", SvgChartRenderHelpers.FormatDuration( animation.Duration ) );
+    }
+
+    private string GetPlotClipPathId()
+    {
+        return $"{ElementId}-plot-clip";
+    }
+
+    private string GetCategoryAxisLabelsClipPathId()
+    {
+        return $"{ElementId}-category-axis-labels-clip";
+    }
+
+    private SvgChartStreamingAnimation ResolveStreamingAnimation( SvgChartRenderModel model, SvgChartPlotArea plot )
+    {
+        var streaming = ResolveStreaming();
+
+        if ( streaming is null
+             || !streaming.Enabled
+             || !SvgChartStreamingResolver.IsAnimationEnabled( streaming )
+             || !streaming.VisibleDataPoints.HasValue
+             || streaming.VisibleDataPoints.Value <= 0
+             || model.Labels.Count == 0
+             || !SupportsStreamingAnimation( model ) )
+            return new( false, 0, TimeSpan.Zero, streamingAnimationVersion, null );
+
+        var duration = ResolveStreamingAnimationDuration( streaming );
+
+        if ( duration <= TimeSpan.Zero )
+            return new( false, 0, TimeSpan.Zero, streamingAnimationVersion, null );
+
+        var categoryWidth = GetCategoryWidth( plot, model );
+
+        var offsetX = SvgChartStreamingResolver.IsReversed( streaming )
+            ? categoryWidth
+            : -categoryWidth;
+
+        if ( streaming.IndexAxis == SvgChartIndexAxis.Y )
+        {
+            offsetX = -offsetX;
+        }
+
+        var animation = new SvgChartStreamingAnimation( true, offsetX, duration, streamingAnimationVersion, null );
+
+        return animation with { Style = ResolveStreamingAnimationStyle( animation ) };
+    }
+
+    private static TimeSpan ResolveStreamingAnimationDuration( SvgChartStreamingOptions streaming )
+    {
+        if ( streaming.Animation?.Duration > TimeSpan.Zero )
+            return streaming.Animation.Duration;
+
+        if ( streaming.RefreshInterval > TimeSpan.Zero )
+            return streaming.RefreshInterval;
+
+        return TimeSpan.FromMilliseconds( 500 );
+    }
+
+    private SvgChartPlotArea BuildCurrentPlotArea( SvgChartRenderModel model )
+    {
+        var options = model.Options;
+        var legend = ResolveLegend( options );
+        var title = ResolveTitleOptions( options, titleComponents );
+        var subtitle = ResolveSubtitleOptions( options, titleComponents );
+
+        return BuildPlotArea( options, title, subtitle, legend, model );
+    }
+
+    private static bool IsInsidePlot( double x, double y, SvgChartPlotArea plot )
+    {
+        return x >= plot.Left && x <= plot.Right && y >= plot.Top && y <= plot.Bottom;
+    }
+
+    private bool ShouldRenderPanViewport( SvgChartViewport viewport )
+    {
+        if ( AreViewportsEquivalent( panRenderedViewport, viewport ) )
+            return false;
+
+        var now = DateTimeOffset.UtcNow;
+
+        return now - lastPanRender >= PanRenderInterval;
+    }
+
+    private static bool AreViewportsEquivalent( SvgChartViewport first, SvgChartViewport second )
+    {
+        if ( ReferenceEquals( first, second ) )
+            return true;
+
+        if ( first is null || second is null )
+            return false;
+
+        return AreViewportValuesEquivalent( first.XMin, second.XMin )
+            && AreViewportValuesEquivalent( first.XMax, second.XMax )
+            && AreViewportValuesEquivalent( first.YMin, second.YMin )
+            && AreViewportValuesEquivalent( first.YMax, second.YMax );
+    }
+
+    private static bool AreViewportValuesEquivalent( double? first, double? second )
+    {
+        if ( !first.HasValue || !second.HasValue )
+            return first.HasValue == second.HasValue;
+
+        return Math.Abs( first.Value - second.Value ) < 0.000001;
+    }
+
+    private async Task ApplyViewport( SvgChartViewport previousViewport, SvgChartViewport viewport )
+    {
+        internalViewport = CloneViewport( viewport );
+        ClearTooltip();
+
+        var zoomComponent = pluginComponents.OfType<SvgChartZoom>().LastOrDefault();
+
+        if ( zoomComponent is not null && zoomComponent.ViewportChanged.HasDelegate )
+            await zoomComponent.ViewportChanged.InvokeAsync( CloneViewport( viewport ) );
+
+        StateHasChanged();
+    }
+
+    private async Task NotifyZoomed( SvgChartViewport previousViewport, SvgChartViewport viewport, SvgChartZoomSource source )
+    {
+        var zoomComponent = pluginComponents.OfType<SvgChartZoom>().LastOrDefault();
+
+        if ( zoomComponent is null || !zoomComponent.Zoomed.HasDelegate )
+            return;
+
+        await zoomComponent.Zoomed.InvokeAsync( new()
+        {
+            PreviousViewport = CloneViewport( previousViewport ),
+            Viewport = CloneViewport( viewport ),
+            Source = source
+        } );
+    }
+
+    private async Task NotifyPanned( SvgChartViewport previousViewport, SvgChartViewport viewport )
+    {
+        var zoomComponent = pluginComponents.OfType<SvgChartZoom>().LastOrDefault();
+
+        if ( zoomComponent is null || !zoomComponent.Panned.HasDelegate )
+            return;
+
+        await zoomComponent.Panned.InvokeAsync( new()
+        {
+            PreviousViewport = CloneViewport( previousViewport ),
+            Viewport = CloneViewport( viewport ),
+            DeltaX = ( viewport.XMin ?? 0 ) - ( previousViewport.XMin ?? 0 ),
+            DeltaY = ( viewport.YMin ?? 0 ) - ( previousViewport.YMin ?? 0 )
+        } );
+    }
+
+    private async Task HandleChartWheel( WheelEventArgs eventArgs )
+    {
+        var model = BuildModel();
+        var zoom = model.Zoom;
+
+        if ( zoom?.Enabled != true || !zoom.Wheel || IsRadialChart( model ) )
+            return;
+
+        var plot = BuildCurrentPlotArea( model );
+
+        if ( !IsInsidePlot( eventArgs.OffsetX, eventArgs.OffsetY, plot ) )
+            return;
+
+        var fullViewport = ResolveFullViewport( BuildModel( false, false ) );
+        var previousViewport = ResolveEffectiveViewport( model, fullViewport );
+        var factor = eventArgs.DeltaY < 0 ? 0.82 : 1.22;
+        var nextViewport = ZoomViewport( previousViewport, fullViewport, zoom, plot, eventArgs.OffsetX, eventArgs.OffsetY, factor );
+
+        await ApplyViewport( previousViewport, nextViewport );
+        await NotifyZoomed( previousViewport, nextViewport, SvgChartZoomSource.Wheel );
+    }
+
+    private void HandleChartMouseDown( MouseEventArgs eventArgs )
+    {
+        var model = BuildModel();
+        var zoom = model.Zoom;
+
+        if ( zoom?.Enabled != true || !zoom.Pan || IsRadialChart( model ) )
+            return;
+
+        var plot = BuildCurrentPlotArea( model );
+
+        if ( !IsInsidePlot( eventArgs.OffsetX, eventArgs.OffsetY, plot ) )
+            return;
+
+        var fullModel = BuildModel( false, false );
+
+        panning = true;
+        panStartClientX = eventArgs.ClientX;
+        panStartClientY = eventArgs.ClientY;
+        panFullViewport = ResolveFullViewport( fullModel );
+        panPlot = plot;
+        panZoom = zoom;
+        panStartViewport = ResolveEffectiveViewport( model, panFullViewport );
+        panLastViewport = CloneViewport( panStartViewport );
+        panRenderedViewport = CloneViewport( panStartViewport );
+        lastPanRender = DateTimeOffset.MinValue;
+    }
+
+    private async Task HandleChartMouseMove( MouseEventArgs eventArgs )
+    {
+        if ( !panning )
+            return;
+
+        if ( panZoom?.Enabled != true || !panZoom.Pan || panStartViewport is null || panFullViewport is null || panPlot is null )
+            return;
+
+        var nextViewport = PanViewport( panStartViewport, panFullViewport, panZoom, panPlot, eventArgs.ClientX - panStartClientX, eventArgs.ClientY - panStartClientY );
+
+        panLastViewport = CloneViewport( nextViewport );
+
+        if ( !ShouldRenderPanViewport( nextViewport ) )
+            return;
+
+        var previousViewport = CloneViewport( panRenderedViewport ?? panStartViewport );
+
+        panRenderedViewport = CloneViewport( nextViewport );
+        lastPanRender = DateTimeOffset.UtcNow;
+
+        await ApplyViewport( previousViewport, nextViewport );
+    }
+
+    private async Task HandleChartMouseUp( MouseEventArgs eventArgs )
+    {
+        if ( !panning )
+            return;
+
+        panning = false;
+
+        if ( panStartViewport is not null && panLastViewport is not null )
+        {
+            if ( !AreViewportsEquivalent( panRenderedViewport, panLastViewport ) )
+            {
+                var previousViewport = CloneViewport( panRenderedViewport ?? panStartViewport );
+
+                panRenderedViewport = CloneViewport( panLastViewport );
+                await ApplyViewport( previousViewport, panLastViewport );
+            }
+
+            await NotifyPanned( panStartViewport, panLastViewport );
+        }
+
+        panStartViewport = null;
+        panLastViewport = null;
+        panRenderedViewport = null;
+        panFullViewport = null;
+        panPlot = null;
+        panZoom = null;
+        lastPanRender = DateTimeOffset.MinValue;
+    }
+
+    private async Task HandleChartMouseLeave( MouseEventArgs eventArgs )
+    {
+        await HandleChartMouseUp( eventArgs );
+    }
+
+    internal async Task<bool> HandleDataDragStart( int seriesIndex, int pointIndex, double? pointerX = null, double? pointerY = null )
+    {
+        if ( dataDragState is not null || ResolveStreaming().Enabled )
+            return false;
+
+        var model = BuildModel();
+        var dataDrag = ResolveDataDrag( ResolveOptions() );
+
+        if ( dataDrag?.Enabled != true || seriesIndex < 0 || seriesIndex >= model.Series.Count )
+            return false;
+
+        var series = model.Series[seriesIndex];
+
+        if ( !TryResolveDataDragValues( series, pointIndex, dataDrag, out var xValue, out var yValue, out var canDragX, out var canDragY, out var isValueAxisHorizontal ) )
+            return false;
+
+        var plot = BuildCurrentPlotArea( model );
+        var xScale = canDragX && !isValueAxisHorizontal ? ResolvePointXScale( model, [series] ) : null;
+        var valueAxis = ResolveValueAxis( model, series );
+        var isRadial = IsRadialChart( series.Type );
+        var isStacked = series.StackEndValues.Count > 0 && series.Type is ( SvgChartType.Bar or SvgChartType.Column or SvgChartType.Area );
+
+        ResolveDataDragStackBases( model, seriesIndex, pointIndex, isStacked, out var positiveStackBaseValue, out var negativeStackBaseValue );
+
+        var value = isValueAxisHorizontal ? xValue.Value : yValue.Value;
+        var renderedValue = ResolveDataDragRenderedValue( value, isStacked, positiveStackBaseValue, negativeStackBaseValue );
+        ResolveRadialDataDragMetadata( model, series, pointIndex, value, out var radialAngle, out var angularPrefixValue, out var angularOtherValue, out var usesAngularStartBoundary, out var angularBoundaryFraction );
+
+        var radialPoint = isRadial
+            ? ResolveRadialDataDragPoint( plot, series.Type, value, valueAxis.Max, radialAngle )
+            : (X: 0d, Y: 0d);
+
+        var radialPointerOffset = 0d;
+        var angularPointerOffset = 0d;
+
+        if ( pointerX.HasValue && pointerY.HasValue )
+        {
+            if ( series.Type is SvgChartType.Radar or SvgChartType.PolarArea )
+            {
+                var centerX = plot.Left + plot.Width / 2;
+                var centerY = plot.Top + plot.Height / 2;
+                var pointerDistance = Math.Sqrt( Math.Pow( pointerX.Value - centerX, 2 ) + Math.Pow( pointerY.Value - centerY, 2 ) );
+                var pointDistance = Math.Sqrt( Math.Pow( radialPoint.X - centerX, 2 ) + Math.Pow( radialPoint.Y - centerY, 2 ) );
+
+                radialPointerOffset = pointerDistance - pointDistance;
+            }
+            else if ( series.Type is SvgChartType.Pie or SvgChartType.Doughnut )
+            {
+                var pointerFraction = ResolveRadialPointerFraction( pointerX.Value, pointerY.Value, plot );
+
+                angularPointerOffset = ResolveNearestRadialFraction( pointerFraction, angularBoundaryFraction ) - angularBoundaryFraction;
+            }
+        }
+
+        var x = isRadial
+            ? radialPoint.X
+            : isValueAxisHorizontal
+                ? GetX( renderedValue, plot, valueAxis.Min, valueAxis.Max )
+                : ResolveDataDragPointX( model, plot, series, pointIndex, xValue, xScale );
+
+        var y = isRadial
+            ? radialPoint.Y
+            : isValueAxisHorizontal
+                ? plot.Top + plot.Height * ( pointIndex + 0.5 ) / Math.Max( model.CategorySlotCount, 1 )
+                : GetY( renderedValue, plot, valueAxis );
+
+        var markerRadius = ResolveDataDragMarkerRadius( series );
+        var pointBounds = ResolveDataDragPointBounds( series, pointIndex, x, y, markerRadius );
+
+        var hasCategoryLabel = model.CategoryScaleKind == SvgChartAxisScaleKind.Continuous && pointIndex < model.Labels.Count;
+
+        var category = hasCategoryLabel
+            ? model.Labels[pointIndex]
+            : series.Type is SvgChartType.Scatter or SvgChartType.Bubble
+                ? xValue
+                : pointIndex < model.Labels.Count ? model.Labels[pointIndex] : pointIndex;
+
+        var point = new SvgChartPointEventArgs
+        {
+            SeriesName = series.Name,
+            SeriesIndex = seriesIndex,
+            PointIndex = pointIndex,
+            Category = category,
+            Value = value,
+            Bounds = pointBounds
+        };
+
+        if ( dataDrag.CanDrag is not null && !dataDrag.CanDrag( point ) )
+            return false;
+
+        dataPointOverrides.TryGetValue( (seriesIndex, pointIndex), out var originalOverride );
+
+        var state = new SvgChartDataDragState
+        {
+            SeriesIndex = seriesIndex,
+            PointIndex = pointIndex,
+            SeriesName = series.Name,
+            SeriesType = series.Type,
+            Category = category,
+            CategoryTracksX = canDragX && !isValueAxisHorizontal && !hasCategoryLabel,
+            CanDragX = canDragX,
+            CanDragY = canDragY,
+            IsValueAxisHorizontal = isValueAxisHorizontal,
+            IsStacked = isStacked,
+            ShouldShowTooltip = dataDrag.ShowTooltip,
+            OriginalXValue = xValue,
+            OriginalYValue = yValue,
+            XValue = xValue,
+            YValue = yValue,
+            PositiveStackBaseValue = positiveStackBaseValue,
+            NegativeStackBaseValue = negativeStackBaseValue,
+            CrossAxisCoordinate = isValueAxisHorizontal
+                ? pointBounds.Y + pointBounds.Height / 2
+                : series.Type == SvgChartType.Column ? pointBounds.X + pointBounds.Width / 2 : 0,
+            RadialPointerOffset = radialPointerOffset,
+            AngularPrefixValue = angularPrefixValue,
+            AngularOtherValue = angularOtherValue,
+            UsesAngularStartBoundary = usesAngularStartBoundary,
+            AngularBoundaryFraction = angularBoundaryFraction,
+            AngularPointerOffset = angularPointerOffset,
+            Mode = dataDrag.Mode,
+            Plot = plot,
+            XScale = xScale,
+            ValueAxis = valueAxis,
+            OriginalOverride = originalOverride
+        };
+
+        dataDragState = state;
+
+        panning = false;
+        ClearTooltip();
+
+        try
+        {
+            await NotifyDataDragStarted( CreateDataDragEventArgs( state, false ) );
+        }
+        catch
+        {
+            if ( ReferenceEquals( dataDragState, state ) )
+                dataDragState = null;
+
+            StateHasChanged();
+
+            throw;
+        }
+
+        if ( !ReferenceEquals( dataDragState, state ) )
+            return false;
+
+        if ( dataDrag.ShowTooltip )
+            UpdateDataDragTooltip();
+
+        StateHasChanged();
+
+        return true;
+    }
+
+    internal async Task HandleDataDragMove( double x, double y )
+    {
+        var state = dataDragState;
+
+        if ( state is null )
+            return;
+
+        var xValue = state.CanDragX
+            ? state.IsValueAxisHorizontal
+                ? ResolveDataDragStackValue( UnprojectX( x, state.Plot, state.ValueAxis.Min, state.ValueAxis.Max ), state )
+                : UnprojectX( x, state.Plot, state.XScale.Min, state.XScale.Max )
+            : state.XValue;
+
+        var yValue = state.CanDragY
+            ? IsRadialChart( state.SeriesType )
+                ? ResolveRadialDataDragValue( x, y, state )
+                : ResolveDataDragStackValue( UnprojectY( y, state.Plot, state.ValueAxis ), state )
+            : state.YValue;
+
+        await ApplyDataDragValues( xValue, yValue );
+    }
+
+    internal async Task HandleDataDragEnd( bool canceled )
+    {
+        var state = dataDragState;
+
+        if ( state is null )
+            return;
+
+        var eventArgs = CreateDataDragEventArgs( state, canceled );
+
+        if ( canceled )
+        {
+            if ( state.OriginalOverride is null )
+                dataPointOverrides.Remove( (state.SeriesIndex, state.PointIndex) );
+            else
+                dataPointOverrides[(state.SeriesIndex, state.PointIndex)] = state.OriginalOverride;
+        }
+
+        dataDragState = null;
+        ClearTooltip();
+        await NotifyDataDragEnded( eventArgs );
+
+        if ( !canceled )
+            ReleasePersistedDataDragOverride( state );
+
+        StateHasChanged();
+    }
+
+    private void ReleasePersistedDataDragOverride( SvgChartDataDragState state )
+    {
+        var key = (state.SeriesIndex, state.PointIndex);
+
+        if ( !dataPointOverrides.Remove( key, out var pointOverride ) )
+            return;
+
+        var model = BuildModel();
+
+        if ( state.SeriesIndex < 0 || state.SeriesIndex >= model.Series.Count )
+            return;
+
+        var series = model.Series[state.SeriesIndex];
+
+        var sourceXValue = state.IsValueAxisHorizontal
+            ? state.PointIndex >= 0 && state.PointIndex < series.Values.Count ? series.Values[state.PointIndex] : null
+            : state.PointIndex >= 0 && state.PointIndex < series.XValues.Count ? series.XValues[state.PointIndex] : null;
+
+        var sourceYValue = series.Type is SvgChartType.Scatter or SvgChartType.Bubble
+            ? state.PointIndex >= 0 && state.PointIndex < series.YValues.Count ? series.YValues[state.PointIndex] : null
+            : state.PointIndex >= 0 && state.PointIndex < series.Values.Count ? series.Values[state.PointIndex] : null;
+
+        var hasPersistedXValue = state.CanDragX && AreDataDragValuesEqual( sourceXValue, state.XValue );
+        var hasPersistedYValue = state.CanDragY && AreDataDragValuesEqual( sourceYValue, state.YValue );
+
+        var shouldKeepXValue = pointOverride.HasXValue && !hasPersistedXValue;
+        var shouldKeepYValue = pointOverride.HasYValue && !( state.IsValueAxisHorizontal ? hasPersistedXValue : hasPersistedYValue );
+
+        if ( shouldKeepXValue || shouldKeepYValue )
+        {
+            dataPointOverrides[key] = new()
+            {
+                HasXValue = shouldKeepXValue,
+                XValue = pointOverride.XValue,
+                HasYValue = shouldKeepYValue,
+                YValue = pointOverride.YValue
+            };
+        }
+    }
+
+    internal async Task HandleDataDragKeyDown( int seriesIndex, int pointIndex, string key, bool shiftKey )
+    {
+        if ( key is not ( "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown" ) )
+            return;
+
+        if ( !await HandleDataDragStart( seriesIndex, pointIndex ) )
+            return;
+
+        var state = dataDragState;
+        var factor = shiftKey ? 10 : 1;
+        var dataDrag = ResolveDataDrag( ResolveOptions() );
+        var xStep = ResolveDataDragKeyboardStep( dataDrag.XStep, state.IsValueAxisHorizontal ? state.ValueAxis.Min : state.XScale?.Min, state.IsValueAxisHorizontal ? state.ValueAxis.Max : state.XScale?.Max ) * factor;
+        var yStep = ResolveDataDragKeyboardStep( dataDrag.YStep, state.ValueAxis.Min, state.ValueAxis.Max ) * factor;
+        var xValue = state.XValue;
+        var yValue = state.YValue;
+        var handled = false;
+
+        if ( state.CanDragX && key is ( "ArrowLeft" or "ArrowRight" ) )
+        {
+            xValue += key == "ArrowLeft" ? -xStep : xStep;
+            handled = true;
+        }
+
+        if ( state.CanDragY && key is ( "ArrowUp" or "ArrowDown" ) )
+        {
+            yValue += key == "ArrowDown" ? -yStep : yStep;
+            handled = true;
+        }
+
+        if ( handled )
+        {
+            await ApplyDataDragValues( xValue, yValue );
+            await HandleDataDragEnd( false );
+        }
+        else
+        {
+            await HandleDataDragEnd( true );
+        }
+    }
+
+    private async Task ApplyDataDragValues( double? xValue, double? yValue )
+    {
+        var state = dataDragState;
+
+        if ( state is null )
+            return;
+
+        var dataDrag = ResolveDataDrag( ResolveOptions() );
+
+        var nextXValue = state.CanDragX
+            ? state.IsValueAxisHorizontal
+                ? SnapAndClampDataDragStackValue( xValue.Value, dataDrag.XStep, state )
+                : SnapAndClampDataDragValue( xValue.Value, dataDrag.XStep, state.XScale.Min, state.XScale.Max )
+            : state.XValue;
+
+        var nextYValue = state.CanDragY
+            ? SnapAndClampDataDragStackValue( yValue.Value, dataDrag.YStep, state )
+            : state.YValue;
+
+        if ( AreDataDragValuesEqual( state.XValue, nextXValue ) && AreDataDragValuesEqual( state.YValue, nextYValue ) )
+            return;
+
+        state.XValue = nextXValue;
+        state.YValue = nextYValue;
+        dataPointOverrides[(state.SeriesIndex, state.PointIndex)] = new()
+        {
+            HasXValue = state.CanDragX && !state.IsValueAxisHorizontal,
+            XValue = state.XValue,
+            HasYValue = state.CanDragY || state.IsValueAxisHorizontal,
+            YValue = state.IsValueAxisHorizontal ? state.XValue : state.YValue
+        };
+
+        if ( dataDrag.ShowTooltip )
+            UpdateDataDragTooltip();
+
+        await NotifyDataDragging( CreateDataDragEventArgs( state, false ) );
+        StateHasChanged();
+    }
+
+    private static bool TryResolveDataDragValues( SvgChartRenderSeries series, int pointIndex, SvgChartDataDragOptions dataDrag, out double? xValue, out double? yValue, out bool canDragX, out bool canDragY, out bool isValueAxisHorizontal )
+    {
+        xValue = null;
+        yValue = null;
+        canDragX = false;
+        canDragY = false;
+        isValueAxisHorizontal = false;
+
+        if ( series is null || !series.Draggable || series.Hidden || pointIndex < 0 )
+            return false;
+
+        var pointSeries = series.Type is SvgChartType.Scatter or SvgChartType.Bubble;
+        var horizontalValueSeries = series.Type == SvgChartType.Bar;
+
+        var verticalValueSeries = series.Type is SvgChartType.Line or SvgChartType.Area or SvgChartType.Column
+            or SvgChartType.Pie or SvgChartType.Doughnut or SvgChartType.PolarArea or SvgChartType.Radar;
+
+        if ( !pointSeries && !horizontalValueSeries && !verticalValueSeries )
+            return false;
+
+        if ( pointSeries )
+        {
+            if ( pointIndex >= series.XValues.Count || pointIndex >= series.YValues.Count )
+                return false;
+
+            xValue = series.XValues[pointIndex];
+            yValue = series.YValues[pointIndex];
+            canDragX = xValue.HasValue && dataDrag.Mode is SvgChartDataDragMode.X or SvgChartDataDragMode.XY;
+        }
+        else
+        {
+            if ( pointIndex >= series.Values.Count )
+                return false;
+
+            if ( horizontalValueSeries )
+            {
+                xValue = series.Values[pointIndex];
+                canDragX = xValue.HasValue && dataDrag.Mode is SvgChartDataDragMode.X or SvgChartDataDragMode.XY;
+                isValueAxisHorizontal = true;
+            }
+            else
+            {
+                yValue = series.Values[pointIndex];
+            }
+        }
+
+        if ( !horizontalValueSeries )
+            canDragY = yValue.HasValue && dataDrag.Mode is SvgChartDataDragMode.Y or SvgChartDataDragMode.XY;
+
+        return canDragX || canDragY;
+    }
+
+    private static double ResolveDataDragPointX( SvgChartRenderModel model, SvgChartPlotArea plot, SvgChartRenderSeries series, int pointIndex, double? xValue, SvgChartScale xScale )
+    {
+        if ( series.Type is SvgChartType.Scatter or SvgChartType.Bubble && xValue.HasValue && xScale is not null )
+            return GetX( xValue.Value, plot, xScale.Min, xScale.Max );
+
+        if ( model.CategoryScaleKind == SvgChartAxisScaleKind.Continuous && pointIndex < series.XValues.Count && series.XValues[pointIndex].HasValue )
+        {
+            var continuousScale = model.CategoryScale ?? ResolvePointXScale( model, [series] );
+
+            if ( continuousScale is not null )
+                return GetX( series.XValues[pointIndex].Value, plot, continuousScale.Min, continuousScale.Max );
+        }
+
+        return GetCategoryX( pointIndex, plot, model );
+    }
+
+    private static double ResolveDataDragMarkerRadius( SvgChartRenderSeries series )
+    {
+        return series.Type == SvgChartType.Area ? Math.Max( 3, series.StrokeWidth + 1 ) : Math.Max( 2, series.MarkerRadius );
+    }
+
+    private SvgChartPointBounds ResolveDataDragPointBounds( SvgChartRenderSeries series, int pointIndex, double x, double y, double markerRadius )
+    {
+        var key = $"{series.Type}|{series.Name}|{pointIndex}";
+
+        if ( previousAnimationPointBounds.TryGetValue( key, out var bounds ) )
+            return bounds;
+
+        return new()
+        {
+            X = x - markerRadius,
+            Y = y - markerRadius,
+            Width = markerRadius * 2,
+            Height = markerRadius * 2
+        };
+    }
+
+    private void ResolveRadialDataDragMetadata(
+        SvgChartRenderModel model,
+        SvgChartRenderSeries series,
+        int pointIndex,
+        double value,
+        out double radialAngle,
+        out double angularPrefixValue,
+        out double angularOtherValue,
+        out bool usesAngularStartBoundary,
+        out double angularBoundaryFraction )
+    {
+        radialAngle = 0;
+        angularPrefixValue = 0;
+        angularOtherValue = 0;
+        usesAngularStartBoundary = false;
+        angularBoundaryFraction = 0;
+
+        if ( series.Type == SvgChartType.Radar )
+        {
+            radialAngle = -Math.PI / 2 + Math.PI * 2 * pointIndex / Math.Max( model.Labels.Count, 1 );
+            return;
+        }
+
+        if ( series.Type is not ( SvgChartType.Pie or SvgChartType.Doughnut or SvgChartType.PolarArea ) )
+            return;
+
+        var values = ResolveVisibleRadialValues( series );
+        var visiblePointIndex = values.FindIndex( item => item.Index == pointIndex );
+
+        if ( visiblePointIndex < 0 || values.Count == 0 )
+            return;
+
+        if ( series.Type == SvgChartType.PolarArea )
+        {
+            radialAngle = -Math.PI / 2 + Math.PI * 2 * ( visiblePointIndex + 0.5 ) / values.Count;
+            return;
+        }
+
+        var total = values.Sum( item => item.Value );
+
+        if ( total <= 0 )
+            return;
+
+        angularPrefixValue = values.Take( visiblePointIndex ).Sum( item => item.Value );
+        angularOtherValue = Math.Max( 0, total - value );
+        var startFraction = angularPrefixValue / total;
+        var endFraction = ( angularPrefixValue + value ) / total;
+
+        usesAngularStartBoundary = visiblePointIndex == values.Count - 1;
+        angularBoundaryFraction = usesAngularStartBoundary ? startFraction : endFraction;
+        radialAngle = -Math.PI / 2 + Math.PI * 2 * ( startFraction + endFraction ) / 2;
+    }
+
+    private List<(double Value, int Index)> ResolveVisibleRadialValues( SvgChartRenderSeries series )
+    {
+        return series.Values
+            .Select( ( value, index ) => new { Value = value, Index = index } )
+            .Where( item => item.Value.HasValue
+                && item.Value.Value >= 0
+                && !IsDataPointHidden( series.Name, item.Index ) )
+            .Select( item => (item.Value.Value, item.Index) )
+            .ToList();
+    }
+
+    private static (double X, double Y) ResolveRadialDataDragPoint( SvgChartPlotArea plot, SvgChartType seriesType, double value, double maximumValue, double angle )
+    {
+        var centerX = plot.Left + plot.Width / 2;
+        var centerY = plot.Top + plot.Height / 2;
+        var radius = Math.Max( 1, Math.Min( plot.Width, plot.Height ) * ( seriesType is SvgChartType.Pie or SvgChartType.Doughnut ? 0.5 : 0.42 ) );
+        var resolvedMaximum = Math.Max( maximumValue, 1 );
+
+        var renderedRadius = seriesType switch
+        {
+            SvgChartType.Radar => radius * Math.Clamp( value / resolvedMaximum, 0, 1 ),
+            SvgChartType.PolarArea => radius * Math.Sqrt( Math.Clamp( value / resolvedMaximum, 0, 1 ) ),
+            SvgChartType.Doughnut => radius * 0.79,
+            _ => radius * 0.67
+        };
+
+        return SvgChartSeriesRenderHelpers.PolarToCartesian( centerX, centerY, renderedRadius, angle );
+    }
+
+    private static double ResolveRadialDataDragValue( double x, double y, SvgChartDataDragState state )
+    {
+        var centerX = state.Plot.Left + state.Plot.Width / 2;
+        var centerY = state.Plot.Top + state.Plot.Height / 2;
+        var radius = Math.Max( 1, Math.Min( state.Plot.Width, state.Plot.Height ) * 0.42 );
+
+        if ( state.SeriesType == SvgChartType.Radar )
+            return ResolveRadialDistanceValue( x, y, centerX, centerY, radius, state.ValueAxis.Max, state.RadialPointerOffset, false );
+
+        if ( state.SeriesType == SvgChartType.PolarArea )
+            return ResolveRadialDistanceValue( x, y, centerX, centerY, radius, state.ValueAxis.Max, state.RadialPointerOffset, true );
+
+        return ResolveAngularDataDragValue( x, y, centerX, centerY, state );
+    }
+
+    private static double ResolveRadialDistanceValue( double x, double y, double centerX, double centerY, double radius, double maximumValue, double pointerOffset, bool squareRatio )
+    {
+        var distance = Math.Sqrt( Math.Pow( x - centerX, 2 ) + Math.Pow( y - centerY, 2 ) ) - pointerOffset;
+        var ratio = Math.Clamp( distance / radius, 0, 1 );
+
+        if ( squareRatio )
+            ratio *= ratio;
+
+        return ratio * Math.Max( maximumValue, 0 );
+    }
+
+    private static double ResolveAngularDataDragValue( double x, double y, double centerX, double centerY, SvgChartDataDragState state )
+    {
+        if ( state.AngularOtherValue <= 0 )
+            return state.YValue ?? 0;
+
+        var angle = Math.Atan2( y - centerY, x - centerX );
+        var fraction = NormalizeRadialFraction( ( angle + Math.PI / 2 ) / ( Math.PI * 2 ) );
+        var boundaryFraction = ResolveNearestRadialFraction( fraction, state.AngularBoundaryFraction + state.AngularPointerOffset ) - state.AngularPointerOffset;
+        double value;
+
+        if ( state.UsesAngularStartBoundary )
+        {
+            boundaryFraction = Math.Clamp( boundaryFraction, 0.000001, 1 );
+            value = state.AngularPrefixValue / boundaryFraction - state.AngularOtherValue;
+        }
+        else
+        {
+            boundaryFraction = Math.Clamp( boundaryFraction, 0, 0.999999 );
+            value = ( boundaryFraction * state.AngularOtherValue - state.AngularPrefixValue ) / ( 1 - boundaryFraction );
+        }
+
+        value = Math.Max( 0, value );
+        var total = state.AngularOtherValue + value;
+
+        state.AngularBoundaryFraction = state.UsesAngularStartBoundary
+            ? state.AngularPrefixValue / Math.Max( total, 0.000001 )
+            : ( state.AngularPrefixValue + value ) / Math.Max( total, 0.000001 );
+
+        return value;
+    }
+
+    private static double NormalizeRadialFraction( double fraction )
+    {
+        fraction %= 1;
+
+        return fraction < 0 ? fraction + 1 : fraction;
+    }
+
+    private static double ResolveRadialPointerFraction( double x, double y, SvgChartPlotArea plot )
+    {
+        var centerX = plot.Left + plot.Width / 2;
+        var centerY = plot.Top + plot.Height / 2;
+        var angle = Math.Atan2( y - centerY, x - centerX );
+
+        return NormalizeRadialFraction( ( angle + Math.PI / 2 ) / ( Math.PI * 2 ) );
+    }
+
+    private static double ResolveNearestRadialFraction( double fraction, double reference )
+    {
+        while ( fraction - reference > 0.5 )
+            fraction--;
+
+        while ( reference - fraction > 0.5 )
+            fraction++;
+
+        return fraction;
+    }
+
+    private static void ResolveDataDragStackBases( SvgChartRenderModel model, int seriesIndex, int pointIndex, bool isStacked, out double positiveBaseValue, out double negativeBaseValue )
+    {
+        positiveBaseValue = 0;
+        negativeBaseValue = 0;
+
+        if ( !isStacked || seriesIndex < 0 || seriesIndex >= model.Series.Count )
+            return;
+
+        var target = model.Series[seriesIndex];
+
+        for ( var currentSeriesIndex = 0; currentSeriesIndex < seriesIndex; currentSeriesIndex++ )
+        {
+            var current = model.Series[currentSeriesIndex];
+
+            if ( current.Hidden
+                 || current.Type != target.Type
+                 || !string.Equals( current.ValueAxisId ?? string.Empty, target.ValueAxisId ?? string.Empty, StringComparison.Ordinal )
+                 || !string.Equals( current.Stack ?? string.Empty, target.Stack ?? string.Empty, StringComparison.Ordinal )
+                 || pointIndex < 0
+                 || pointIndex >= current.Values.Count
+                 || !current.Values[pointIndex].HasValue )
+            {
+                continue;
+            }
+
+            var value = current.Values[pointIndex].Value;
+
+            if ( value >= 0 )
+                positiveBaseValue += value;
+            else
+                negativeBaseValue += value;
+        }
+    }
+
+    private static double ResolveDataDragRenderedValue( double value, bool isStacked, double positiveBaseValue, double negativeBaseValue )
+    {
+        if ( !isStacked )
+            return value;
+
+        return value >= 0 ? positiveBaseValue + value : negativeBaseValue + value;
+    }
+
+    private static double ResolveDataDragStackValue( double renderedValue, SvgChartDataDragState state )
+    {
+        if ( !state.IsStacked )
+            return renderedValue;
+
+        if ( renderedValue >= state.PositiveStackBaseValue )
+            return renderedValue - state.PositiveStackBaseValue;
+
+        if ( renderedValue <= state.NegativeStackBaseValue )
+            return renderedValue - state.NegativeStackBaseValue;
+
+        return 0;
+    }
+
+    private static double SnapAndClampDataDragStackValue( double value, double? step, SvgChartDataDragState state )
+    {
+        if ( IsRadialChart( state.SeriesType ) )
+            return SnapAndClampDataDragValue( value, step, 0, Math.Max( 0, state.ValueAxis.Max ) );
+
+        if ( !state.IsStacked )
+            return SnapAndClampDataDragValue( value, step, state.ValueAxis.Min, state.ValueAxis.Max );
+
+        if ( step.HasValue && double.IsFinite( step.Value ) && step.Value > 0 )
+            value = Math.Round( value / step.Value, MidpointRounding.AwayFromZero ) * step.Value;
+
+        return value >= 0
+            ? Math.Clamp( value, 0, Math.Max( 0, state.ValueAxis.Max - state.PositiveStackBaseValue ) )
+            : Math.Clamp( value, Math.Min( 0, state.ValueAxis.Min - state.NegativeStackBaseValue ), 0 );
+    }
+
+    private static double SnapAndClampDataDragValue( double value, double? step, double min, double max )
+    {
+        if ( step.HasValue && double.IsFinite( step.Value ) && step.Value > 0 )
+            value = Math.Round( value / step.Value, MidpointRounding.AwayFromZero ) * step.Value;
+
+        return Math.Clamp( value, min, max );
+    }
+
+    private static double ResolveDataDragKeyboardStep( double? configuredStep, double? min, double? max )
+    {
+        if ( configuredStep.HasValue && double.IsFinite( configuredStep.Value ) && configuredStep.Value > 0 )
+            return configuredStep.Value;
+
+        if ( min.HasValue && max.HasValue && max.Value > min.Value )
+            return ( max.Value - min.Value ) / 100;
+
+        return 1;
+    }
+
+    private static bool AreDataDragValuesEqual( double? first, double? second )
+    {
+        if ( !first.HasValue || !second.HasValue )
+            return first.HasValue == second.HasValue;
+
+        return Math.Abs( first.Value - second.Value ) < 0.0000001;
+    }
+
+    private SvgChartDataPointDragEventArgs CreateDataDragEventArgs( SvgChartDataDragState state, bool canceled )
+    {
+        return new()
+        {
+            SeriesName = state.SeriesName,
+            SeriesIndex = state.SeriesIndex,
+            PointIndex = state.PointIndex,
+            Category = state.CategoryTracksX ? state.XValue : state.Category,
+            OriginalXValue = state.OriginalXValue,
+            OriginalYValue = state.OriginalYValue,
+            XValue = state.XValue,
+            YValue = state.YValue,
+            Mode = state.Mode,
+            Canceled = canceled
+        };
+    }
+
+    private void UpdateDataDragTooltip()
+    {
+        var state = dataDragState;
+
+        if ( state is null )
+            return;
+
+        var model = BuildModel();
+
+        if ( state.SeriesIndex < 0 || state.SeriesIndex >= model.Series.Count )
+            return;
+
+        var series = model.Series[state.SeriesIndex];
+        var plot = BuildCurrentPlotArea( model );
+        var value = state.IsValueAxisHorizontal ? state.XValue.Value : state.YValue.Value;
+        var renderedValue = ResolveDataDragRenderedValue( value, state.IsStacked, state.PositiveStackBaseValue, state.NegativeStackBaseValue );
+        var isRadial = IsRadialChart( series.Type );
+
+        ResolveRadialDataDragMetadata( model, series, state.PointIndex, value, out var radialAngle, out _, out _, out _, out _ );
+
+        var radialPoint = isRadial
+            ? ResolveRadialDataDragPoint( plot, series.Type, value, state.ValueAxis.Max, radialAngle )
+            : (X: 0d, Y: 0d);
+
+        var x = isRadial
+            ? radialPoint.X
+            : state.IsValueAxisHorizontal
+                ? GetX( renderedValue, plot, state.ValueAxis.Min, state.ValueAxis.Max )
+                : series.Type == SvgChartType.Column
+                    ? state.CrossAxisCoordinate
+                    : ResolveDataDragPointX( model, plot, series, state.PointIndex, state.XValue, state.XScale );
+
+        var y = isRadial
+            ? radialPoint.Y
+            : state.IsValueAxisHorizontal
+                ? state.CrossAxisCoordinate
+                : GetY( renderedValue, plot, state.ValueAxis );
+
+        var radius = ResolveDataDragMarkerRadius( series );
+
+        var point = new SvgChartPointEventArgs
+        {
+            SeriesName = state.SeriesName,
+            SeriesIndex = state.SeriesIndex,
+            PointIndex = state.PointIndex,
+            Category = state.CategoryTracksX ? state.XValue : state.Category,
+            Value = value,
+            Bounds = new()
+            {
+                X = x - radius,
+                Y = y - radius,
+                Width = radius * 2,
+                Height = radius * 2
+            }
+        };
+
+        ShowTooltip( point, ResolvePointColor( series, state.PointIndex ), false );
+    }
+
+    private async Task NotifyDataDragStarted( SvgChartDataPointDragEventArgs eventArgs )
+    {
+        var dataDragComponent = pluginComponents.OfType<SvgChartDataDrag>().LastOrDefault();
+
+        if ( dataDragComponent?.DragStarted.HasDelegate == true )
+            await dataDragComponent.DragStarted.InvokeAsync( eventArgs );
+    }
+
+    private async Task NotifyDataDragging( SvgChartDataPointDragEventArgs eventArgs )
+    {
+        var dataDragComponent = pluginComponents.OfType<SvgChartDataDrag>().LastOrDefault();
+
+        if ( dataDragComponent?.Dragging.HasDelegate == true )
+            await dataDragComponent.Dragging.InvokeAsync( eventArgs );
+    }
+
+    private async Task NotifyDataDragEnded( SvgChartDataPointDragEventArgs eventArgs )
+    {
+        var dataDragComponent = pluginComponents.OfType<SvgChartDataDrag>().LastOrDefault();
+
+        if ( dataDragComponent?.DragEnded.HasDelegate == true )
+            await dataDragComponent.DragEnded.InvokeAsync( eventArgs );
+    }
+
+    /// <summary>
+    /// Replaces the chart data and refreshes the chart.
+    /// </summary>
+    /// <param name="data">The chart data to render.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task SetData( SvgChartData<double?> data )
+    {
+        dataPointOverrides.Clear();
+        dataDragState = null;
+        internalChartData = NormalizeData( data );
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Replaces the chart options and refreshes the chart.
+    /// </summary>
+    /// <param name="options">The chart options to apply.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task SetOptions( SvgChartOptions options )
+    {
+        Options = options;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Adds a category label to the chart data.
+    /// </summary>
+    /// <param name="label">The category label to add.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task AddLabel( object label )
+    {
+        var data = EnsureInternalData();
+        data.Labels.Add( label );
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Adds a data series to the chart.
+    /// </summary>
+    /// <param name="series">The series to add.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task AddSeries( SvgChartSeriesData<double?> series )
+    {
+        if ( series is null )
+            return Task.CompletedTask;
+
+        var data = EnsureInternalData();
+        data.Series.Add( NormalizeSeries( series ) );
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Removes a data series by name.
+    /// </summary>
+    /// <param name="name">The series name.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task RemoveSeries( string name )
+    {
+        var data = EnsureInternalData();
+        data.Series.RemoveAll( x => x.Name == name );
+        dataPointOverrides.Clear();
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Adds a value to an existing data series.
+    /// </summary>
+    /// <param name="seriesName">The series name.</param>
+    /// <param name="value">The value to add.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task AddValue( string seriesName, double? value )
+    {
+        var data = EnsureInternalData();
+        var series = data.Series.FirstOrDefault( x => x.Name == seriesName );
+
+        if ( series is not null )
+        {
+            NormalizeSeries( series );
+            series.Values.Add( value );
+            StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    #region Streaming
+
+    /// <summary>
+    /// Appends a streamed value to a series and adds the label as the next category.
+    /// </summary>
+    /// <param name="seriesName">The series name.</param>
+    /// <param name="label">The category label.</param>
+    /// <param name="value">The value to append.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task AppendValue( string seriesName, object label, double? value )
+    {
+        return AppendValues( label, new Dictionary<string, double?> { [seriesName] = value } );
+    }
+
+    /// <summary>
+    /// Appends streamed values to matching series and adds the label as the next category.
+    /// </summary>
+    /// <param name="label">The category label.</param>
+    /// <param name="values">The values keyed by series name.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task AppendValues( object label, IReadOnlyDictionary<string, double?> values )
+    {
+        var streaming = ResolveStreaming();
+        var streamingValues = values ?? new Dictionary<string, double?>();
+
+        if ( streamingPaused )
+            return;
+
+        var data = EnsureInternalData();
+        var previousCount = data.Labels.Count;
+
+        foreach ( var value in streamingValues )
+            EnsureSeries( data, value.Key, previousCount );
+
+        foreach ( var series in data.Series )
+        {
+            NormalizeSeries( series );
+
+            while ( series.Values.Count < previousCount )
+                series.Values.Add( null );
+        }
+
+        data.Labels.Add( label );
+
+        foreach ( var series in data.Series )
+            series.Values.Add( streamingValues.TryGetValue( series.Name, out var value ) ? value : null );
+
+        if ( streaming.Enabled && SvgChartStreamingResolver.IsAnimationEnabled( streaming ) && streaming.VisibleDataPoints.HasValue )
+        {
+            streamingAnimationVersion++;
+        }
+
+        TrimStreamingData( data, streaming, label );
+
+        await RefreshStreaming( streaming );
+
+    }
+
+    /// <summary>
+    /// Updates the maximum number of streamed data points to keep.
+    /// </summary>
+    /// <param name="maxDataPoints">The maximum data point count, or null to keep all points by count.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task SetMaxDataPoints( int? maxDataPoints )
+    {
+        var streaming = Streaming ??= new();
+        streaming.MaxDataPoints = maxDataPoints;
+
+        TrimStreamingData( EnsureInternalData(), streaming, null );
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Pauses accepting streamed values.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task PauseStreaming()
+    {
+        streamingPaused = true;
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Resumes accepting streamed values.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task ResumeStreaming()
+    {
+        streamingPaused = false;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    #endregion
+
+    /// <summary>
+    /// Updates a value in an existing data series.
+    /// </summary>
+    /// <param name="seriesName">The series name.</param>
+    /// <param name="index">The zero-based value index.</param>
+    /// <param name="value">The value to set.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task SetValue( string seriesName, int index, double? value )
+    {
+        var series = EnsureInternalData().Series.FirstOrDefault( x => x.Name == seriesName );
+
+        if ( series is not null )
+        {
+            NormalizeSeries( series );
+
+            if ( index >= 0 && index < series.Values.Count )
+            {
+                series.Values[index] = value;
+                dataPointOverrides.Clear();
+                StateHasChanged();
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Toggles the visibility of a data series.
+    /// </summary>
+    /// <param name="seriesName">The series name.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task ToggleSeries( string seriesName )
+    {
+        if ( !hiddenSeries.Add( seriesName ) )
+            hiddenSeries.Remove( seriesName );
+
+        ClearTooltip();
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Shows a hidden data series.
+    /// </summary>
+    /// <param name="seriesName">The series name.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task ShowSeries( string seriesName )
+    {
+        hiddenSeries.Remove( seriesName );
+        ClearTooltip();
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Hides a visible data series.
+    /// </summary>
+    /// <param name="seriesName">The series name.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task HideSeries( string seriesName )
+    {
+        hiddenSeries.Add( seriesName );
+        ClearTooltip();
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Toggles the visibility of a radial data point.
+    /// </summary>
+    /// <param name="seriesName">The series name.</param>
+    /// <param name="pointIndex">The zero-based data point index.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task ToggleDataPoint( string seriesName, int pointIndex )
+    {
+        var key = GetDataPointKey( seriesName, pointIndex );
+
+        if ( !hiddenDataPoints.Add( key ) )
+            hiddenDataPoints.Remove( key );
+
+        ClearTooltip();
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Shows a hidden radial data point.
+    /// </summary>
+    /// <param name="seriesName">The series name.</param>
+    /// <param name="pointIndex">The zero-based data point index.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task ShowDataPoint( string seriesName, int pointIndex )
+    {
+        hiddenDataPoints.Remove( GetDataPointKey( seriesName, pointIndex ) );
+        ClearTooltip();
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Hides a visible radial data point.
+    /// </summary>
+    /// <param name="seriesName">The series name.</param>
+    /// <param name="pointIndex">The zero-based data point index.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task HideDataPoint( string seriesName, int pointIndex )
+    {
+        hiddenDataPoints.Add( GetDataPointKey( seriesName, pointIndex ) );
+        ClearTooltip();
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    private static string GetDataPointKey( string seriesName, int pointIndex )
+    {
+        return $"{seriesName ?? string.Empty}:{pointIndex}";
+    }
+
+    private bool IsDataPointHidden( string seriesName, int pointIndex )
+    {
+        return hiddenDataPoints.Contains( GetDataPointKey( seriesName, pointIndex ) );
+    }
+
+    /// <summary>
+    /// Refreshes the chart.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task Update()
+    {
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Refreshes the chart after its container size changes.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task Resize()
+    {
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Sets the active chart viewport.
+    /// </summary>
+    /// <param name="viewport">The viewport to apply.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task SetViewport( SvgChartViewport viewport )
+    {
+        var model = BuildModel();
+        var fullViewport = ResolveFullViewport( BuildModel( false, false ) );
+        var previousViewport = ResolveEffectiveViewport( model, fullViewport );
+        var nextViewport = CloneViewport( viewport );
+
+        await ApplyViewport( previousViewport, nextViewport );
+    }
+
+    /// <summary>
+    /// Resets the chart zoom viewport.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task ResetZoom()
+    {
+        var model = BuildModel();
+        var fullViewport = ResolveFullViewport( BuildModel( false, false ) );
+        var previousViewport = ResolveEffectiveViewport( model, fullViewport );
+
+        await ApplyViewport( previousViewport, null );
+        await NotifyZoomed( previousViewport, fullViewport, SvgChartZoomSource.Api );
+    }
+
+    /// <summary>
+    /// Zooms into the chart from the center of the plot area.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task ZoomIn()
+    {
+        await ZoomBy( 0.82 );
+    }
+
+    /// <summary>
+    /// Zooms out from the center of the plot area.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task ZoomOut()
+    {
+        await ZoomBy( 1.22 );
+    }
+
+    /// <summary>
+    /// Clears chart labels, values, visibility state, tooltip state, viewport, and streaming state.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task Clear()
+    {
+        var data = EnsureInternalData();
+
+        data.Labels.Clear();
+
+        foreach ( var series in data.Series )
+        {
+            NormalizeSeries( series );
+
+            series.Values.Clear();
+            series.XValues.Clear();
+            series.YValues.Clear();
+            series.RadiusValues.Clear();
+            series.Colors.Clear();
+        }
+
+        hiddenSeries.Clear();
+        hiddenDataPoints.Clear();
+        pointInteractions.Clear();
+        materializedSeries.Clear();
+        dataPointOverrides.Clear();
+        dataDragState = null;
+        ClearTooltip();
+        internalViewport = null;
+        panning = false;
+        panStartViewport = null;
+        panLastViewport = null;
+        panRenderedViewport = null;
+        panFullViewport = null;
+        panPlot = null;
+        panZoom = null;
+        lastPanRender = DateTimeOffset.MinValue;
+        streamingAnimationVersion = 0;
+        lastStreamingRender = DateTimeOffset.MinValue;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    private async Task ZoomBy( double factor )
+    {
+        var model = BuildModel();
+        var zoom = model.Zoom;
+
+        if ( zoom?.Enabled != true )
+            return;
+
+        var fullViewport = ResolveFullViewport( BuildModel( false, false ) );
+        var previousViewport = ResolveEffectiveViewport( model, fullViewport );
+        var plot = BuildCurrentPlotArea( model );
+        var nextViewport = ZoomViewport( previousViewport, fullViewport, zoom, plot, plot.Left + plot.Width / 2, plot.Top + plot.Height / 2, factor );
+
+        await ApplyViewport( previousViewport, nextViewport );
+        await NotifyZoomed( previousViewport, nextViewport, SvgChartZoomSource.Api );
+    }
+
+    /// <summary>
+    /// Exports the chart root SVG markup as a string.
+    /// </summary>
+    /// <returns>A value task containing the SVG markup.</returns>
+    public ValueTask<string> ToSvgString()
+    {
+        var model = BuildModel();
+        var options = ResolveOptions();
+        var title = ResolveTitleOptions( options, titleComponents );
+        var role = HtmlEncoder.Default.Encode( ResolveAccessibilityRole() );
+        var ariaLabel = HtmlEncoder.Default.Encode( ResolveAccessibilityLabel( title ) );
+        var accessibilityTitle = HtmlEncoder.Default.Encode( AccessibilityTitle ?? string.Empty );
+        var description = HtmlEncoder.Default.Encode( ResolveAccessibilityDescription( model ) );
+        var tabIndex = TabIndex.HasValue ? $" tabindex=\"{TabIndex.Value}\"" : string.Empty;
+        var titleMarkup = string.IsNullOrWhiteSpace( AccessibilityTitle ) ? string.Empty : $"<title>{accessibilityTitle}</title>";
+        var descriptionMarkup = string.IsNullOrWhiteSpace( description ) ? string.Empty : $"<desc>{description}</desc>";
+
+        return ValueTask.FromResult( $"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {Format( options.Width )} {Format( options.Height )}\" role=\"{role}\" aria-label=\"{ariaLabel}\"{tabIndex}>{titleMarkup}{descriptionMarkup}</svg>" );
+    }
+
+    private void RenderAccessibilityText( RenderTreeBuilder builder, ref int sequence, SvgChartRenderModel model )
+    {
+        if ( !string.IsNullOrWhiteSpace( AccessibilityTitle ) )
+        {
+            builder.OpenElement( sequence++, "title" );
+            builder.AddContent( sequence++, AccessibilityTitle );
+            builder.CloseElement();
+        }
+
+        var description = ResolveAccessibilityDescription( model );
+
+        if ( !string.IsNullOrWhiteSpace( description ) )
+        {
+            builder.OpenElement( sequence++, "desc" );
+            builder.AddContent( sequence++, description );
+            builder.CloseElement();
+        }
+    }
+
+    private string ResolveAccessibilityRole()
+    {
+        return string.IsNullOrWhiteSpace( Role ) ? "img" : Role;
+    }
+
+    private string ResolveAccessibilityLabel( SvgChartTextOptions title )
+    {
+        if ( !string.IsNullOrWhiteSpace( AriaLabel ) )
+            return AriaLabel;
+
+        return IsTextVisible( title ) ? title.Text : "SVG chart";
+    }
+
+    private string ResolveAccessibilityDescription( SvgChartRenderModel model )
+    {
+        return AccessibilityDescription ?? $"{model.Series.Count} series, {model.Labels.Count} categories.";
+    }
+
+    private SvgChartData<double?> EnsureInternalData()
+    {
+        if ( internalChartData is not null )
+            return NormalizeData( internalChartData );
+
+        if ( Data is not null )
+        {
+            internalChartData = NormalizeData( Data );
+            return internalChartData;
+        }
+
+        var model = BuildModel( false, false );
+
+        internalChartData = new()
+        {
+            Labels = model.Labels.ToList(),
+            Series = model.Series.Select( x => new SvgChartSeriesData<double?>
+            {
+                Name = x.Name,
+                Values = x.Values.ToList(),
+                XValues = x.XValues.ToList(),
+                YValues = x.YValues.ToList(),
+                RadiusValues = x.RadiusValues.ToList(),
+                Order = x.Order,
+                CategoryAxisId = x.CategoryAxisId,
+                ValueAxisId = x.ValueAxisId,
+                Color = x.Color,
+                Colors = x.PointColors?.Select( color => (Color)color ).ToList() ?? [],
+                Interpolation = x.Interpolation,
+                Tension = x.Tension,
+                Hidden = x.Hidden,
+                Draggable = x.Draggable
+            } ).ToList()
+        };
+
+        return NormalizeData( internalChartData );
+    }
+
+    private static SvgChartSeriesData<double?> EnsureSeries( SvgChartData<double?> data, string seriesName, int valueCount )
+    {
+        data = NormalizeData( data );
+
+        var series = data.Series.FirstOrDefault( x => x.Name == seriesName );
+
+        if ( series is null )
+        {
+            series = new()
+            {
+                Name = seriesName
+            };
+
+            data.Series.Add( series );
+        }
+
+        NormalizeSeries( series );
+
+        while ( series.Values.Count < valueCount )
+            series.Values.Add( null );
+
+        return series;
+    }
+
+    private static SvgChartData<double?> NormalizeData( SvgChartData<double?> data )
+    {
+        data ??= new();
+        data.Labels ??= [];
+        data.Series ??= [];
+        data.Series.RemoveAll( x => x is null );
+
+        foreach ( var series in data.Series )
+            NormalizeSeries( series );
+
+        return data;
+    }
+
+    private static SvgChartSeriesData<double?> NormalizeSeries( SvgChartSeriesData<double?> series )
+    {
+        if ( series is null )
+            return null;
+
+        series.Values ??= [];
+        series.XValues ??= [];
+        series.YValues ??= [];
+        series.RadiusValues ??= [];
+        series.Colors ??= [];
+
+        return series;
+    }
+
+    private void TrimStreamingData( SvgChartData<double?> data, SvgChartStreamingOptions streaming, object latestLabel )
+    {
+        if ( !streaming.Enabled )
+            return;
+
+        if ( streaming.MaxDataPoints.HasValue )
+        {
+            var maxDataPoints = Math.Max( 0, streaming.MaxDataPoints.Value );
+
+            while ( data.Labels.Count > maxDataPoints )
+                RemoveDataPoint( data, 0 );
+        }
+
+        if ( streaming.Duration.HasValue && TryGetDateTimeOffset( latestLabel ?? data.Labels.LastOrDefault(), out var latest ) )
+        {
+            var cutoff = latest - streaming.Duration.Value;
+
+            while ( data.Labels.Count > 0 && TryGetDateTimeOffset( data.Labels[0], out var timestamp ) && timestamp < cutoff )
+                RemoveDataPoint( data, 0 );
+        }
+    }
+
+    private static void RemoveDataPoint( SvgChartData<double?> data, int index )
+    {
+        data = NormalizeData( data );
+
+        if ( index >= 0 && index < data.Labels.Count )
+            data.Labels.RemoveAt( index );
+
+        foreach ( var series in data.Series )
+        {
+            RemoveAt( series.Values, index );
+            RemoveAt( series.XValues, index );
+            RemoveAt( series.YValues, index );
+            RemoveAt( series.RadiusValues, index );
+        }
+    }
+
+    private static void RemoveAt<TValue>( List<TValue> values, int index )
+    {
+        if ( values is not null && index >= 0 && index < values.Count )
+            values.RemoveAt( index );
+    }
+
+    private Task RefreshStreaming( SvgChartStreamingOptions streaming )
+    {
+        ClearTooltip();
+
+        if ( !streaming.Enabled || streaming.RefreshInterval <= TimeSpan.Zero )
+        {
+            StateHasChanged();
+            return Task.CompletedTask;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+
+        if ( now - lastStreamingRender >= streaming.RefreshInterval )
+        {
+            lastStreamingRender = now;
+            StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private static bool TryGetDateTimeOffset( object value, out DateTimeOffset dateTimeOffset )
+    {
+        switch ( value )
+        {
+            case DateTimeOffset offset:
+                dateTimeOffset = offset;
+                return true;
+            case DateTime dateTime:
+                dateTimeOffset = dateTime.Kind == DateTimeKind.Unspecified
+                    ? new DateTimeOffset( DateTime.SpecifyKind( dateTime, DateTimeKind.Local ) )
+                    : new DateTimeOffset( dateTime );
+
+                return true;
+            default:
+                dateTimeOffset = default;
+                return false;
+        }
+    }
+
+    internal override void RegisterSeries( object series )
+    {
+        if ( !seriesComponents.Contains( series ) )
+            seriesComponents.Add( series );
+    }
+
+    internal override void UnregisterSeries( object series )
+    {
+        seriesComponents.Remove( series );
+    }
+
+    internal override void RegisterCategoryAxis( object axis )
+    {
+        if ( !categoryAxisComponents.Contains( axis ) )
+            categoryAxisComponents.Add( axis );
+    }
+
+    internal override void UnregisterCategoryAxis( object axis )
+    {
+        categoryAxisComponents.Remove( axis );
+    }
+
+    internal override void RegisterValueAxis( SvgChartValueAxis axis )
+    {
+        if ( !valueAxisComponents.Contains( axis ) )
+            valueAxisComponents.Add( axis );
+    }
+
+    internal override void UnregisterValueAxis( SvgChartValueAxis axis )
+    {
+        valueAxisComponents.Remove( axis );
+    }
+
+    internal override void RegisterTitle( SvgChartTitle title )
+    {
+        if ( !titleComponents.Contains( title ) )
+            titleComponents.Add( title );
+    }
+
+    internal override void UnregisterTitle( SvgChartTitle title )
+    {
+        titleComponents.Remove( title );
+    }
+
+    internal override void RegisterLegend( SvgChartLegend legend )
+    {
+        if ( !legendComponents.Contains( legend ) )
+            legendComponents.Add( legend );
+    }
+
+    internal override void UnregisterLegend( SvgChartLegend legend )
+    {
+        legendComponents.Remove( legend );
+    }
+
+    internal override void RegisterTooltip( SvgChartTooltip tooltip )
+    {
+        if ( !tooltipComponents.Contains( tooltip ) )
+            tooltipComponents.Add( tooltip );
+    }
+
+    internal override void UnregisterTooltip( SvgChartTooltip tooltip )
+    {
+        tooltipComponents.Remove( tooltip );
+    }
+
+    internal override void RegisterPlugin( ISvgChartPlugin plugin )
+    {
+        if ( plugin is not null && !pluginComponents.Contains( plugin ) )
+            pluginComponents.Add( plugin );
+    }
+
+    internal override void UnregisterPlugin( ISvgChartPlugin plugin )
+    {
+        pluginComponents.Remove( plugin );
+    }
+
+    internal override void Refresh()
+    {
+        _ = InvokeAsync( StateHasChanged );
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <inheritdoc/>
+    protected override bool ShouldAutoGenerateId => true;
+
+    /// <summary>
+    /// Gets the class builder for the SVG surface element.
+    /// </summary>
+    protected ClassBuilder SurfaceClassBuilder { get; private set; }
+
+    /// <summary>
+    /// Gets the class names for the SVG surface element.
+    /// </summary>
+    protected string SurfaceClassNames => SurfaceClassBuilder.Class;
+
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+
+    [Inject] private IDocumentObserver DocumentObserver { get; set; }
+
+    [Inject] private BlazoriseLicenseChecker ComponentLicenseChecker { get; set; }
+
+    /// <summary>
+    /// Specifies the chart rendering type.
+    /// </summary>
+    [Parameter] public SvgChartType Type { get; set; } = SvgChartType.Column;
+
+    /// <summary>
+    /// Specifies the item collection used by declarative axis and series selectors.
+    /// </summary>
+    [Parameter] public IEnumerable<TItem> Items { get; set; }
+
+    /// <summary>
+    /// Specifies explicit chart data used by imperative and model-based chart definitions.
+    /// </summary>
+    [Parameter] public SvgChartData<double?> Data { get; set; }
+
+    /// <summary>
+    /// Specifies chart rendering options.
+    /// </summary>
+    [Parameter] public SvgChartOptions Options { get; set; }
+
+    /// <summary>
+    /// Specifies chart streaming options.
+    /// </summary>
+    [Parameter] public SvgChartStreamingOptions Streaming { get; set; }
+
+    /// <summary>
+    /// Specifies chart animation options.
+    /// </summary>
+    [Parameter] public SvgChartAnimationOptions Animation { get; set; }
+
+    /// <summary>
+    /// Occurs when a rendered chart point is clicked.
+    /// </summary>
+    [Parameter] public EventCallback<SvgChartPointEventArgs> Clicked { get; set; }
+
+    /// <summary>
+    /// Occurs when a rendered chart point is hovered.
+    /// </summary>
+    [Parameter] public EventCallback<SvgChartPointEventArgs> Hovered { get; set; }
+
+    /// <summary>
+    /// Specifies the root SVG role used by assistive technologies.
+    /// </summary>
+    [Parameter] public string Role { get; set; } = "img";
+
+    /// <summary>
+    /// Specifies the accessible label for the root SVG element.
+    /// </summary>
+    [Parameter] public string AriaLabel { get; set; }
+
+    /// <summary>
+    /// Specifies the optional SVG title element used by assistive technologies.
+    /// </summary>
+    [Parameter] public string AccessibilityTitle { get; set; }
+
+    /// <summary>
+    /// Specifies the optional SVG description element used by assistive technologies.
+    /// </summary>
+    [Parameter] public string AccessibilityDescription { get; set; }
+
+    /// <summary>
+    /// Specifies the root SVG tabindex when keyboard focus should be enabled.
+    /// </summary>
+    [Parameter] public int? TabIndex { get; set; }
+
+    /// <summary>
+    /// Specifies the content to render inside the chart, including declarative axes, series, and options.
+    /// </summary>
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    #endregion
+}

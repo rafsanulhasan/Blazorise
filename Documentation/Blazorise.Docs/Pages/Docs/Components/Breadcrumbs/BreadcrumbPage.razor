@@ -1,80 +1,83 @@
-﻿@page "/docs/components/breadcrumb"
+@page "/docs/components/breadcrumb"
 
-<Seo Canonical="/docs/components/breadcrumb" Title="Blazorise Breadcrumb component" Description="Breadcrumbs are used to indicate the current page’s location." />
+<Seo Canonical="/docs/components/breadcrumb" Title="Blazorise Breadcrumb component" Description="Learn to use and work with the Blazorise Breadcrumbs component, which indicates the current page's location." />
 
-<DocsPageTitle>
-    Breadcrumb component
+<DocsPageTitle Path="Components/Breadcrumb">
+    Blazorise Breadcrumb component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Help users see where they are and return to a parent page.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    Breadcrumbs are used to indicate the current page’s location. Add <Code>Active</Code> attribute to active <Code>BreadcrumbItem</Code>.
+    Use breadcrumbs for pages within a hierarchy, such as product categories, documentation sections, or nested administration screens.
 </DocsPageParagraph>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>Breadcrumb</Code>
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>BreadcrumbItem</Code>
-                <UnorderedList>
-                    <UnorderedListItem><Code Tag>BreadcrumbLink</Code></UnorderedListItem>
-                </UnorderedList>
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageParagraph>
+    You can inform the current page using the <Code>Active</Code> attribute in a <Code>BreadcrumbItem</Code>.
+</DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A <Code>Breadcrumb</Code> contains items for the current page and its ancestors. Each item can include a link to its destination.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Breadcrumb component anatomy">
+    <DocsAnatomyRegion Label="Breadcrumb" Description="Contains the navigation trail.">
+        <DocsAnatomyRegion Label="BreadcrumbItem" Description="One location in the trail; can mark the current page.">
+            <DocsAnatomyRegion Label="BreadcrumbLink" Description="A link to the destination page." />
+        </DocsAnatomyRegion>
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Manual mode">
         This is the default mode. Meaning you need to set <Code>BreadcrumbItem.Active</Code> property implicitly.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="BreadcrumbManualExample" Outlined>
         <BreadcrumbManualExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BreadcrumbManualExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Auto mode">
         In this mode breadcrumb items will respond to navigation changes and will be activates automatically.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="BreadcrumbAutoExample" Outlined>
         <BreadcrumbAutoExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BreadcrumbAutoExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes Title="Breadcrumb">
-    <DocsAttributesItem Name="Mode" Type="BreadcrumbMode" Default="None">
-        Defines the breadcrumb items activation mode.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Current Location
+</DocsPageSubsectionTitle>
 
-<DocsAttributes Title="BreadcrumbItem">
-    <DocsAttributesItem Name="Active" Type="bool" Default="false">
-        If set to true, renders <Code>span</Code> instead of <Code>a</Code> element.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageParagraph>
+    Breadcrumbs communicate the user's location within a hierarchy and should not replace the application's primary navigation. Render intermediate items as links and the current page as plain text so the active location is unambiguous.
+</DocsPageParagraph>
 
-<DocsAttributes Title="BreadcrumbLink">
-    <DocsAttributesItem Name="To" Type="string" Default="null">
-        Path to the destination page.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Target" Type="Target" Default="Default">
-        The target attribute specifies where to open the linked document.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Match" Type="Match" Default="All">
-        URL matching behavior for a link.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Title" Type="string" Default="null">
-        Defines the title of a link, which appears to the user as a tooltip.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Readable Path
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Start with a recognizable root and keep labels short enough for the complete path to remain readable. Automatic mode is useful when route names already produce friendly labels; use manual mode when the hierarchy or wording needs to reflect product terminology.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/breadcrumb/api" Name="<Breadcrumb />" />
+    <DocsPageApiItem Url="docs/components/breadcrumb/api" Name="<BreadcrumbItem />" />
+    <DocsPageApiItem Url="docs/components/breadcrumb/api" Name="<BreadcrumbLink />" />
+</DocsPageApi>

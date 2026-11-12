@@ -1,0 +1,144 @@
+@mixin make-text-size-utilities($infix: "") {
+    @each $name, $value in $mui-text-sizes {
+        .mui-text-size#{$infix}-#{$name} {
+            font-size: $value !important;
+        }
+    }
+}
+
+@include make-text-size-utilities();
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+    $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+    @if $infix != "" {
+        @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+            @include make-text-size-utilities($infix);
+        }
+    }
+}
+
+@each $color-name, $color-value in $theme-colors-text-emphasis {
+    .mui-text-#{$color-name} {
+        color: #{$color-value} !important;
+    }
+
+    .mui-text-#{$color-name}-emphasis {
+        color: #{$color-value} !important;
+    }
+}
+
+.mui-text {
+    &-body,
+    &-body-emphasis {
+        color: var(--mui-on-surface) !important;
+    }
+}
+
+.mui-text {
+    &-muted,
+    &-muted-emphasis {
+        color: var(--mui-on-surface-variant) !important;
+    }
+}
+
+.mui-text {
+    &-white,
+    &-white-emphasis {
+        color: #fff !important;
+    }
+}
+
+.mui-text {
+    &-black-50,
+    &-black-50-emphasis {
+        color: rgb(0 0 0 / 50%) !important;
+    }
+}
+
+.mui-text {
+    &-white-50,
+    &-white-50-emphasis {
+        color: rgb(255 255 255 / 50%) !important;
+    }
+}
+
+.mui-text {
+    &-start {
+        text-align: start !important;
+    }
+
+    &-center {
+        text-align: center !important;
+    }
+
+    &-end {
+        text-align: end !important;
+    }
+
+    &-justify {
+        text-align: justify !important;
+    }
+
+    &-lowercase {
+        text-transform: lowercase !important;
+    }
+
+    &-uppercase {
+        text-transform: uppercase !important;
+    }
+
+    &-capitalize {
+        text-transform: capitalize !important;
+    }
+
+    &-decoration-none {
+        text-decoration: none !important;
+    }
+
+    &-decoration-underline {
+        text-decoration: underline !important;
+    }
+
+    &-decoration-overline {
+        text-decoration: overline !important;
+    }
+
+    &-decoration-line-through {
+        text-decoration: line-through !important;
+    }
+
+    &-decoration-inherit {
+        text-decoration: inherit !important;
+    }
+}
+
+@each $name, $value in $mui-text-weights {
+    .mui-text-weight-#{$name} {
+        font-weight: $value !important;
+    }
+}
+
+.mui-text {
+    &-wrap {
+        white-space: normal !important;
+        text-wrap: wrap !important;
+        block-size: auto !important;
+        height: auto !important;
+    }
+
+    &-nowrap {
+        white-space: nowrap !important;
+        text-wrap: nowrap !important;
+    }
+
+    &-truncate {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    &-italic {
+        font-style: italic !important;
+    }
+}

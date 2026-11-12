@@ -1,0 +1,105 @@
+@page "/docs/extensions/reporting/pdf-export"
+
+<Seo Canonical="/docs/extensions/reporting/pdf-export" Title="Blazorise Reporting PDF export" Description="Preview and export Blazorise reports as PDF documents." />
+
+<DocsPageTitle Path="Extensions/Reporting/PDF Export" AddedVersion="2.3" AddedDate="2026-07-26">
+    Reporting PDF export
+</DocsPageTitle>
+
+<DocsPageLead>
+    Reporting uses the Blazorise PDF engine internally for generation and lets applications choose how PDF previews are rendered.
+</DocsPageLead>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="PDF Preview">
+        Enable PDF as a preview format and provide a <Code>PdfPreviewTemplate</Code> to render the generated document with Blazorise PdfViewer or another PDF viewer.
+    </DocsPageSectionHeader>
+    <DocsPageParagraph>
+        Reporting does not depend on a specific viewer. The example uses the optional <Anchor To="docs/extensions/pdfviewer">Blazorise PdfViewer</Anchor> package and receives the PDF content, data URL, file name, permissions, and download callback through <Code>ReportPdfPreviewContext</Code>.
+        The report status bar displays progress for data-source resolution, PDF construction and rendering, preview preparation, and browser download handoff. Handle <Code>PdfProgressed</Code> to receive the same reusable <Code>ReportProgress</Code> updates in application code. Indeterminate operations expose no percentage; page rendering exposes measured progress through the <Code>Completed</Code> and <Code>Total</Code> values.
+    </DocsPageParagraph>
+    <DocsPageParagraph>
+        Reports can include images and custom fonts in their PDF output. Without additional setup, an image must contain a base64 data URL and a custom font must be supplied as data or as a file that the application can read. If a report instead points to an image or font URL, enable URL loading as described in the <Anchor To="docs/extensions/pdf">Blazorise PDF setup guide</Anchor>.
+    </DocsPageParagraph>
+    <DocsPageSectionContent Code="ReportingPdfExportExample" Outlined FullWidth>
+        <ReportingPdfExportExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Backend PDF">
+        Generate a PDF from a saved report in a scheduled job, hosted service, API endpoint, or other backend code. No <Code Tag>Report</Code> component or browser interaction is required.
+    </DocsPageSectionHeader>
+    <DocsPageParagraph>
+        A <Code>ReportDefinition</Code> is the saved report design. It describes the pages, bands, elements, formulas, and data-source connections, but it does not persist the actual runtime data. This allows an end user to design the report once while the backend supplies current data each time the report is generated.
+    </DocsPageParagraph>
+    <DocsPageParagraph>
+        Call <Code>AddBlazoriseReporting</Code> during application startup to register the two services used by this process:
+    </DocsPageParagraph>
+    <UnorderedList>
+        <UnorderedListItem>
+            <Paragraph>
+                <Code>IReportRenderer</Code> understands the report definition. It resolves the report's data sources and converts the report into a <Code>PdfDocumentDefinition</Code>, which describes the pages and elements that must appear in the PDF.
+            </Paragraph>
+        </UnorderedListItem>
+        <UnorderedListItem>
+            <Paragraph>
+                <Code>IPdfGenerator</Code> takes that document definition and creates the actual PDF file. It can return the PDF as bytes or write it directly to a stream.
+            </Paragraph>
+        </UnorderedListItem>
+    </UnorderedList>
+    <DocsPageParagraph>
+        The backend workflow is:
+    </DocsPageParagraph>
+    <OrderedList>
+        <OrderedListItem>
+            <Paragraph>
+                Load the persisted report JSON and deserialize it into a <Code>ReportDefinition</Code>.
+            </Paragraph>
+        </OrderedListItem>
+        <OrderedListItem>
+            <Paragraph>
+                Create <Code>ReportRenderOptions</Code> for the current run. Use <Code>DataSources</Code> to attach runtime data by the same names used in the designer. For example, the <Code>UpcomingItems</Code> key supplies data to the designer data source named <Code>UpcomingItems</Code>. Values can be objects, collections, <Code>DataTable</Code>, or <Code>DataSet</Code> instances. <Code>DefaultData</Code> is available for a report that uses one default object source.
+            </Paragraph>
+        </OrderedListItem>
+        <OrderedListItem>
+            <Paragraph>
+                Call <Code>IReportRenderer.RenderAsync</Code>. The renderer works on a copy of the saved definition, validates and resolves its data, and applies the same pagination, expressions, running totals, plugins, and row limits as the interactive PDF preview.
+            </Paragraph>
+        </OrderedListItem>
+        <OrderedListItem>
+            <Paragraph>
+                Pass the returned <Code>PdfDocumentDefinition</Code> to <Code>IPdfGenerator</Code> to produce the PDF bytes or write them to the destination stream.
+            </Paragraph>
+        </OrderedListItem>
+    </OrderedList>
+    <DocsPageParagraph>
+        SQL, CSV, Web API, and custom data sources work slightly differently. Their saved definitions contain the provider type and provider settings, so the renderer can ask the registered provider to load the data. You only need to add one of these sources to <Code>ReportRenderOptions.DataSources</Code> when you want to supply its data directly instead of loading it through the provider. Use <Code>ReportRenderOptions.Parameters</Code> for values that a provider needs only for the current run.
+    </DocsPageParagraph>
+    <DocsPageParagraph>
+        <Code>IReportRenderer</Code> and <Code>IPdfGenerator</Code> are scoped because they use the data-source providers and other services from the current dependency-injection scope. Controllers, Razor components, and other scoped services can inject them directly. A hosted service is normally a singleton and has no current scope, so it must create an <Code>IServiceScope</Code> or <Code>AsyncServiceScope</Code> for each report operation and resolve both services from that scope, as shown below.
+    </DocsPageParagraph>
+    <DocsPageSectionSource Code="ReportingBackendPdfExample" CodeTitle="ScheduledReportPdfService.cs" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Fonts">
+        Register fonts when PDF export must use the same font family as the designer and HTML preview.
+    </DocsPageSectionHeader>
+    <DocsPageParagraph>
+        Place font files under <Code>wwwroot/fonts</Code>, load the font bytes during application startup, and register the font family with Blazorise. Use the same family name from report elements through the <Code>FontFamily</Code> parameter or from the designer font selector.
+    </DocsPageParagraph>
+    <DocsPageSectionSource Code="ReportingFontRegistrationExample" CodeTitle="Program.cs" />
+    <DocsPageParagraph>
+        Browser rendering also needs a matching <Code>@@font-face</Code> rule. This keeps the designer, HTML preview, and PDF export aligned around the same family name.
+    </DocsPageParagraph>
+    <DocsPageSectionSource Code="ReportingFontFaceExample" CodeTitle="app.css" />
+</DocsPageSection>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/extensions/reporting/api" Name="<Report />" />
+</DocsPageApi>

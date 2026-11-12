@@ -1,0 +1,13 @@
+@namespace Blazorise.Docs.Docs.Examples
+
+<Field>
+    <ColorPicker @bind-Value="@colorValue" ShowValue="false" Width="Width.Auto" aria-label="Highlight color" title="Highlight color">
+        <PreviewContent>
+            <Icon Name="IconName.Highlighter" />
+        </PreviewContent>
+    </ColorPicker>
+</Field>
+
+@code {
+    private string colorValue = "#ffff00";
+}

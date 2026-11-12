@@ -1,23 +1,30 @@
 ﻿@page "/docs/usage/bulma"
 
-<Seo Canonical="/docs/usage/bulma" Title="Bulma Usage" Description="Learn all the steps on how to quickly install and setup Blazorise for Bulma CSS framework and FontAwesome icons." />
+<Seo Canonical="/docs/usage/bulma" Title="Blazorise Bulma Usage" Description="Learn all the steps on how to quickly install and setup Blazorise for Bulma CSS framework and Lucide icons." />
 
-<DocsPageTitle>
-    Bulma Usage
+<DocsPageTitle Path="Usage/Bulma">
+    Blazorise Bulma Usage
 </DocsPageTitle>
+
+<DocsPageLead>
+    Quickly install Blazorise with Bulma, one of the world's most popular Blazor UI framework.
+</DocsPageLead>
 
 <DocsPageParagraph>
     <Alert Color="Color.Info" Visible>
         <AlertDescription>
-            <Strong>Note:</Strong> Before continuing please make sure that you already have a Blazor project created.
-            If not please go to the <Blazorise.Link To="https://docs.microsoft.com/en-us/aspnet/core/blazor" Target="Target.Blank">official Blazor website</Blazorise.Link> and learn how to create one.
+            <Strong>Note:</Strong> Before proceeding, ensure you have already created a Blazor project. If not, the simplest way to start with Blazorise is by using our <Anchor To="docs/templates" Title="Link to templates">Templates</Anchor>.
         </AlertDescription>
     </Alert>
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
-    1. NuGet packages
-</DocsPageSubtitle>
+<DocsPageParagraph>
+    <GuideSeeTheDemo Provider="CssProvider.Bulma" />
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Install Packages
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
@@ -33,15 +40,25 @@
     <DocsPageSectionSource Code="BulmaGuideNuget2Example" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    2. Source files
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Add Static Files
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
-        The next step is to change your <Code>index.html</Code> or <Code>_Host.cshtml</Code> file and include the CSS and JS source files:
+        Add these lines inside the <Code Tag>head</Code> section:
     </DocsPageSectionHeader>
-    <DocsPageSectionSource Code="BulmaGuideSourceFilesExample" />
+    <DocsPageSectionSourceGroup AriaLabel="Blazor project type">
+        <DocsPageSectionSource Code="BulmaGuideSourceFilesExample" CodeTitle="WebAssembly">
+            Update <Code>wwwroot/index.html</Code>.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="BulmaGuideSourceFilesExample" CodeTitle="Blazor Server">
+            Update <Code>_Layout.cshtml</Code> or <Code>_Host.cshtml</Code>, depending on your project template.
+        </DocsPageSectionSource>
+        <DocsPageSectionSource Code="BulmaGuideSourceFilesExample" CodeTitle="Blazor Web App">
+            Update <Code>Components/App.razor</Code> in the server project.
+        </DocsPageSectionSource>
+    </DocsPageSectionSourceGroup>
 </DocsPageSection>
 
 <Alert Color="Color.Info" Visible>
@@ -50,20 +67,20 @@
     </AlertDescription>
 </Alert>
 
-<DocsPageSubtitle>
-    3. Usings
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Add Imports
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
-        In your main <Code>_Imports.razor</Code> add:
+        In your main <Badge Color="Color.Light">_Imports.razor</Badge> add:
     </DocsPageSectionHeader>
     <DocsPageSectionSource Code="BulmaGuideUsingExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    4. Register Services
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Register Services
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
@@ -72,10 +89,10 @@
     <DocsPageSectionSource Code="BulmaGuideRegistrationExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    5. PWA & Offline Support
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Offline Support
+</DocsPageSectionTitle>
 
 <DocsPageParagraph>
-    For information about PWAs & offline support, please take a look at our <Blazorise.Link To="docs/pwa">PWA docs.</Blazorise.Link>
+    For information about PWAs &amp; offline support, please take a look at our <Anchor To="docs/pwa">PWA docs.</Anchor>
 </DocsPageParagraph>

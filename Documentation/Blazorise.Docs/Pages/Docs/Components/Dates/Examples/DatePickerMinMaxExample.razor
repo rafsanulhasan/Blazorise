@@ -1,0 +1,15 @@
+@namespace Blazorise.Docs.Docs.Examples
+
+<Field>
+    <DatePicker TValue="DateTime?"
+                @bind-Value="@selectedDate"
+                Min="@minDate"
+                Max="@maxDate"
+                Inline />
+</Field>
+
+@code {
+    DateTime? selectedDate = DateTime.Today;
+    DateTimeOffset minDate = new( DateTime.Today.AddMonths( -1 ) );
+    DateTimeOffset maxDate = new( DateTime.Today.AddMonths( 1 ) );
+}

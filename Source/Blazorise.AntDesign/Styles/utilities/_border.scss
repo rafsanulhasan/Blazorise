@@ -1,0 +1,109 @@
+﻿.ant-border {
+    border: var(--ant-line-width) solid var(--ant-color-border) !important;
+
+    @each $side in $border-sides {
+        &-#{$side} {
+            border-#{$side}: var(--ant-line-width) solid var(--ant-color-border) !important;
+        }
+
+        &-#{$side}-0 {
+            border-#{$side}: 0 !important;
+        }
+    }
+
+    &-0 {
+        border: 0 !important;
+    }
+}
+
+@mixin ant-border-color-variant($name, $color, $subtle-color: null) {
+    .ant-border-#{$name} {
+        border-color: $color !important;
+    }
+
+    @if $subtle-color != null {
+        .ant-border-#{$name}-subtle {
+            border-color: $subtle-color !important;
+        }
+    }
+
+    @each $size in $border-sizes {
+        .ant-border-#{$size} {
+            &.ant-border-#{$name} {
+                border-color: $color !important;
+            }
+
+            @if $subtle-color != null {
+                &.ant-border-#{$name}-subtle {
+                    border-color: $subtle-color !important;
+                }
+            }
+        }
+
+        .ant-border-#{$name}-#{$size} {
+            border: #{$size}px solid $color !important;
+        }
+
+        @each $side in $border-sides {
+            .ant-border-#{$name}-#{$side}-#{$size} {
+                border-#{$side}: #{$size}px solid $color !important;
+            }
+        }
+    }
+}
+
+.ant-border-white {
+    border-color: var(--b-theme-border-white, var(--ant-color-bg-container)) !important;
+}
+
+.ant-rounded {
+    border-radius: var(--ant-border-radius) !important;
+
+    &-top {
+        border-top-left-radius: var(--ant-border-radius) !important;
+        border-top-right-radius: var(--ant-border-radius) !important;
+    }
+
+    &-right {
+        border-top-right-radius: var(--ant-border-radius) !important;
+        border-bottom-right-radius: var(--ant-border-radius) !important;
+    }
+
+    &-bottom {
+        border-bottom-right-radius: var(--ant-border-radius) !important;
+        border-bottom-left-radius: var(--ant-border-radius) !important;
+    }
+
+    &-left {
+        border-top-left-radius: var(--ant-border-radius) !important;
+        border-bottom-left-radius: var(--ant-border-radius) !important;
+    }
+
+    &-circle {
+        border-radius: 50% !important;
+    }
+
+    &-pill {
+        border-radius: 50rem !important;
+    }
+
+    &-0 {
+        border-radius: 0 !important;
+    }
+}
+
+@each $size in $border-sizes {
+    .ant-border-#{$size} {
+        border: #{$size}px solid var(--ant-color-border) !important;
+    }
+
+    @each $side in $border-sides {
+        .ant-border-#{$side}-#{$size} {
+            border-#{$side}: #{$size}px solid var(--ant-color-border) !important;
+        }
+    }
+}
+
+@each $name, $colors in $border-color-variants {
+    @include ant-border-color-variant($name, nth($colors, 1), nth($colors, 2));
+}

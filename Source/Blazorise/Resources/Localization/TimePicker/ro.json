@@ -1,0 +1,11 @@
+{
+  "culture": "ro",
+  "translations": {
+    "AM": "AM",
+    "PM": "PM",
+    "Time": "Oră",
+    "Hour": "Oră",
+    "Minute": "Minut",
+    "Second": "Secundă"
+  }
+}

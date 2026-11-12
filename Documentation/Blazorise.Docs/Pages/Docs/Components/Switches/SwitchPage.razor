@@ -1,10 +1,14 @@
-﻿@page "/docs/components/switch"
+@page "/docs/components/switch"
 
-<Seo Canonical="/docs/components/switch" Title="Blazorise Switch component" Description="The Switch component provides users the ability to choose between two distinct values." />
+<Seo Canonical="/docs/components/switch" Title="Blazorise Switch component" Description="Learn to use and work with the Blazorise Switch component, which provides users the ability to choose between two distinct values." />
 
-<DocsPageTitle>
-    Switch  component
+<DocsPageTitle Path="Components/Switch">
+    Blazorise Switch  component
 </DocsPageTitle>
+
+<DocsPageLead>
+    Switch is used for switching between two opposing states.
+</DocsPageLead>
 
 <DocsPageParagraph>
     The <Code Tag>Switch</Code> component provides users the ability to choose between two distinct values. These are
@@ -13,56 +17,73 @@
 
 <DocsPageParagraph>
     Switches are the preferred way to adjust settings on mobile. The option that the switch controls,
-    as well as the state it’s in, should be made clear from the corresponding inline label.
+    as well as the state it's in, should be made clear from the corresponding inline label.
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic" />
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicSwitchExample" Outlined FullWidth>
         <BasicSwitchExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicSwitchExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Binding
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Two-way binding" />
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="SwitchWithBindExample" Outlined FullWidth>
         <SwitchWithBindExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="SwitchWithBindExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Manual event binding" />
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="SwitchWithEventExample" Outlined FullWidth>
         <SwitchWithEventExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="SwitchWithEventExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom colors" AddedVersion="2.3" AddedDate="2026-09-24">
+        Use custom CSS colors for switch tracks with contrasting thumbs.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CustomColorsSwitchExample" Outlined FullWidth>
+        <CustomColorsSwitchExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes>
-    <DocsAttributesItem Name="TValue" Type="generic">
-        Data type of <Code>Checked</Code> value. Support types are <Code>bool</Code> and <Code>bool?</Code>.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Checked" Type="TValue" Default="default">
-        Gets or sets the checked flag.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="CheckedChanged" Type="EventCallback<TValue>">
-        Occurs when the check state is changed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Color" Type="Color" Default="Default">
-        Component visual or contextual style variants.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Immediate Settings
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    A switch represents a setting that takes effect immediately. Use a <Anchor To="docs/components/check">Check</Anchor> when the value is submitted with a form or records agreement. Write a positive label that describes the enabled state, such as "Show notifications," and make the current state understandable without relying on color alone.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Communicate Asynchronous Changes
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    When changing the setting requires asynchronous work, show progress and prevent repeated changes while the request is active. If the operation fails, restore the previous value and explain why the new state could not be saved.
+</DocsPageParagraph>
+
+<DocsPageSection>
+    <DocsPageSectionContent Code="SwitchAsyncSettingBestPracticeExample" Outlined FullWidth>
+        <SwitchAsyncSettingBestPracticeExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/switch/api" Name="<Switch />" />
+</DocsPageApi>

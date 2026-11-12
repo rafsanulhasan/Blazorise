@@ -1,32 +1,35 @@
 ﻿@page "/docs/components/select"
 
-<Seo Canonical="/docs/components/select" Title="Blazorise Select system" Description="Select components are used for collecting user provided information from a list of options." />
+<Seo Canonical="/docs/components/select" Title="Blazorise Select component" Description="Learn to use and work with the Blazorise Select components, used for collecting user provided information from a list of options." />
 
-<DocsPageTitle>
-    Select component
+<DocsPageTitle Path="Components/Select">
+    Blazorise Select component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Let users choose one or more values from a list of options.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    <Code Tag>Select</Code> components are used for collecting user provided information from a list of options.
+    Use the <Code>Select</Code> component when users need to choose from a defined set of values. Related options can be grouped to make longer lists easier to scan.
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Structure
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>Select</Code>
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>SelectItem</Code>
-            </UnorderedListItem>
-            <UnorderedListItem>
-                <Code Tag>SelectGroup</Code> Optional tag used to group select items
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageParagraph>
+    A <Code>Select</Code> contains <Code>SelectItem</Code> options directly or inside a <Code>SelectGroup</Code>.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Select component anatomy">
+    <DocsAnatomyRegion Label="Select" Description="The selection input.">
+        <DocsAnatomyRegion Label="SelectItem" Description="One selectable option." />
+        <DocsAnatomyRegion Label="SelectGroup" Description="An optional group of related options.">
+            <DocsAnatomyRegion Label="SelectItem" Description="An option within the group." />
+        </DocsAnatomyRegion>
+    </DocsAnatomyRegion>
+</DocsAnatomy>
 
 <DocsPageParagraph>
     <Code>Select</Code> and <Code>SelectItem</Code> are generic components and they support all of the basic value
@@ -36,7 +39,7 @@
 
 <UnorderedList>
     <UnorderedListItem>
-        Value type must be known. When using member variable on <Code>bind-*</Code> or <Code>SelectedValue</Code> attributes, the value type
+        Value type must be known. When using member variable on <Code>bind-*</Code> or <Code>Value</Code> attributes, the value type
         will be recognized automatically. Otherwise you must use TValue to define it eg (TValue=”int”).
     </UnorderedListItem>
     <UnorderedListItem>
@@ -44,7 +47,7 @@
     </UnorderedListItem>
     <UnorderedListItem>
         String values must be defined with special syntax eg. @("@(\"hello\")"), see
-        <Blazorise.Link To="https://github.com/dotnet/aspnetcore/issues/7785" Target="Target.Blank">#7785</Blazorise.Link>
+        <Anchor To="https://github.com/dotnet/aspnetcore/issues/7785" Target="Target.Blank">#7785</Anchor>
     </UnorderedListItem>
 </UnorderedList>
 
@@ -55,46 +58,41 @@
     </AlertDescription>
 </Alert>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic" />
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicSelectExample" Outlined FullWidth>
         <BasicSelectExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicSelectExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Multiple">
-        Add the <Code>Multiple</Code> attribute to allow more than one option to be selected.
+        By changing the enumerable type on the <Code>TValue</Code>, and by enabling the <Code>Multiple</Code> parameter, you will be able to select more than one option.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="MultipleSelectExample" Outlined FullWidth>
         <MultipleSelectExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="MultipleSelectExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Groups">
         You can also group items into categories for better user experience.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="GroupSelectExample" Outlined FullWidth>
         <GroupSelectExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="GroupSelectExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Binding
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageParagraph>
-    The process is basically the same for the single and for multiple select. The only difference is that
-    <Code>SelectedValue</Code> attribute is used for single select mode, and <Code>SelectedValues</Code> attribute
-    is used for multi-selection. Keep in mind that <Code>Multiple</Code> must be set to true for multi-selection to work properly.
+    The process is basically the same for the single and for multiple select.
 </DocsPageParagraph>
 
 <Alert Color="Color.Info" Visible>
@@ -107,64 +105,42 @@
     <DocsPageSectionHeader Title="Two-way binding">
         By using <Code>bind-*</Code> attribute the selected item value will be automatically assigned to the member variable.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="SelectWithBindExample" Outlined FullWidth>
         <SelectWithBindExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="SelectWithBindExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Manual event binding">
-        When using the event <Code>SelectedValueChanged</Code>, you also must define the <Code>SelectedValue</Code> attribute.
+        When using the event <Code>ValueChanged</Code>, you also must define the <Code>Value</Code> attribute.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="SelectWithEventExample" Outlined FullWidth>
         <SelectWithEventExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="SelectWithEventExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes Title="Select">
-    <DocsAttributesItem Name="TValue" Type="generic">
-        <Code>SelectedValue</Code> or <Code>SelectedValues</Code> data type.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="SelectedValue" Type="TValue" Default="default">
-        Selected item value when in single edit mode.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="SelectedValues" Type="IReadOnlyList<TValue>" Default="default">
-        Selected item value when in multi edit mode.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="SelectedValueChanged" Type="EventCallback<TValue>">
-        Occurs when the selected item value has changed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="SelectedValuesChanged" Type="EventCallback<IReadOnlyList<TValue>>">
-        Occurs when the selected items value has changed (only when <Code>Multiple</Code>).
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="MaxVisibleItems" Type="int?" Default="null">
-        Specifies how many options should be shown at once.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Default Value
+</DocsPageSubsectionTitle>
 
-<DocsAttributes Title="SelectItem">
-    <DocsAttributesItem Name="TValue" Type="generic">
-        <Code>Value</Code> data type.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Value" Type="TValue" Default="default">
-        Gets or sets the item value.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Disabled" Type="bool" Default="false">
-        Disable the item from mouse click.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Hidden" Type="bool" Default="false">
-        Hides the item from the list - useful for default.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageParagraph>
+    When applicable, set the most common choice as the default value.
+</DocsPageParagraph>
 
-<DocsAttributes Title="SelectGroup">
-    <DocsAttributesItem Name="Label" Type="string">
-        Gets or sets the group label.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Not a Menu
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Select is an input field component, not a generic menu component. Use <Anchor To="docs/components/dropdown">Dropdown</Anchor> to create overlays for actions.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/select/api" Name="<Select />" />
+    <DocsPageApiItem Url="docs/components/select/api" Name="<SelectItem />" />
+    <DocsPageApiItem Url="docs/components/select/api" Name="<SelectGroup />" />
+</DocsPageApi>

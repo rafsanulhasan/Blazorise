@@ -1,0 +1,67 @@
+﻿@namespace Blazorise.Docs.Docs.Examples
+
+<Steps @ref="stepsRef" @bind-SelectedStep="selectedStep" NavigationAllowed="OnNavigationAllowedHandler" AriaLabel="Contact registration">
+    <Items>
+        <Step Name="contact">Contact</Step>
+        <Step Name="review">Review</Step>
+        <Step Name="finish">Finish</Step>
+    </Items>
+    <Content>
+        <StepPanel Name="contact" Padding="Padding.Is3">
+            <Paragraph>Enter your email address, then choose Next or select a later step. Try leaving the field empty to see the validation message.</Paragraph>
+            <Validations @ref="contactValidations" Mode="ValidationMode.Manual">
+                <Validation Validator="ValidationRule.IsEmail">
+                    <Field Margin="Margin.Is0.FromBottom">
+                        <FieldLabel>Email address</FieldLabel>
+                        <FieldBody>
+                            <TextInput @bind-Value="email" Role="TextRole.Email" Placeholder="e.g. alex@example.com">
+                                <Feedback>
+                                    <ValidationError>Enter a valid email address to continue.</ValidationError>
+                                </Feedback>
+                            </TextInput>
+                            <FieldHelp>You can return to this step to change your email address.</FieldHelp>
+                        </FieldBody>
+                    </Field>
+                </Validation>
+            </Validations>
+        </StepPanel>
+        <StepPanel Name="review" Padding="Padding.Is3">
+            <Paragraph>Email address: @email</Paragraph>
+            <Paragraph>Choose Previous to make a correction or Next to finish.</Paragraph>
+        </StepPanel>
+        <StepPanel Name="finish" Padding="Padding.Is3">
+            <Paragraph>You have reached the final step. You can still go back and edit your details.</Paragraph>
+        </StepPanel>
+    </Content>
+</Steps>
+<Div Flex="Flex.JustifyContent.Center">
+    <Button Color="Color.Secondary" Margin="Margin.Is2.FromEnd" Disabled="@( selectedStep == "contact" )" Clicked="OnPreviousClickedHandler">
+        Previous
+    </Button>
+    <Button Color="Color.Primary" Disabled="@( selectedStep == "finish" )" Clicked="OnNextClickedHandler">
+        Next
+    </Button>
+</Div>
+@code {
+    private Steps stepsRef;
+
+    private Validations contactValidations;
+
+    private string email;
+
+    private string selectedStep = "contact";
+
+    private Task OnPreviousClickedHandler() => stepsRef.PreviousStep();
+
+    private Task OnNextClickedHandler() => stepsRef.NextStep();
+
+    private Task<bool> OnNavigationAllowedHandler( StepNavigationContext context )
+    {
+        if ( context.CurrentStepIndex == 0 || context.NextStepIndex <= context.CurrentStepIndex )
+        {
+            return Task.FromResult( true );
+        }
+
+        return contactValidations.ValidateAll();
+    }
+}

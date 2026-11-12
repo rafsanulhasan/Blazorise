@@ -1,0 +1,381 @@
+@page "/tests/utilities/layout"
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.OnY">
+            <CardHeader>
+                <CardTitle>Container</CardTitle>
+            </CardHeader>
+            <CardBody>
+                <CardText>This container is centered on desktop.</CardText>
+            </CardBody>
+            <CardBody>
+                <Container>
+                    <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                        Suspendisse vel quam malesuada, aliquet sem sit amet, fringilla elit. Morbi tempor tincidunt tempor. Etiam id turpis viverra, vulputate sapien nec, varius sem. Curabitur ullamcorper fringilla eleifend. In ut eros hendrerit est consequat posuere et at velit.
+                    </Div>
+                </Container>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.FromBottom">
+            <CardHeader>
+                <CardTitle>Fluid Container</CardTitle>
+            </CardHeader>
+            <CardBody>
+                <CardText>If you don't want to have a maximum width but want to keep the some margin on the left and right sides, add the <code>Fluid</code> modifier:</CardText>
+            </CardBody>
+            <CardBody>
+                <Container Fluid>
+                    <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                        Suspendisse vel quam malesuada, aliquet sem sit amet, fringilla elit. Morbi tempor tincidunt tempor. Etiam id turpis viverra, vulputate sapien nec, varius sem. Curabitur ullamcorper fringilla eleifend. In ut eros hendrerit est consequat posuere et at velit.
+                    </Div>
+                </Container>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.FromBottom">
+            <CardHeader>
+                <CardTitle>Flex Grid Example</CardTitle>
+            </CardHeader>
+            <CardBody>
+                <CardText>As the grid can be divided into 12 columns, there are size utilities for each division:</CardText>
+            </CardBody>
+            <CardBody>
+                <Row Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is12">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is12
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is11">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is11
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is1">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is1
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is10">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is10
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is2">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is2
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is9">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is9
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is3">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is3
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is8">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is8
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is4">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is4
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is7">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is7
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is5">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is5
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is6
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is6
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is5">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is5
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is7">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is7
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is4">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is4
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is8">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is8
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is3">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is3
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is9">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is9
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is2">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is2
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is10">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is10
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is1">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is1
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is11">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is11
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is2">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is2
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is3">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is3
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is4">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is4
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is2">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is2
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is1">
+                        <Div Padding="Padding.Is3" Background="Background.Secondary.Subtle" Border="Border.Is1.Rounded.Secondary.Subtle">
+                            Is1
+                        </Div>
+                    </Column>
+                </Row>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.FromBottom">
+            <CardHeader>
+                <CardTitle>Variable width content</CardTitle>
+            </CardHeader>
+            <CardBody>
+                <CardText>Use <code>ColumnSize.IsAuto</code> utilities to size columns based on the natural width of their content.</CardText>
+            </CardBody>
+            <CardBody>
+                <Row Flex="Flex.JustifyContent.Center" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is2.OnWidescreen">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is2.OnWidescreen
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.IsAuto.OnDesktop">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Variable width content
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is2.OnWidescreen">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is2.OnWidescreen
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column>
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            1 of 3
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.IsAuto.OnDesktop">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Variable width content
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is2.OnWidescreen">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            3 of 3
+                        </Div>
+                    </Column>
+                </Row>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.FromBottom">
+            <CardHeader>
+                <CardTitle>Offset</CardTitle>
+            </CardHeader>
+            <CardBody>
+                <CardText>Move columns to the right using <code>WithOffset</code> attribute.</CardText>
+            </CardBody>
+            <CardBody>
+                <Row Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is4">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is4
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is4.Is4.WithOffset">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is4.Is4.WithOffset
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is3.Is3.WithOffset">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is3.Is3.WithOffset
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is3.Is3.WithOffset">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is3.Is3.WithOffset
+                        </Div>
+                    </Column>
+                </Row>
+                <Row Margin="Margin.Is3.FromTop" Gutter="Gutter.Is3.OnY">
+                    <Column ColumnSize="ColumnSize.Is6.Is3.WithOffset">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is6.Is3.WithOffset
+                        </Div>
+                    </Column>
+                </Row>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.FromBottom">
+            <CardHeader>
+                <CardTitle>No gutters</CardTitle>
+            </CardHeader>
+            <CardBody>
+                <CardText>The gutters between columns in our predefined grid classes can be removed with <code>NoGutters</code>. This removes the negative margins from <code>Row</code> and the horizontal padding from all immediate children columns.</CardText>
+            </CardBody>
+            <CardBody>
+                <Row Gutter="Gutter.Is0">
+                    <Column ColumnSize="ColumnSize.Is6.OnTablet.Is8.OnDesktop">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is6.OnTablet.Is8.OnDesktop
+                        </Div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6.Is4.OnDesktop">
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Is6.OnTablet.Is4.OnDesktop
+                        </Div>
+                    </Column>
+                </Row>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.FromBottom">
+            <CardHeader>
+                <CardTitle>Row Columns</CardTitle>
+            </CardHeader>
+            <CardBody>
+                <CardText>
+                    Use the responsive <code>RowColumns.Are*</code> utilities to quickly set the number of columns that best render your content and layout.
+
+                    Whereas normal <code>ColumnSize.Is*</code> utilities apply to the individual columns (e.g., <code>ColumnSize.Is4</code>), the row columns utilities are set on the parent <code>Row</code> as a shortcut.
+                </CardText>
+            </CardBody>
+            <CardBody>
+                <Row RowColumns="RowColumns.Are1.Are2.OnTablet.Are4.OnDesktop" Gutter="Gutter.Is3.OnY">
+                    <Column>
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Column
+                        </Div>
+                    </Column>
+                    <Column>
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Column
+                        </Div>
+                    </Column>
+                    <Column>
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Column
+                        </Div>
+                    </Column>
+                    <Column>
+                        <Div Padding="Padding.Is3" Background="Background.Primary.Subtle" Border="Border.Is1.Rounded.Primary.Subtle">
+                            Column
+                        </Div>
+                    </Column>
+                </Row>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>

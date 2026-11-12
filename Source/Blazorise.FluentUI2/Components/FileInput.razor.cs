@@ -1,0 +1,109 @@
+#region Using directives
+using Blazorise.Utilities;
+#endregion
+
+namespace Blazorise.FluentUI2.Components;
+
+public partial class FileInput
+{
+    #region Constructors
+
+    public FileInput()
+    {
+        InputClassBuilder = new ClassBuilder( BuildInputClasses );
+        AddonClassBuilder = new ClassBuilder( BuildAddonClasses );
+        ContentClassBuilder = new( BuildContentClasses );
+        BrowseButtonClassBuilder = new( BuildBrowseButtonClasses );
+        SelectionClassBuilder = new( BuildSelectionClasses );
+    }
+
+    #endregion
+
+    #region Methods
+
+    private void BuildInputClasses( ClassBuilder builder )
+    {
+        builder.Append( "fui-Input" );
+        builder.Append( "fui-FileInput" );
+
+        if ( ParentValidation?.Status == ValidationStatus.Error )
+        {
+            builder.Append( "fui-Input-error" );
+        }
+        else if ( ParentValidation?.Status == ValidationStatus.Warning )
+        {
+            builder.Append( "fui-Input-warning" );
+        }
+        else if ( ParentValidation?.Status == ValidationStatus.Success )
+        {
+            builder.Append( "fui-Input-success" );
+        }
+
+        if ( ThemeSize != Blazorise.Size.Default )
+        {
+            builder.Append( $"fui-Input-{ClassProvider.ToSize( ThemeSize )}" );
+        }
+
+        if ( Disabled )
+        {
+            builder.Append( "disabled" );
+        }
+
+        builder.Append( WrapperClassNames );
+    }
+
+    private void BuildAddonClasses( ClassBuilder builder )
+    {
+        builder.Append( "fui-Input__content" );
+        builder.Append( "fui-FileInput" );
+        builder.Append( WrapperClassNames );
+    }
+
+    private void BuildContentClasses( ClassBuilder builder )
+    {
+        builder.Append( ClassNames );
+        builder.Append( "fui-FileInput-content" );
+    }
+
+    private void BuildBrowseButtonClasses( ClassBuilder builder ) => builder.Append( "fui-FileInput-button" );
+
+    private void BuildSelectionClasses( ClassBuilder builder ) => builder.Append( "fui-FileInput-selection" );
+
+    /// <inheritdoc />
+    protected internal override void DirtyClasses()
+    {
+        InputClassBuilder.Dirty();
+        AddonClassBuilder.Dirty();
+        ContentClassBuilder.Dirty();
+        BrowseButtonClassBuilder.Dirty();
+        SelectionClassBuilder.Dirty();
+
+        base.DirtyClasses();
+    }
+
+    #endregion
+
+    #region Properties
+
+    protected ClassBuilder InputClassBuilder { get; private set; }
+
+    protected ClassBuilder AddonClassBuilder { get; private set; }
+
+    protected ClassBuilder ContentClassBuilder { get; private set; }
+
+    protected ClassBuilder BrowseButtonClassBuilder { get; private set; }
+
+    protected ClassBuilder SelectionClassBuilder { get; private set; }
+
+    protected string InputClassNames => InputClassBuilder.Class;
+
+    protected string AddonClassNames => AddonClassBuilder.Class;
+
+    protected string ContentClassNames => ContentClassBuilder.Class;
+
+    protected string BrowseButtonClassNames => BrowseButtonClassBuilder.Class;
+
+    protected string SelectionClassNames => SelectionClassBuilder.Class;
+
+    #endregion
+}

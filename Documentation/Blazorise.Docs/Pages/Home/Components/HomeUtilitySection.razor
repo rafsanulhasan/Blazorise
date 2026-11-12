@@ -1,0 +1,82 @@
+<Container>
+    <Div Class="b-utility-grid">
+        <Div Class="b-utility-copy">
+            <Heading Size="HeadingSize.Is2" TextWeight="TextWeight.Bold" Margin="Margin.Is0.FromTop">
+                Ship consistent UI without scattering custom CSS
+            </Heading>
+            <Paragraph TextSize="TextSize.Large" TextColor="TextColor.Muted">
+                Use Blazorise components and utility parameters for layout, spacing, typography, borders, responsive behavior, and common interaction states directly from Razor.
+            </Paragraph>
+            <Row Margin="Margin.Is4.FromTop">
+                @foreach ( UtilityBenefit item in UtilityBenefits )
+                {
+                    <Column @key="@item.Title" ColumnSize="ColumnSize.Is12.Is6.OnTablet" Margin="Margin.Is3.FromBottom">
+                        <Div Flex="Flex.AlignItems.Start" Gap="Gap.Is3">
+                            <Icon Name="IconName.Check" TextColor="TextColor.Success" Margin="Margin.Is1.FromTop" />
+                            <Div>
+                                <Strong>@item.Title</Strong>
+                                <Paragraph TextColor="TextColor.Muted" Margin="Margin.Is1.FromTop.Is0.FromBottom">@item.Description</Paragraph>
+                            </Div>
+                        </Div>
+                    </Column>
+                }
+            </Row>
+        </Div>
+        <Div Class="b-utility-example" Flex="Flex.Column">
+            <Div Class="b-utility-example-header" Flex="Flex.JustifyContent.Between.Wrap" Gap="Gap.Is2" Padding="Padding.Is3.OnY">
+                <Strong>From Razor to UI</Strong>
+                <Span>Blazorise utilities</Span>
+            </Div>
+            <Div Class="b-utility-example-code">
+                @((MarkupString)UtilityExampleMarkup)
+            </Div>
+            <Div Class="b-utility-example-preview" Margin="Margin.IsAuto.FromTop">
+                <Paragraph Class="b-visual-eyebrow">LIVE RESULT</Paragraph>
+                <Card Border="Border.Rounded" Shadow="Shadow.Small">
+                    <CardBody Padding="Padding.Is4">
+                        <Div Flex="Flex.Column" Gap="Gap.Is3">
+                            <Div Flex="Flex.JustifyContent.Between.AlignItems.Center" Gap="Gap.Is3">
+                                <Strong>Delivery dashboard</Strong>
+                                <Badge Color="Color.Success" Subtle>Ready</Badge>
+                            </Div>
+                            <Paragraph Margin="Margin.Is0" TextColor="TextColor.Muted">
+                                Your next delivery, organized.
+                            </Paragraph>
+                        </Div>
+                    </CardBody>
+                </Card>
+            </Div>
+        </Div>
+    </Div>
+</Container>
+
+@code {
+    private static readonly UtilityBenefit[] UtilityBenefits =
+    [
+        new( "Expressive Razor", "Keep spacing, flex, border, shadow, and sizing decisions close to the component markup." ),
+        new( "Responsive by default", "Compose mobile and desktop behavior through utility parameters instead of isolated CSS patches." ),
+        new( "Provider aware", "Let Blazorise render the right classes and structure for the selected CSS framework." ),
+        new( "Themeable foundation", "Centralize colors, typography, sizing, and visual rules for product-wide consistency." )
+    ];
+
+    private const string UtilityExampleSource = """
+<Card Border="Border.Rounded" Shadow="Shadow.Small">
+    <CardBody Padding="Padding.Is4">
+        <Div Flex="Flex.Column" Gap="Gap.Is3">
+            <Div Flex="Flex.JustifyContent.Between.AlignItems.Center"
+                 Gap="Gap.Is3">
+                <Strong>Delivery dashboard</Strong>
+                <Badge Color="Color.Success" Subtle>Ready</Badge>
+            </Div>
+            <Paragraph Margin="Margin.Is0" TextColor="TextColor.Muted">
+                Your next delivery, organized.
+            </Paragraph>
+        </Div>
+    </CardBody>
+</Card>
+""";
+
+    private static readonly string UtilityExampleMarkup = new Blazorise.Docs.BlogRuntime.MarkupBuilder().Build( UtilityExampleSource, "razor" );
+
+    private sealed record UtilityBenefit( string Title, string Description );
+}

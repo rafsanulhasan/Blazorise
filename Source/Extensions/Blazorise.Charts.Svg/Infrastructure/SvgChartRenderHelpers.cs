@@ -1,0 +1,132 @@
+#region Using directives
+using System;
+using System.Globalization;
+using Blazorise.Extensions;
+using Microsoft.AspNetCore.Components.Rendering;
+#endregion
+
+namespace Blazorise.Charts.Svg;
+
+internal static class SvgChartRenderHelpers
+{
+    #region Members
+
+    private static readonly string[] Palette =
+    [
+        "#4c6ef5",
+        "#12b886",
+        "#f59f00",
+        "#e03131",
+        "#845ef7",
+        "#228be6"
+    ];
+
+    #endregion
+
+    #region Methods
+
+    public static void AddFontFamilyAttribute( RenderTreeBuilder builder, ref int sequence, string fontFamily )
+    {
+        if ( !string.IsNullOrWhiteSpace( fontFamily ) )
+            builder.AddAttribute( sequence++, "font-family", fontFamily );
+    }
+
+    public static string ResolveColor( Color color, int index )
+    {
+        if ( IsDefaultColor( color ) )
+            return Palette[index % Palette.Length];
+
+        var name = color.Name;
+        var fallback = ResolveColorFallback( name, index );
+
+        return CssColor.ResolveColor( color, fallback );
+    }
+
+    public static string ResolveFontColor( SvgChartFontOptions font )
+    {
+        return ResolveFontColor( font?.Color );
+    }
+
+    public static string ResolveFontColor( Color color )
+    {
+        if ( IsDefaultColor( color ) )
+            return "currentColor";
+
+        return ResolveColor( color, 0 );
+    }
+
+    public static bool IsDefaultColor( Color color )
+    {
+        return color.IsNullOrDefault();
+    }
+
+    public static string FormatTick( double value )
+    {
+        return value.ToString( "0.##", CultureInfo.InvariantCulture );
+    }
+
+    public static string Format( double value )
+    {
+        return value.ToString( "0.###", CultureInfo.InvariantCulture );
+    }
+
+    public static string FormatDuration( TimeSpan value )
+    {
+        return $"{value.TotalSeconds.ToString( "0.###", CultureInfo.InvariantCulture )}s";
+    }
+
+    public static string FormatDataLabelValue( object value )
+    {
+        return value switch
+        {
+            null => null,
+            double doubleValue => FormatTick( doubleValue ),
+            float floatValue => FormatTick( floatValue ),
+            decimal decimalValue => decimalValue.ToString( "0.##", CultureInfo.InvariantCulture ),
+            _ => value.ToString()
+        };
+    }
+
+    public static double EstimateTextWidth( string text, double fontSize, SvgChartOptions options = null, SvgChartFontOptions font = null )
+    {
+        if ( string.IsNullOrEmpty( text ) )
+        {
+            return 0;
+        }
+
+        var measurement = options?.TextMeasurement ?? new();
+
+        if ( measurement.Measure is not null )
+        {
+            var resolvedFont = SvgChartOptionsMapper.CreateFontOptions( options?.Font, font ) ?? new();
+            resolvedFont.Size = fontSize;
+            var width = measurement.Measure( text, resolvedFont );
+
+            if ( double.IsFinite( width ) && width >= 0 )
+            {
+                return width;
+            }
+        }
+
+        return new StringInfo( text ).LengthInTextElements * Math.Max( 0, fontSize ) * Math.Max( 0, measurement.AverageCharacterWidth );
+    }
+
+    private static string ResolveColorFallback( string name, int index )
+    {
+        return name?.ToLowerInvariant() switch
+        {
+            "primary" => Palette[0],
+            "secondary" => "#868e96",
+            "success" => Palette[1],
+            "danger" => Palette[3],
+            "warning" => Palette[2],
+            "info" => Palette[5],
+            "light" => "#f8f9fa",
+            "dark" => "#343a40",
+            "link" => Palette[0],
+            _ => Palette[index % Palette.Length]
+        };
+    }
+
+    #endregion
+}

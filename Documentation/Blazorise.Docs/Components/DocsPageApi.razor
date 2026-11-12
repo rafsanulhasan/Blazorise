@@ -1,0 +1,15 @@
+﻿@inherits DocsTocComponent
+
+<CascadingValue Value="TocNode" IsFixed>
+    <DocsPageSectionTitle Title="API" />
+
+    <DocsPageParagraph>
+        See the API reference for the parameters, events, methods, and related types available to the components covered on this page.
+    </DocsPageParagraph>
+
+    <DocsPageParagraph>
+        <UnorderedList>
+            @ChildContent
+        </UnorderedList>
+    </DocsPageParagraph>
+</CascadingValue>

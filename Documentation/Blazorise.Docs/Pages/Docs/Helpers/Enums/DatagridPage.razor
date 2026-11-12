@@ -1,10 +1,40 @@
-﻿@page "/docs/helpers/enums/datagrid"
+@page "/docs/helpers/enums/datagrid"
 
-<Seo Canonical="/docs/helpers/enums/datagrid" Title="Enums: DataGrid" Description="Learn about the Blazorise DataGrid enums." />
+<Seo Canonical="/docs/helpers/enums/datagrid" Title="Blazorise DataGrid Enums - Filtering, Sorting, and Selection" Description="DataGrid enums control filtering, sorting, selection, commands, and display behavior. Learn the enum values used across Blazorise DataGrid features." />
 
 <DocsPageTitle>
     Enums: DataGrid
 </DocsPageTitle>
+
+<DocsPageLead>
+    Configure DataGrid behavior with focused enum values.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    DataGrid enums let you control filtering, sorting, selection, and command behaviors without custom logic.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    How it works
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Assign the relevant enum to a DataGrid parameter, such as filter method, sort mode, or selection mode, to tailor the grid's behavior.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<UnorderedList>
+    <UnorderedListItem><Code>DataGridFilterMethod.Contains</Code> for broad text matching.</UnorderedListItem>
+    <UnorderedListItem><Code>DataGridSortMode.Multiple</Code> for multi-column sorting.</UnorderedListItem>
+    <UnorderedListItem><Code>DataGridSelectionMode.Multiple</Code> to enable multi-row selection.</UnorderedListItem>
+</UnorderedList>
+
+<DocsPageSectionTitle>
+    Reference
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="DataGridFilterMethod">
@@ -95,6 +125,18 @@
         <UnorderedList>
             <UnorderedListItem><Code>Manual</Code> Trigger is manually controlled by invoking the Datagrid's <Code>ToggleDetailRow</Code></UnorderedListItem>
             <UnorderedListItem><Code>RowClick</Code> Triggers on row click.</UnorderedListItem>
+        </UnorderedList>
+    </DocsPageSectionHeader>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="PagerElementPosition">
+        <Paragraph>Sets a Pager Element's position.</Paragraph>
+        <UnorderedList>
+            <UnorderedListItem><Code>Default</Code> Positions the element at the default position. If both ButtonRowPosition and PaginationPosition are set to default. Whether ButtonRow is shown or not will make it so the Pagination is positioned accordingly.</UnorderedListItem>
+            <UnorderedListItem><Code>Start</Code> Positions the element at the start.</UnorderedListItem>
+            <UnorderedListItem><Code>Center</Code> Positions the element at the center.</UnorderedListItem>
+            <UnorderedListItem><Code>End</Code> Positions the element at the end.</UnorderedListItem>
         </UnorderedList>
     </DocsPageSectionHeader>
 </DocsPageSection>

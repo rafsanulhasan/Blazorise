@@ -1,0 +1,14 @@
+﻿<Div Class="b-blog-categories" role="group" aria-label="Article category">
+    @foreach ( string category in new[] { "All" }.Concat( Categories ?? Array.Empty<string>() ).Distinct() )
+    {
+        <Button @key="category" Color="@( SelectedCategory == category ? Color.Primary : Color.Light )"
+                aria-pressed="@( SelectedCategory == category ? "true" : "false" )"
+                Clicked="@(() => SelectedCategoryChanged.InvokeAsync( category ))">@category</Button>
+    }
+</Div>
+
+@code {
+    [Parameter] public string SelectedCategory { get; set; }
+    [Parameter] public EventCallback<string> SelectedCategoryChanged { get; set; }
+    [Parameter] public IEnumerable<string> Categories { get; set; }
+}

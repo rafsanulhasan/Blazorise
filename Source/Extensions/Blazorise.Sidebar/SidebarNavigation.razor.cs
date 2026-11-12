@@ -3,29 +3,35 @@ using Blazorise.Utilities;
 using Microsoft.AspNetCore.Components;
 #endregion
 
-namespace Blazorise.Sidebar
+namespace Blazorise.Sidebar;
+
+/// <summary>
+/// Provides the navigation list region inside a sidebar.
+/// </summary>
+public partial class SidebarNavigation : BaseComponent
 {
-    public partial class SidebarNavigation : BaseComponent
+    #region Members
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc/>
+    protected override void BuildClasses( ClassBuilder builder )
     {
-        #region Members
+        builder.Append( "sidebar-nav" );
 
-        #endregion
-
-        #region Methods
-
-        protected override void BuildClasses( ClassBuilder builder )
-        {
-            builder.Append( "sidebar-nav" );
-
-            base.BuildClasses( builder );
-        }
-
-        #endregion
-
-        #region Properties
-
-        [Parameter] public RenderFragment ChildContent { get; set; }
-
-        #endregion
+        base.BuildClasses( builder );
     }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Specifies the content to be rendered inside this <see cref="SidebarNavigation"/>.
+    /// </summary>
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    #endregion
 }

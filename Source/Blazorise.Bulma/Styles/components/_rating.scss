@@ -1,0 +1,27 @@
+﻿.rating {
+    &:not(.rating-disabled):not(.rating-readonly):hover {
+        .rating-item {
+            cursor: pointer;
+        }
+    }
+
+    &.rating-disabled {
+        opacity: .65;
+    }
+
+    .rating-item {
+        @each $name, $color in $theme-colors {
+            &.is-#{$name} {
+                color: $color;
+            }
+        }
+
+        &.is-hover {
+            opacity: 0.7;
+        }
+    }
+}
+
+.rating .rating-item.is-custom {
+    color: var(--bulma-rating-color);
+}

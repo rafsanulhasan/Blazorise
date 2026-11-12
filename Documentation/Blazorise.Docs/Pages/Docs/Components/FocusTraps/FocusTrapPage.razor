@@ -1,39 +1,56 @@
-﻿@page "/docs/components/focus-trap"
+@page "/docs/components/focus-trap"
 
-<Seo Canonical="/docs/components/focus-trap" Title="Blazorise FocusTrap component" Description="TrapFocus is a component that manages focus for its descendants." />
+<Seo Canonical="/docs/components/focus-trap" Title="Blazorise FocusTrap component" Description="Learn to use and work with the Blazorise TrapFocus is a component that manages focus for its descendants." />
 
-<DocsPageTitle>
-    FocusTrap component
+<DocsPageTitle Path="Components/FocusTrap" AddedVersion="1.1" AddedDate="2022-03-17">
+    Blazorise FocusTrap component
 </DocsPageTitle>
+
+<DocsPageLead>
+    Manages focus of the forms and its input elements.
+</DocsPageLead>
 
 <DocsPageParagraph>
     TrapFocus is a component that manages focus for its descendants. This is useful when implementing overlays such as modal dialogs, which should not allow the focus to escape while open.
 </DocsPageParagraph>
 
 <DocsPageParagraph>
-    When <Code>Active="true"</Code> the trap is enabled, and pressing <Code>Tab</Code> or <Code>Shift+Tab</Code> will rotate focus within the inner focusable elements of the component.
+    When <Code>Active="true"</Code> the trap is enabled, and pressing <Kbd>Tab</Kbd> or <Kbd>Shift</Kbd> + <Kbd>Tab</Kbd> will rotate focus within the inner focusable elements of the component.
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader>
         By default, the component moves the focus to its descendants as soon as it activated.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicFocusTrapExample" Outlined FullWidth>
         <BasicFocusTrapExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicFocusTrapExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes>
-    <DocsAttributesItem Name="Active" Type="bool" Default="false">
-        If true the TAB focus will be activated.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Blocking Focus
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Use a focus trap only while a modal surface or similarly blocking interaction is active. Avoid overlapping or nested traps because they can create an unpredictable focus order or prevent keyboard users from escaping.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Predictable Focus
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Move focus to a meaningful control when the trap opens and always provide an obvious keyboard-accessible way to leave the region. When the trap closes, restore focus to the control that triggered it.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/focus-trap/api" Name="<FocusTrap />" />
+</DocsPageApi>

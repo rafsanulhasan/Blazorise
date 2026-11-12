@@ -1,0 +1,114 @@
+.ant-layout,
+.ant-layout * {
+    box-sizing: border-box;
+}
+
+.ant-layout {
+    display: flex;
+    flex: auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    background: var(--ant-color-bg-layout);
+
+    &.ant-layout-has-sider {
+        flex-direction: row;
+    }
+
+    &.ant-layout-root {
+        min-height: 100vh;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    > .ant-layout-loading {
+        z-index: 9999;
+        position: absolute;
+        inset: 0;
+        background: var(--ant-color-bg-mask);
+
+        &::before {
+            animation: ant-layout-spinner 1s linear infinite;
+            border: solid var(--ant-line-width-bold) var(--ant-color-border-secondary);
+            border-bottom-color: var(--b-theme-primary);
+            border-radius: 50%;
+            width: var(--ant-layout-zero-trigger-width);
+            height: var(--ant-layout-zero-trigger-height);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate3d(-50%, -50%, 0);
+            content: ' ';
+        }
+    }
+
+    &-header,
+    &-footer {
+        flex: 0 0 auto;
+    }
+
+    &-header {
+        z-index: 1;
+        line-height: var(--ant-menu-brand-height);
+
+        &:has(> .ant-menu.ant-menu-root.ant-menu-horizontal > .ant-menu-submenu-open) {
+            z-index: calc(var(--ant-z-index-base) + 3);
+        }
+
+        &.ant-layout-header-fixed {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 2;
+        }
+    }
+
+    &-footer.ant-layout-footer-fixed {
+        position: sticky;
+        bottom: 0;
+        width: 100%;
+        z-index: 2;
+    }
+
+    &-content {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    &-sider {
+        display: flex;
+        position: relative;
+        flex: 0 0 auto;
+        min-width: 0;
+    }
+}
+
+.ant-layout-sider-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: visible;
+    z-index: 2;
+
+    // Let the menu scroll while the resize handle remains outside its edge.
+    > .ant-menu.ant-menu-root.ant-menu-inline:not(.ant-menu-inline-collapsed) {
+        position: static;
+        height: 100%;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+}
+
+@keyframes ant-layout-spinner {
+    0% {
+        transform: translate3d(-50%, -50%, 0) rotate(0deg);
+    }
+
+    100% {
+        transform: translate3d(-50%, -50%, 0) rotate(360deg);
+    }
+}

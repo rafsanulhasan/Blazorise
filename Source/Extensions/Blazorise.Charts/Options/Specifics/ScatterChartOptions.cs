@@ -2,9 +2,11 @@
 using System.Text.Json.Serialization;
 #endregion
 
-namespace Blazorise.Charts
+namespace Blazorise.Charts;
+
+/// <summary>
+/// Configures scatter chart behavior.
+/// </summary>
+public class ScatterChartOptions : ChartOptions
 {
-    public class ScatterChartOptions : ChartOptions
-    {
-    }
 }

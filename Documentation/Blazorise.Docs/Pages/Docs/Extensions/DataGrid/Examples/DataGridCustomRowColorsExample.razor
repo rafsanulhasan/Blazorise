@@ -3,24 +3,23 @@
 <DataGrid TItem="Employee"
           Data="@employeeList"
           @bind-SelectedRow="@selectedEmployee"
-          RowStyling="@OnRowStyling"
-          SelectedRowStyling="@OnSelectedRowStyling"
+          CellStyling="@OnCellStyling"
+          SelectedCellStyling="@OnSelectedCellStyling"
           Responsive>
     <DataGridCommandColumn />
-    <DataGridColumn Field="@nameof(Employee.Id)" Caption="#" Sortable="false" />
-    <DataGridColumn Field="@nameof(Employee.FirstName)" Caption="First Name" Editable />
-    <DataGridColumn Field="@nameof(Employee.LastName)" Caption="Last Name" Editable />
-    <DataGridColumn Field="@nameof(Employee.Email)" Caption="Email" Editable />
-    <DataGridColumn Field="@nameof(Employee.Salary)" Caption="Salary" DisplayFormat="{0:C}" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo("fr-FR")" Editable>
+    <DataGridColumn Field="@nameof( Employee.Id )" Caption="#" Sortable="false" />
+    <DataGridColumn Field="@nameof( Employee.FirstName )" Caption="First Name" Editable />
+    <DataGridColumn Field="@nameof( Employee.LastName )" Caption="Last Name" Editable />
+    <DataGridColumn Field="@nameof( Employee.Email )" Caption="Email" Editable />
+    <DataGridColumn Field="@nameof( Employee.Salary )" Caption="Salary" DisplayFormat="C" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo( "fr-FR" )" Editable>
         <EditTemplate>
-            <NumericEdit TValue="decimal" Value="@((decimal)context.CellValue)" ValueChanged="@( v => context.CellValue = v)" />
+            <NumericInput TValue="decimal" Value="@((decimal)context.CellValue)" ValueChanged="@(v => context.CellValue = v)" />
         </EditTemplate>
     </DataGridColumn>
 </DataGrid>
 
-@code{
-    [Inject]
-    public EmployeeData EmployeeData { get; set; }
+@code {
+    [Inject] EmployeeData EmployeeData { get; set; }
     private List<Employee> employeeList;
     private Employee selectedEmployee;
 
@@ -30,13 +29,13 @@
         await base.OnInitializedAsync();
     }
 
-    private void OnRowStyling( Employee employee, DataGridRowStyling styling )
+    private void OnCellStyling( Employee employee, DataGridColumn<Employee> column, DataGridCellStyling styling )
     {
         if ( !employee.IsActive )
-            styling.Style = "color: red;";
+            styling.TextColor = TextColor.Danger;
     }
 
-    private void OnSelectedRowStyling( Employee employee, DataGridRowStyling styling )
+    private void OnSelectedCellStyling( Employee employee, DataGridColumn<Employee> column, DataGridCellStyling styling )
     {
         styling.Background = Background.Info;
     }

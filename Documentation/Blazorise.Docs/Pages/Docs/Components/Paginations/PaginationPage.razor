@@ -1,83 +1,77 @@
-﻿@page "/docs/components/pagination"
+@page "/docs/components/pagination"
 
-<Seo Canonical="/docs/components/pagination" Title="Blazorise Pagination system" Description="The Pagination component enables the user to select a specific page from a range of pages." />
+<Seo Canonical="/docs/components/pagination" Title="Blazorise Pagination system" Description="Learn to use and work with the Blazorise Pagination component that enables the user to select a specific page from a range of pages." />
 
-<DocsPageTitle>
-    Pagination component
+<DocsPageTitle Path="Components/Pagination">
+    Blazorise Pagination component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Help users move through a large collection one page at a time.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    The <Code Tag>Pagination</Code> component enables the user to select a specific page from a range of pages.
+    Use the <Code>Pagination</Code> component for tables, search results, or lists that are divided into pages.
 </DocsPageParagraph>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>Pagination</Code>
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>PaginationItem</Code>
-                <UnorderedList>
-                    <UnorderedListItem>
-                        <Code Tag>PaginationLink</Code>
-                    </UnorderedListItem>
-                </UnorderedList>
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
 
-<DocsPageSubtitle>
+<DocsPageParagraph>
+    A <Code>Pagination</Code> contains items for page numbers or navigation actions. Each item wraps a <Code>PaginationLink</Code>.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Pagination component anatomy">
+    <DocsAnatomyRegion Label="Pagination" Description="Groups the page navigation items.">
+        <DocsAnatomyRegion Label="PaginationItem" Description="One page or navigation action; can mark the current page.">
+            <DocsAnatomyRegion Label="PaginationLink" Description="Triggers the Clicked event when selected." />
+        </DocsAnatomyRegion>
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicPaginationExample" Outlined FullWidth>
         <BasicPaginationExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicPaginationExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Dynamic">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="DynamicPaginationExample" Outlined FullWidth>
         <DynamicPaginationExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="DynamicPaginationExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes Title="Pagination">
-    <DocsAttributesItem Name="Size" Type="Size" Default="Default">
-        Gets or sets the pagination size.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Alignment" Type="Alignment" Default="Default">
-        Gets or sets the pagination alignment.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Background" Type="Background" Default="Default">
-        Gets or sets the pagination background color.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Preserve Navigation Context
+</DocsPageSubsectionTitle>
 
-<DocsAttributes Title="PaginationItem">
-    <DocsAttributesItem Name="Active" Type="bool" Default="false">
-        Indicate the currently active page.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Disabled" Type="bool" Default="false">
-        Used for links that appear un-clickable.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageParagraph>
+    Keep the current page and related filters in the URL when users need to share a result or return with browser navigation. Large datasets should be paged on the server so changing pages does not require loading every item first.
+</DocsPageParagraph>
 
-<DocsAttributes Title="PaginationLink">
-    <DocsAttributesItem Name="Page" Type="string" Default="null">
-        Defines the page name.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Clicked" Type="EventCallback<string>">
-        Occurs when the item link is clicked.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Page Boundaries
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Identify the current page and give first, previous, next, and last controls accessible labels. Controls that cannot be used, such as Previous on the first page, should be disabled or omitted without causing the pagination layout to shift unexpectedly.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/pagination/api" Name="<Pagination />" />
+    <DocsPageApiItem Url="docs/components/pagination/api" Name="<PaginationItem />" />
+    <DocsPageApiItem Url="docs/components/pagination/api" Name="<PaginationLink />" />
+</DocsPageApi>

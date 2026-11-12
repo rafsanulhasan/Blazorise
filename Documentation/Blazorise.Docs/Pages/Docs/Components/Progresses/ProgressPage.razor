@@ -1,33 +1,36 @@
-﻿@page "/docs/components/progress"
+@page "/docs/components/progress"
 
-<Seo Canonical="/docs/components/progress" Title="Blazorise Progress system" Description="Progress indicators inform users about the status of ongoing processes, such as loading an app, submitting a form, or saving updates." />
+<Seo Canonical="/docs/components/progress" Title="Blazorise Progress system" Description="Learn to use and work with the Blazorise Progress component, an indicators that inform users about the status of ongoing processes, such as loading an app, submitting a form, or saving updates." />
 
-<DocsPageTitle>
-    Progress component
+<DocsPageTitle Path="Components/Progress">
+    Blazorise Progress component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Show users how much of an operation has completed.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    Use our progress component for displaying simple or complex progress bars, featuring support for horizontally stacked bars, animated backgrounds, and text labels.
+    Use the <Code>Progress</Code> component for uploads, form submissions, or other tasks where a visual indication of progress helps users understand what is happening.
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Structure
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>Progress</Code> main component for single progress value or wrapper for multiple bars
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>ProgressBar</Code> progress bar for single progress value
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageParagraph>
+    A <Code>Progress</Code> can display a value directly or contain multiple <Code>ProgressBar</Code> components for stacked progress.
+</DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsAnatomy Label="Progress component anatomy">
+    <DocsAnatomyRegion Label="Progress" Description="Displays progress or groups multiple bars.">
+        <DocsAnatomyRegion Label="ProgressBar" Description="Displays one progress value within the group." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageParagraph>
     Progress components are built with two components.
@@ -46,35 +49,70 @@
     <DocsPageSectionHeader Title="Single bar">
         Put that all together, and you have the following examples.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicProgressExample" Outlined FullWidth>
         <BasicProgressExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicProgressExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Multiple bars">
         Include multiple ProgressBar sub-components in a Progress component to build a horizontally stacked set of progress bars.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="MultipleProgressExample" Outlined FullWidth>
         <MultipleProgressExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="MultipleProgressExample" />
 </DocsPageSection>
 
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Hide value for Multiple bars">
-        If you don't want to show the values within the progress bars you can hide them by setting the <Code>ShowValue="false"</Code>.
+    <DocsPageSectionHeader Title="Tooltip" AddedVersion="2.4" AddedDate="2026-09-30">
+        This example adds a tooltip to the success segment of a stacked progress bar.
+        The <Code>Tooltip</Code> is placed inside <Code>ProgressBar</Code> because wrapping the bar would introduce an extra element that interferes with the progress layout.
+        Setting the tooltip wrapper's width and height to 100% makes the entire segment respond to hover.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
-        <MultipleProgressHideValueExample />
+    <DocsPageSectionContent Code="ProgressWithTooltipExample" Outlined FullWidth>
+        <ProgressWithTooltipExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="MultipleProgressHideValueExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom colors" AddedVersion="2.3" AddedDate="2026-09-24">
+        Use custom CSS colors for a single bar or combine them with contextual colors in stacked bars.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CustomColorsProgressExample" Outlined FullWidth>
+        <CustomColorsProgressExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Animated">
+        Use an animated effect Progress Bar to show that progress is still ongoing.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="AnimatedProgressExample" Outlined FullWidth>
+        <AnimatedProgressExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Indeterminate">
+        Add a <Code>Indeterminate</Code> to any <Code>Progress</Code> make the progres to the linear animation. Indeterminate Progress is best used to show that an operation is being executed.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="IndeterminateProgressExample" Outlined FullWidth>
+        <IndeterminateProgressExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Max">
+        You can specify the maximum value of the determinate Progress. This is useful for instances where you want to show capacity, or how much of a total has been uploaded/downloaded.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ProgressWithMaxExample" Outlined FullWidth>
+        <ProgressWithMaxExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
     Page progress
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageParagraph>
     You can also show a small progress bar at the top of the page. Note that unlike regular <Code>Progress</Code> component,
@@ -95,66 +133,36 @@
     <DocsPageSectionSource Code="IndeterminatePageProgressExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom page progress colors" AddedVersion="2.3" AddedDate="2026-09-24">
+        Use custom CSS colors for determinate and indeterminate page progress.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CustomColorsPageProgressExample" Outlined FullWidth>
+        <CustomColorsPageProgressExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes Title="Progress">
-    <DocsAttributesItem Name="Value" Type="int?" Default="null">
-        The progress value.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Size" Type="Size" Default="Default">
-        Progress size variations.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Min" Type="int" Default="0">
-        Minimum value of the progress.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Max" Type="int" Default="100">
-        Maximum value of the progress.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Color" Type="Color" Default="Primary">
-        Defines the progress bar color variant.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Striped" Type="bool" Default="false">
-        Set to true to make the progress bar stripped.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Animated" Type="bool" Default="false">
-        Set to true to make the progress bar animated.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ShowValue" Type="bool" Default="true">
-        If true, the value will be showed within the progress bar.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes Title="ProgressBar">
-    <DocsAttributesItem Name="Value" Type="int?" Default="null">
-        The progress bar value.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Min" Type="int" Default="0">
-        Minimum value of the progress bar.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Max" Type="int" Default="100">
-        Maximum value of the progress bar.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Color" Type="Color" Default="Primary">
-        Defines the progress bar color variant.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Striped" Type="bool" Default="false">
-        Set to true to make the progress bar stripped.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Animated" Type="bool" Default="false">
-        Set to true to make the progress bar animated.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Represent Progress Honestly
+</DocsPageSubsectionTitle>
 
-<DocsAttributes Title="PageProgress">
-    <DocsAttributesItem Name="Value" Type="int?" Default="null">
-        The page progress value.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Color" Type="Color" Default="Default">
-        Defines the page progress color variant.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Visible" Type="bool" Default="false">
-        Defines the visibility of progress bar.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageParagraph>
+    Use determinate progress only when the completed proportion is known; otherwise use the indeterminate state. Update a known value often enough to feel responsive without producing excessive rendering or network traffic.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Nearby Status
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Accompany the visual bar with a concise label or status message, especially when work may pause or fail. Use <Code Tag>PageProgress</Code> for page-level loading and place a regular <Code Tag>Progress</Code> close to the specific task it represents.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/progress/api" Name="<Progress />" />
+    <DocsPageApiItem Url="docs/components/progress/api" Name="<ProgressBar />" />
+</DocsPageApi>

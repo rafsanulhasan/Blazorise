@@ -1,3 +1,9 @@
 ﻿@namespace Blazorise.Docs.Docs.Examples
 
-<DatePicker TValue="DateTime?" />
+<Field>
+    <DatePicker TValue="DateTime?" @bind-Value="@value" />
+</Field>
+
+@code {
+    DateTime? value;
+}

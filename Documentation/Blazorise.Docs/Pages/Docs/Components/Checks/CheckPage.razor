@@ -1,69 +1,90 @@
-﻿@page "/docs/components/check"
+@page "/docs/components/check"
 
-<Seo Canonical="/docs/components/check" Title="Blazorise Check component" Description="The Check component provides users the ability to choose between two distinct values." />
+<Seo Canonical="/docs/components/check" Title="Blazorise Check component" Description="Learn to use and work with the Blazorise Check component, which provides users the ability to choose between two distinct values." />
 
-<DocsPageTitle>
-    Check component
+<DocsPageTitle Path="Components/Check">
+    Blazorise Check component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Check allow the user to toggle an option on or off.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    The <Code Tag>Check</Code> component provides users the ability to choose between two distinct values.
-    You can use this to supply a way for the user to toggle an option.
+    The <Code Tag>Check</Code> component provides users the ability to choose between two distinct values. These are very similar to a switch and can be used in complex forms and checklists. You can use this to supply a way for the user to toggle an option.
 </DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Check">
         Simple card
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="CheckExample" Outlined>
         <CheckExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="CheckExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="With name">
+        This example showcases two Blazorise checkboxes linked to the same identifier, <Strong>CheckMeOut</Strong>. Both checkboxes contribute to the same data field upon submission when included in a form. This setup is ideal for grouping related choices under one name but requires careful data handling to distinguish between the choices on the server side.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CheckWithNameExample" Outlined>
+        <CheckWithNameExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
     Usage
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="With bind attribute">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="CheckWithBindExample" Outlined>
         <CheckWithBindExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="CheckWithBindExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="With event">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="CheckWithEventExample" Outlined>
         <CheckWithEventExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="CheckWithEventExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Indeterminate" AddedVersion="2.2" AddedDate="2026-05-10">
+        Use <Code>Indeterminate</Code> when a parent checkbox represents a partial selection.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CheckIndeterminateExample" Outlined>
+        <CheckIndeterminateExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes>
-    <DocsAttributesItem Name="TValue" Type="generic">
-        Data type of <Code>Checked</Code> value. Support types are <Code>bool</Code> and <Code>bool?</Code>.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Checked" Type="TValue" Default="default">
-        Gets or sets the checked flag.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="CheckedChanged" Type="EventCallback<TValue>">
-        Occurs when the check state is changed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Indeterminate" Type="bool?" Default="null">
-        The indeterminate property can help you to achieve a ‘check all’ effect.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Inline" Type="bool" Default="false">
-        Group checkboxes on the same horizontal row.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Cursor" Type="Cursor" Default="Default">
-        Defines the mouse cursor based on the behavior by the current CSS framework.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Write Positive Labels
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Use a short label that describes the selected state, such as "Send me updates" instead of a negative statement. When checks form a related set, introduce them with a visible question or legend while retaining a clear label for every option.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Selection Control
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    The indeterminate state should summarize a mixed group of child values rather than act as a third submitted choice. When users must choose exactly one mutually exclusive option, use a <Anchor To="docs/components/radio">RadioGroup</Anchor> instead.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/check/api" Name="<Check />" />
+</DocsPageApi>

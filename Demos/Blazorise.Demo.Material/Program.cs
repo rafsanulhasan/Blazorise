@@ -1,30 +1,26 @@
-﻿#region Using directives
-using System.Net.Http;
+#region Using directives
 using System.Threading.Tasks;
 using Blazorise.Icons.Material;
 using Blazorise.Material;
-using Blazorise.RichTextEdit;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 #endregion
 
-namespace Blazorise.Demo.Material
+namespace Blazorise.Demo.Material;
+
+public class Program
 {
-    public class Program
+    public static async Task Main( string[] args )
     {
-        public static async Task Main( string[] args )
-        {
-            var builder = WebAssemblyHostBuilder.CreateDefault( args );
+        var builder = WebAssemblyHostBuilder.CreateDefault( args );
 
-            builder.Services
-                .SetupDemoServices()
-                .AddMaterialProviders()
-                .AddMaterialIcons();
+        builder.Services
+            .SetupDemoServices( builder.Configuration["Licensing:ProductToken"], builder.Configuration["ReCaptchaSiteKey"] )
+            .AddMaterialProviders()
+            .AddMaterialIcons();
 
-            builder.RootComponents.Add<App>( "#app" );
-            var host = builder.Build();
+        builder.RootComponents.Add<WasmApp>( "#app" );
+        var host = builder.Build();
 
-            await host.RunAsync();
-        }
+        await host.RunAsync();
     }
 }

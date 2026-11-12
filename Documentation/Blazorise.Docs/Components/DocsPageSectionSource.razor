@@ -1,17 +1,98 @@
-﻿<Div Class="docs-page-section-source">
-    <Div Class="docs-page-section-source-toolbar">
-        <Tooltip Text="@(ShowCode ? "Hide code example" : "Show code example")" Inline>
-            <Button TextColor="@ButtonColor">
-                <Icon Name="IconName.Code" Clicked="@OnToggleCode" />
-            </Button>
-        </Tooltip>
-        <Tooltip Text="Copy code" Inline>
-            <Button TextColor="@ButtonColor" Clicked="@OnCopyCode">
-                <Icon Name="@("fas fa-copy")" />
-            </Button>
-        </Tooltip>
-    </Div>
-    <Div Class="@SourceCodeClassNames">
-        @CodeComponent( CurrentCode )
-    </Div>
-</Div>
+@implements IDisposable
+
+@if ( ParentSourceGroup is not null )
+{
+    <TabPanel Name="@SourceCodeElementId" Border="Border.Is1.OnTop">
+        @SourceContent
+    </TabPanel>
+}
+else
+{
+    @SourceContent
+    @if ( ChildContent is not null )
+    {
+        <Div Margin="Margin.Is2.FromTop">
+            @ChildContent
+        </Div>
+    }
+}
+
+@code {
+    private RenderFragment SourceContent =>
+        @<Div Position="Position.Relative" Height="Height.Is100">
+            @if ( HasMultipleCodeSources )
+            {
+                <Div Position="Position.Relative" Border="Border.Is1.Rounded" Background="@(new Background( "var(--b-codeblock-background-color)" ))">
+                    <Tabs SelectedTab="@CurrentCode"
+                          SelectedTabChanged="@OnSelectCodeSourceHandler"
+                          AriaLabel="Example source files"
+                          Width="@(ParentSourceGroup is null ? Width.Calc( "100% - 8rem" ) : null)"
+                          Flex="Flex.NoWrap"
+                          Overflow="Overflow.Auto"
+                          Padding="Padding.Is2.OnX"
+                          Border="Border.Is0.OnBottom">
+                        <Items>
+                            @foreach ( var source in CodeSources )
+                            {
+                                <DocsPageSectionSourceTab Name="@source.Code" Title="@source.Title" />
+                            }
+                        </Items>
+                        <Content>
+                            @foreach ( var source in CodeSources )
+                            {
+                                <TabPanel Name="@source.Code" Border="Border.Is1.OnTop">
+                                    @if ( source.Code == CurrentCode )
+                                    {
+                                        @SourceCodeContent
+                                    }
+                                </TabPanel>
+                            }
+                        </Content>
+                    </Tabs>
+                    @if ( ParentSourceGroup is null )
+                    {
+                        <Div Position="Position.Absolute.Top.Is0.End.Is0" Flex="Flex.AlignItems.Center.NoWrap" Padding="Padding.Is1">
+                            @SourceActions
+                        </Div>
+                    }
+                </Div>
+            }
+            else
+            {
+                @if ( ParentSourceGroup is null )
+                {
+                    <Div Position="Position.Absolute.Top.Is0.End.Is0">
+                        @SourceActions
+                    </Div>
+                }
+                @SourceCodeContent
+            }
+        </Div>;
+
+    private RenderFragment SourceCodeContent =>
+        @<Div ElementId="@SourceCodeElementId" Class="b-docs-page-section-source-code" Height="@SourceCodeHeight" Overflow="Overflow.Auto" Display="@SourceCodeDisplay">
+            @CodeComponent( CurrentCode )
+        </Div>;
+
+    internal RenderFragment SourceActions =>
+        @<text>
+            @if ( IsCodeVisible && CanExpandSource )
+            {
+                <Tooltip Text="@(SourceExpanded ? "Collapse code example" : "Expand code example")" Inline>
+                    <Button Color="Color.Default" Ghost Size="Size.Small" TextColor="TextColor.Secondary" Width="@SourceActionWidth" Height="@SourceActionHeight" Clicked="@OnToggleSourceExpandedHandler" aria-label="@(SourceExpanded ? "Collapse code example" : "Expand code example")">
+                        <Icon Name="@(SourceExpanded ? IconName.Compress : IconName.Expand)" />
+                    </Button>
+                </Tooltip>
+            }
+            <Tooltip Text="@(IsCodeVisible ? "Hide code example" : "Show code example")" Inline>
+                <Button Color="Color.Default" Ghost Size="Size.Small" TextColor="TextColor.Secondary" Width="@SourceActionWidth" Height="@SourceActionHeight" Clicked="@OnToggleCodeHandler" aria-label="@(IsCodeVisible ? "Hide code example" : "Show code example")">
+                    <Icon Name="IconName.Code" />
+                </Button>
+            </Tooltip>
+            <Tooltip Text="@(CopyFullExample ? "Copy full example" : "Copy code")" Inline>
+                <Button Color="Color.Default" Ghost Size="Size.Small" TextColor="TextColor.Secondary" Width="@SourceActionWidth" Height="@SourceActionHeight" Margin="@SourceActionEndMargin" Clicked="@OnCopyCodeHandler" aria-label="@(CopyFullExample ? "Copy full example" : "Copy code")">
+                    <Icon Name="IconName.Copy" />
+                </Button>
+            </Tooltip>
+        </text>;
+}

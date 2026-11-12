@@ -1,48 +1,211 @@
 ﻿body {
-    color: #3d4144;
-    font-family: -apple-system,BlinkMacSystemFont,"Roboto","Segoe UI","Helvetica Neue","Lucida Grande",Arial,sans-serif;
+    &:not([data-bs-theme="dark"]) {
+        color: #334155;
+    }
+
+    font-family: 'Inter', 'Open Sans', 'Helvetica','Arial','sans-serif';
+    font-weight: 400;
     line-height: 1.5;
+    letter-spacing: 0.00938em;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    --b-scrollbar-thumb-background: #bfbfbf;
+}
+
+body {
+    &:not([data-bs-theme="dark"]) {
+        --b-link-color: #334155;
+        --b-link-text-color: var(--b-link-color);
+        --b-code-color: #155eef;
+        --b-code-background-color: #f5f8fd;
+        --b-codeblock-color: #24364b;
+        --b-codeblock-background-color: #f5f8fd;
+        --b-codeblock-tag-delimiter-color: #7b8ba1;
+        --b-codeblock-element-color: #155eef;
+        --b-codeblock-attribute-name-color: #c2410c;
+        --b-codeblock-operator-color: #667085;
+        --b-codeblock-attribute-value-color: #067647;
+        --b-codeblock-link-color: #1a81fa;
+        --b-codeblock-token-background-color: transparent;
+        --b-codeblock-keyword-color: #6941c6;
+        --b-codeblock-at-sign-color: #155eef;
+        --b-codeblock-at-sign-background-color: transparent;
+        --b-codeblock-comment-color: #667085;
+        --b-codeblock-string-color: #b54708;
+        --b-codeblock-function-color: #0077b6;
+        --b-codeblock-type-color: #c11574;
+        --b-codeblock-variable-color: #8a4b00;
+        --b-codeblock-interface-color: #047857;
+        --b-codeblock-number-color: #047857;
+        --b-codeblock-enum-color: #067647;
+        --b-codeblock-enum-value-color: #6941c6;
+        --b-codeblock-powershell-operator-color: #c2410c;
+        --b-blockquote-color: #6c757d;
+        --b-blockquote-background-color: #f5f8fd;
+    }
+
+    &[data-bs-theme="dark"] {
+        --b-link-color: var(--bs-body-color);
+        --b-link-text-color: var(--bs-body-color);
+        --b-code-color: #c4b5fd;
+        --b-code-background-color: rgba(196, 181, 253, 0.12);
+        --b-codeblock-color: #dbe7f5;
+        --b-codeblock-background-color: var(--bs-tertiary-bg);
+        --b-codeblock-tag-delimiter-color: #94a3b8;
+        --b-codeblock-element-color: #93c5fd;
+        --b-codeblock-attribute-name-color: #fdba74;
+        --b-codeblock-operator-color: #cbd5e1;
+        --b-codeblock-attribute-value-color: #86efac;
+        --b-codeblock-link-color: #7dd3fc;
+        --b-codeblock-token-background-color: transparent;
+        --b-codeblock-keyword-color: #c4b5fd;
+        --b-codeblock-at-sign-color: #bfdbfe;
+        --b-codeblock-at-sign-background-color: transparent;
+        --b-codeblock-comment-color: #94a3b8;
+        --b-codeblock-string-color: #fbbf24;
+        --b-codeblock-function-color: #7dd3fc;
+        --b-codeblock-type-color: #f9a8d4;
+        --b-codeblock-variable-color: #fde68a;
+        --b-codeblock-interface-color: #a7f3d0;
+        --b-codeblock-number-color: #a7f3d0;
+        --b-codeblock-enum-color: #86efac;
+        --b-codeblock-enum-value-color: #c4b5fd;
+        --b-codeblock-powershell-operator-color: #fdba74;
+        --b-blockquote-color: var(--bs-body-color);
+        --b-blockquote-background-color: var(--bs-tertiary-bg);
+        --b-scrollbar-thumb-background: #6b7280;
+    }
+}
+
+a {
+    color: var(--b-link-color);
 }
 
 .b-top-bar {
-    /*.navbar-brand {
-        font-size: 1.25rem;
-        font-weight: 500;
-    }*/
+    border-bottom: 1px solid var(--bs-border-color);
 
-    > :not(.navbar-brand) {
+    .navbar-brand {
+        font-weight: 600;
+        letter-spacing: -.025em;
+    }
+
+    .navbar-nav {
         .nav-link {
+            color: var(--b-link-text-color);
             font-size: 1.1rem;
-            font-weight: 400;
+            font-weight: 500;
+            padding-top: .375rem;
+            padding-bottom: .375rem;
+            border-radius: var(--bs-border-radius-lg);
+            transition: color .15s ease-in-out, background-color .15s ease-in-out;
+
+            &:focus-visible {
+                outline: 2px solid var(--b-theme-primary);
+                outline-offset: 2px;
+            }
         }
     }
 }
 
-.page-hero-overlay {
-    position: relative;
-    margin-bottom: 2em;
-    padding: 3em 0;
-    clear: both;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    -webkit-animation: intro 0.3s both;
-    animation: intro 0.3s both;
-    -webkit-animation-delay: 0.25s;
-    animation-delay: 0.25s;
+// Keep site navigation accents above generated Bar rules without recoloring dropdown entries.
+.b-top-bar.navbar[data-mode="horizontal"]:is(.navbar-light, .navbar-dark) {
+    --bs-navbar-hover-color: var(--b-theme-primary);
+    --bs-navbar-active-color: var(--b-theme-primary);
+    --b-top-bar-item-background: rgba(124, 58, 237, .08);
 
-    .page-title {
-        font-size: 3.953em
+    .navbar-nav > .nav-item:not(.disabled) {
+        > .nav-link:not(.disabled):not([aria-disabled="true"]),
+        > .dropdown > .nav-link:not(.disabled):not([aria-disabled="true"]) {
+            &:is(:hover, :focus-visible, .active, .nav-item.active .nav-link) {
+                color: var(--bs-navbar-hover-color);
+                background-color: var(--b-top-bar-item-background);
+            }
+        }
+    }
+}
+
+body[data-bs-theme="dark"] {
+    .b-top-bar {
+        &.navbar[data-mode="horizontal"]:is(.navbar-light, .navbar-dark) {
+            --bs-navbar-hover-color: #c4b5fd;
+            --bs-navbar-active-color: #c4b5fd;
+            --b-top-bar-item-background: rgba(196, 181, 253, .12);
+        }
+
+        .navbar-nav {
+            .nav-link {
+                &:focus-visible {
+                    outline-color: #c4b5fd;
+                }
+            }
+        }
+    }
+}
+
+// Only the site UI is restyled. Docs examples keep their provider styling,
+// and b-site-demo excludes the interactive showcase on the homepage.
+.b-site {
+    :is(h1, h2, h3, h4, h5, h6, p, .card, .btn):not(:where(.b-site-demo, .b-site-demo *)) {
+        &:is(h1, h2, h3) {
+            font-weight: 600;
+            text-wrap: balance;
+        }
+
+        &:is(h4, h5, h6) {
+            letter-spacing: -.015em;
+        }
+
+        &:is(p) {
+            line-height: 1.65;
+            letter-spacing: 0;
+        }
+
+        &.card {
+            --bs-card-border-radius: .75rem;
+            --bs-card-inner-border-radius: calc(.75rem - var(--bs-card-border-width));
+            --bs-card-border-color: var(--bs-border-color);
+            --bs-box-shadow-sm: 0 2px 8px rgba(15, 23, 42, .04);
+            --bs-box-shadow: 0 4px 16px rgba(15, 23, 42, .06);
+            --bs-box-shadow-lg: 0 8px 24px rgba(15, 23, 42, .08);
+            // Match cards that explicitly opt into the Bootstrap rounded utility.
+            &.rounded {
+                border-radius: var(--bs-card-border-radius) !important;
+            }
+        }
+
+        &.btn {
+            --bs-btn-border-radius: .5rem;
+            --bs-btn-font-weight: 600;
+        }
     }
 
-    .page-lead {
-        font-size: 1.75em
+    .page-header > .container > :is(h3, h5) {
+        max-width: 60ch;
+        margin-inline: auto;
     }
+}
 
-    a {
-        color: #fff;
-        text-decoration: underline;
-    }
+h1.b-docs-heading,
+.b-site h1:not(:where(.b-site-demo *)) {
+    letter-spacing: -.035em;
+    line-height: 1.15;
+}
+
+h2.b-docs-heading,
+.b-site h2:not(:where(.b-site-demo *)) {
+    letter-spacing: -.025em;
+    line-height: 1.25;
+}
+
+h3.b-docs-heading,
+.b-site h3:not(:where(.b-site-demo *)) {
+    letter-spacing: -.02em;
+    line-height: 1.3;
+}
+
+.b-docs-heading {
+    font-weight: 600;
 }
 
 ::-webkit-scrollbar {
@@ -56,7 +219,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #bfbfbf;
+    background: var(--b-scrollbar-thumb-background);
     border-radius: 1px;
 }
 
@@ -65,6 +228,31 @@
 }
 
 html, body * {
-    scrollbar-color: #bfbfbf transparent;
+    scrollbar-color: var(--b-scrollbar-thumb-background) transparent;
     scrollbar-width: thin;
+}
+
+.img-circle {
+    border-radius: 4.25rem !important;
+}
+
+.gradient-commercial {
+    background: -webkit-linear-gradient(0deg,#287395,#b93895);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.b-layout-footer {
+    color: inherit;
+
+    a {
+        color: var(--b-link-text-color);
+        text-decoration: none;
+        transition: color 0.15s ease-in-out;
+
+        &:hover {
+            color: var(--b-theme-primary);
+            text-decoration: underline;
+        }
+    }
 }

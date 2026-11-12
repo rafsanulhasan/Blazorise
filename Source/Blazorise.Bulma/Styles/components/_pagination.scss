@@ -1,0 +1,7 @@
+﻿.pagination {
+    @each $name, $size in $component-extra-sizes {
+        &.is-#{$name} {
+            font-size: $size;
+        }
+    }
+}

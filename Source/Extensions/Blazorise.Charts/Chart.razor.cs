@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 #endregion
 
-namespace Blazorise.Charts
+namespace Blazorise.Charts;
+
+/// <summary>
+/// Renders a Chart.js visualization.
+/// </summary>
+public partial class Chart<TItem> : BaseChart<ChartDataset<TItem>, TItem, ChartOptions, ChartModel>
 {
-    public partial class Chart<TItem> : BaseChart<ChartDataset<TItem>, TItem, ChartOptions, ChartModel>
-    {
-    }
 }

@@ -1,0 +1,50 @@
+﻿.switch[type="checkbox"] {
+    outline: 0;
+    user-select: none;
+    display: inline-block;
+    position: absolute;
+    opacity: 0;
+
+    @include switch-size($size-normal);
+
+    @each $name, $size in $component-sizes {
+        &.is-#{$name} {
+            @include switch-size($size);
+        }
+    }
+
+    @each $name, $color in $theme-colors {
+        &.is-#{$name}:checked + label::before,
+        &.is-#{$name}:checked + label:before {
+            background-color: $color;
+        }
+
+        &:disabled {
+            &.is-#{$name}:checked + label::before {
+                background-color: rgba($color,.5);
+            }
+        }
+    }
+}
+
+.switch[type="checkbox"].is-custom {
+    &:checked + label::before {
+        background-color: var(--bulma-switch-background-color);
+        border-color: var(--bulma-switch-background-color);
+    }
+
+    &:focus-visible + label::before {
+        outline: 2px solid var(--bulma-switch-background-color);
+        outline-offset: 2px;
+    }
+
+    &:disabled:checked + label::before {
+        background-color: color-mix(in srgb, var(--bulma-switch-background-color) 50%, transparent);
+    }
+
+    @supports (color: contrast-color(white)) {
+        &:checked + label::after {
+            background-color: contrast-color(var(--bulma-switch-background-color));
+        }
+    }
+}

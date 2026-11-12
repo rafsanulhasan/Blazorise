@@ -1,41 +1,54 @@
-﻿using System.IO;
-using System.Linq;
+﻿#region Using directives
+using System.IO;
+#endregion
 
-namespace Blazorise.Docs.Compiler
+namespace Blazorise.Docs.Compiler;
+
+public static class Paths
 {
-    public class Paths
+    public const string ExampleDiscriminator = "Example"; // example components must contain this string
+
+    public static string RootDirPath
     {
-        private const string DocsDirectory = "Blazorise.Docs";
-        private const string SnippetsFile = "Snippets.generated.cs";
-        private const string DocStringsFile = "DocStrings.generated.cs";
-        private const string NewFilesToBuild = "NewFilesToBuild.txt";
-
-        public const string ExampleDiscriminator = "Example"; // example components must contain this string
-
-        public static string RootDirPath
+        get
         {
-            get
+            var directory = new DirectoryInfo( Directory.GetCurrentDirectory() );
+
+            while ( directory is not null )
             {
-                var workingPath = Path.GetFullPath( "." );
+                var candidate = directory.Name == "Documentation" ? directory.FullName : Path.Combine( directory.FullName, "Documentation" );
 
-                do
+                if ( Directory.Exists( Path.Combine( candidate, "Blazorise.Docs" ) ) )
                 {
-                    workingPath = Path.GetDirectoryName( workingPath );
+                    return candidate;
                 }
-                while ( Path.GetFileName( workingPath ) != "Documentation" && !string.IsNullOrWhiteSpace( workingPath ) );
 
-                return workingPath;
+                directory = directory.Parent;
             }
+
+            throw new DirectoryNotFoundException( "Cannot locate the Blazorise documentation sources." );
         }
-
-        public string DocsDirPath => Directory.EnumerateDirectories( RootDirPath, DocsDirectory ).FirstOrDefault();
-
-        public string DocsStringSnippetsDirPath => Path.Join( DocsDirPath, "Models" );
-
-        public string DocStringsFilePath => Path.Join( DocsStringSnippetsDirPath, DocStringsFile );
-
-        public string SnippetsFilePath => Path.Join( DocsStringSnippetsDirPath, SnippetsFile );
-
-        public string NewFilesToBuildPath => Path.Join( DocsDirPath, NewFilesToBuild );
     }
+
+
+    public static string BlazoriseLibRoot => Path.Combine( RootDirPath, "..", "Source", "Blazorise" );
+    public static string BlazoriseExtensionsRoot => Path.Combine( RootDirPath, "..", "Source", "Extensions" );
+    public static string GeneratedOutputPath { get; set; } = Path.Combine( DirPath(), "obj", "DocsGenerated" );
+
+    public static string ApiDocsPath => Path.Join( GeneratedOutputPath, "ApiDocs" );
+    public static string DirPath() => Path.Combine( RootDirPath, "Blazorise.Docs" );
+
+    public static string DocsStringSnippetsDirPath() => Path.Join( GeneratedOutputPath, "Models" );
+
+    public static string DocStringsFilePath() => Path.Join( DocsStringSnippetsDirPath(), "Strings.generated.cs" );
+
+    public static string SnippetsFilePath() => Path.Join( DocsStringSnippetsDirPath(), "Snippets.generated.cs" );
+
+    public static string DocsIndexFilePath() => Path.Join( GeneratedOutputPath, "Resources", "docs-index.json" );
+
+    public static string DocsPageChangesFilePath() => Path.Join( DocsStringSnippetsDirPath(), "DocsPageChanges.generated.cs" );
+
+    public static string DocsApiIndexFilePath() => Path.Join( GeneratedOutputPath, "Resources", "docs-api-index.json" );
+
+    public static string ExampleCodeFilesPath() => Path.Join( GeneratedOutputPath, "ExampleCodeFiles.txt" );
 }

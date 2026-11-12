@@ -1,0 +1,106 @@
+﻿.ant-text {
+    @each $name, $value in $text-alignments {
+        &-#{$name} {
+            text-align: $value !important;
+        }
+    }
+
+    @each $name, $value in $text-transforms {
+        &-#{$name} {
+            text-transform: $value !important;
+        }
+    }
+}
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+    $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+    @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+        @each $name, $fs in $font-sizes {
+            $lh: map-get($line-heights, $name);
+
+            .ant-font-size#{$infix}-#{$name} {
+                font-size: $fs;
+                line-height: $lh;
+            }
+        }
+    }
+}
+
+.ant-typography {
+    &-wrap {
+        white-space: normal !important;
+    }
+
+    &-nowrap {
+        white-space: nowrap !important;
+    }
+
+    &-italic {
+        font-style: italic !important;
+    }
+}
+
+.ant-typography {
+    &-ellipsis {
+        display: inline-block !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    @each $names, $color in $typography-colors {
+        @each $name in $names {
+            &-#{$name} {
+                color: $color !important;
+            }
+        }
+    }
+}
+
+.ant-unordered-list {
+    &-unstyled {
+        padding-left: 0;
+        list-style: none;
+    }
+}
+
+ol.ant-ordered-list {
+    &-unstyled {
+        padding-left: 0;
+        list-style: none;
+    }
+
+    &-lower-alpha {
+        list-style-type: lower-alpha;
+    }
+
+    &-lower-roman {
+        list-style-type: lower-roman;
+    }
+
+    &-upper-alpha {
+        list-style-type: upper-alpha;
+    }
+
+    &-upper-roman {
+        list-style-type: upper-roman;
+    }
+}
+
+.ant-font-weight {
+    @each $name, $value in $font-weights {
+        &-#{$name} {
+            font-weight: $value;
+        }
+    }
+}
+
+.ant-text-decoration {
+    @each $name, $value in $text-decorations {
+        &-#{$name} {
+            text-decoration: $value !important;
+        }
+    }
+}

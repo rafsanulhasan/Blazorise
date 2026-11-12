@@ -1,0 +1,3565 @@
+#region Using directives
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using Blazorise.Extensions;
+using Blazorise.Tailwind.Utilities;
+#endregion
+
+namespace Blazorise.Tailwind.Providers;
+
+public class TailwindClassProvider : ClassProvider
+{
+    #region TextInput
+
+    public override string TextInput( bool plaintext ) => TextInput( plaintext, "b-input" );
+
+    // Keep the default width below explicit sizing utilities in the cascade.
+    private static string TextInput( bool plaintext, string classNames, string display = "block" ) => plaintext
+        ? $"{classNames} text-gray-900 border-none rounded-lg focus:ring-primary-500 focus:border-primary-500 {display} [:where(&)]:w-full dark:bg-gray-800 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 disabled:cursor-not-allowed disabled:opacity-75"
+        : $"{classNames} bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 focus:border-primary-500 {display} [:where(&)]:w-full dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 disabled:cursor-not-allowed disabled:opacity-75";
+
+    public override string TextInputSize( Size size ) => TextInputSize( size, "b-input" );
+
+    private static string TextInputSize( Size size, string classNames )
+    {
+        return size switch
+        {
+            Size.ExtraSmall => $"{classNames}-xs px-2 py-1.5 text-xs",
+            Size.Small => $"{classNames}-sm px-2.5 py-2 text-sm",
+            Size.Medium => $"{classNames}-md px-3.5 py-3 text-base",
+            Size.Large => $"{classNames}-lg px-4 py-3.5 text-base",
+            Size.ExtraLarge => $"{classNames}-xl px-5 py-4 text-base",
+            _ => "px-3 py-2.5 text-sm"
+        };
+    }
+
+    public override string TextInputColor( Color color ) => color.IsNotNullOrDefault()
+        ? "[&:not(:disabled,.border-none,.b-is-valid,.b-is-warning,.b-is-invalid)]:border-[color:var(--tw-input-color)] [&:not(:disabled,.border-none,.b-is-valid,.b-is-warning,.b-is-invalid):focus]:ring-[color:var(--tw-input-color)]"
+        : null;
+
+    public override string TextInputValidation( ValidationStatus validationStatus ) => ToValidationStatus( validationStatus );
+
+    #endregion
+
+    #region MemoInput
+
+    public override string MemoInput( bool plaintext ) => plaintext
+        ? "block w-full text-gray-900 border-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+        : "block w-full text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500";
+
+    public override string MemoInputSize( Size size )
+    {
+        return size switch
+        {
+            Size.ExtraSmall => "px-2 py-1.5 sm:text-xs",
+            Size.Small => "px-2.5 py-2 sm:text-xs",
+            Size.Medium => "px-3.5 py-3 text-base",
+            Size.Large => "px-4 py-4 sm:text-base",
+            Size.ExtraLarge => "px-5 py-4.5 sm:text-lg",
+            _ => "px-3 py-2.5 text-sm"
+        };
+    }
+
+    public override string MemoInputColor( Color color ) => TextInputColor( color );
+
+    public override string MemoInputValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region Select
+
+    public override string Select() => TextInput( false );
+
+    public override string SelectMultiple( bool multiple ) => null;
+
+    public override string SelectSize( Size size ) => TextInputSize( size );
+
+    public override string SelectValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region NumericInput
+
+    public override string NumericInput( bool plaintext ) => TextInput( plaintext );
+
+    public override string NumericInputSize( Size size ) => TextInputSize( size );
+
+    public override string NumericInputColor( Color color ) => TextInputColor( color );
+
+    public override string NumericInputValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region DateInput
+
+    public override string DateInput( bool plaintext ) => TextInput( plaintext );
+
+    public override string DateInputSize( Size size ) => TextInputSize( size );
+
+    public override string DateInputColor( Color color ) => TextInputColor( color );
+
+    public override string DateInputValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region TimeInput
+
+    public override string TimeInput( bool plaintext ) => TextInput( plaintext );
+
+    public override string TimeInputSize( Size size ) => TextInputSize( size );
+
+    public override string TimeInputColor( Color color ) => TextInputColor( color );
+
+    public override string TimeInputValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region ColorInput
+
+    public override string ColorInput() => TextInput( false );
+
+    public override string ColorInputSize( Size size )
+    {
+        return size switch
+        {
+            Size.ExtraSmall => "p-1.5 sm:text-xs h-6",
+            Size.Small => "p-2 sm:text-xs h-8",
+            Size.Medium => "p-3 text-base h-12",
+            Size.Large => "p-4 sm:text-base h-14",
+            Size.ExtraLarge => "p-4 sm:text h-16",
+            _ => "p-2 text-sm h-10"
+        };
+    }
+
+    #endregion
+
+    #region DatePicker
+
+    public override string DatePicker( bool plaintext ) => TextInput( plaintext );
+
+    public override string DatePickerSize( Size size ) => TextInputSize( size );
+
+    public override string DatePickerColor( Color color ) => TextInputColor( color );
+
+    public override string DatePickerValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    public override string DatePickerContainer( bool inline, bool open ) => $"tw-datepicker{( inline ? " tw-datepicker-inline" : null )}{( open ? " tw-datepicker-open" : null )}";
+
+    public override string DatePickerCalendar( bool inline, bool staticPicker ) => $"tw-datepicker-calendar{( inline ? " tw-datepicker-calendar-inline" : staticPicker ? " tw-datepicker-calendar-static" : " tw-datepicker-calendar-floating" )}";
+
+    public override string DatePickerCalendarBackdrop() => "tw-datepicker-backdrop";
+
+    public override string DatePickerCalendarHeader() => "tw-datepicker-header";
+
+    public override string DatePickerCalendarNavigation() => "tw-datepicker-navigation";
+
+    public override string DatePickerCalendarTitle() => "tw-datepicker-title";
+
+    public override string DatePickerCalendarGrid() => "tw-datepicker-grid";
+
+    public override string DatePickerCalendarWeekdays() => "tw-datepicker-weekdays";
+
+    public override string DatePickerCalendarWeekday() => "tw-datepicker-weekday";
+
+    public override string DatePickerCalendarWeek() => "tw-datepicker-week";
+
+    public override string DatePickerCalendarWeekNumber() => "tw-datepicker-week-number";
+
+    public override string DatePickerCalendarDay( bool outside, bool today, bool selected, bool rangeStart, bool inRange, bool rangeEnd, bool disabled, bool focused )
+        => $"tw-datepicker-day{( outside ? " tw-datepicker-day-outside" : null )}{( today ? " tw-datepicker-day-today" : null )}{( inRange ? " tw-datepicker-day-in-range" : null )}{( selected ? " tw-datepicker-day-selected" : null )}{( rangeStart ? " tw-datepicker-day-range-start" : null )}{( rangeEnd ? " tw-datepicker-day-range-end" : null )}{( disabled ? " tw-datepicker-day-disabled" : null )}{( focused ? " tw-datepicker-day-focused" : null )}";
+
+    public override string DatePickerCalendarMonths() => "tw-datepicker-months";
+
+    public override string DatePickerCalendarMonth( bool selected, bool disabled, bool focused )
+        => $"tw-datepicker-month{( selected ? " tw-datepicker-month-selected" : null )}{( disabled ? " tw-datepicker-month-disabled" : null )}{( focused ? " tw-datepicker-month-focused" : null )}";
+
+    public override string DatePickerCalendarTime() => "tw-datepicker-time";
+
+    public override string DatePickerCalendarTimeInput() => "tw-datepicker-time-input";
+
+    public override string DatePickerCalendarTimeControl() => "tw-datepicker-time-control";
+
+    public override string DatePickerCalendarTimeButtons() => "tw-datepicker-time-buttons";
+
+    public override string DatePickerCalendarTimeButton() => "tw-datepicker-time-button";
+
+    public override string DatePickerCalendarActions() => "tw-datepicker-actions";
+
+    public override string DatePickerCalendarButton() => "tw-datepicker-button";
+
+    #endregion
+
+    #region TimePicker
+
+    public override string TimePickerButtons() => "tw-timepicker-buttons";
+
+    public override string TimePickerButton() => "tw-timepicker-button";
+
+    public override string TimePicker( bool plaintext ) => TextInput( plaintext );
+
+    public override string TimePickerSize( Size size ) => TextInputSize( size );
+
+    public override string TimePickerColor( Color color ) => TextInputColor( color );
+
+    public override string TimePickerValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    public override string TimePickerContainer( bool inline, bool open )
+        => $"tw-timepicker{( inline ? " tw-timepicker-inline" : null )}{( open ? " tw-timepicker-open" : null )}";
+
+    public override string TimePickerMenu( bool inline, bool staticPicker )
+        => $"tw-timepicker-menu{( inline ? " tw-timepicker-menu-inline" : null )}{( staticPicker ? " tw-timepicker-menu-static" : " tw-timepicker-menu-floating" )}";
+
+    public override string TimePickerBackdrop() => "tw-timepicker-backdrop";
+
+    public override string TimePickerControls() => "tw-timepicker-controls";
+
+    public override string TimePickerControl( bool focused ) => $"tw-timepicker-control{( focused ? " tw-timepicker-control-focused" : null )}";
+
+    public override string TimePickerInput() => "tw-timepicker-input";
+
+    public override string TimePickerSeparator() => "tw-timepicker-separator";
+
+    public override string TimePickerMeridiem( bool postMeridiem, bool focused )
+        => $"tw-timepicker-meridiem{( postMeridiem ? " tw-timepicker-meridiem-pm" : null )}{( focused ? " tw-timepicker-control-focused" : null )}";
+
+    #endregion
+
+    #region ColorPicker
+
+    public override string ColorPicker() => TextInput( false, "b-input items-center gap-2 text-left", "inline-flex" );
+
+    public override string ColorPickerPreview()
+        => "absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-secondary-400";
+
+    public override string ColorPickerSwatch() => "w-4 h-4 rounded shadow border";
+
+    public override string ColorPickerSize( Size size ) => TextInputSize( size );
+
+    public override string ColorPickerContainer( bool inline )
+        => inline
+            ? "relative inline-flex w-full min-w-0 align-middle"
+            : "relative inline-flex w-full min-w-0 align-middle has-[>[role=dialog]]:z-50 [anchor-name:--tw-color-picker-anchor] [anchor-scope:--tw-color-picker-anchor]";
+
+    public override string ColorPickerMenu( bool inline )
+    {
+        var builder = new StringBuilder( "block box-border w-72 min-w-0 overflow-auto rounded-lg border border-secondary-200 bg-white p-3 text-secondary-900 dark:border-secondary-700 dark:bg-secondary-900 dark:text-white " );
+
+        if ( inline )
+        {
+            builder.Append( "static max-w-full" );
+        }
+        else
+        {
+            builder.Append( "absolute top-full start-0 z-50 mt-1 max-w-[calc(100vw-1rem)] max-h-[calc(100vh-1rem)] shadow-lg " );
+            builder.Append( "opacity-100 starting:opacity-0 transition-opacity data-[animation-duration]:[transition-duration:var(--tw-dropdown-animation-duration)] motion-reduce:transition-none " );
+            builder.Append( "supports-[(position-anchor:--tw-color-picker-anchor)_and_(anchor-scope:--tw-color-picker-anchor)]:fixed " );
+            builder.Append( "supports-[(position-anchor:--tw-color-picker-anchor)_and_(anchor-scope:--tw-color-picker-anchor)]:[position-anchor:--tw-color-picker-anchor] " );
+            builder.Append( "supports-[(position-anchor:--tw-color-picker-anchor)_and_(anchor-scope:--tw-color-picker-anchor)]:inset-auto " );
+            builder.Append( "supports-[(position-anchor:--tw-color-picker-anchor)_and_(anchor-scope:--tw-color-picker-anchor)]:top-[anchor(bottom)] " );
+            builder.Append( "supports-[(position-anchor:--tw-color-picker-anchor)_and_(anchor-scope:--tw-color-picker-anchor)]:[inset-inline-start:anchor(start)] " );
+            builder.Append( "supports-[(position-anchor:--tw-color-picker-anchor)_and_(anchor-scope:--tw-color-picker-anchor)]:[position-try-fallbacks:flip-block,flip-inline,flip-block_flip-inline]" );
+        }
+
+        return builder.ToString();
+    }
+
+    public override string ColorPickerSurface()
+    {
+        var builder = new StringBuilder( "relative h-40 w-full touch-none select-none cursor-crosshair rounded-sm [direction:ltr] " );
+
+        builder.Append( "bg-[linear-gradient(to_top,black,transparent),linear-gradient(to_right,white,transparent)] focus-visible:outline-2 focus-visible:outline-primary-600 " );
+        builder.Append( "data-[mode=wheel]:w-40 data-[mode=wheel]:max-w-full data-[mode=wheel]:h-auto data-[mode=wheel]:aspect-square data-[mode=wheel]:mx-auto data-[mode=wheel]:rounded-full " );
+        builder.Append( "data-[mode=wheel]:bg-[radial-gradient(circle_closest-side,#fff,transparent),conic-gradient(from_90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)] " );
+        builder.Append( "data-[mode=wheel]:before:content-[''] data-[mode=wheel]:before:absolute data-[mode=wheel]:before:inset-0 data-[mode=wheel]:before:rounded-full data-[mode=wheel]:before:bg-current data-[mode=wheel]:before:pointer-events-none" );
+
+        return builder.ToString();
+    }
+
+    public override string ColorPickerMarker() => "absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow pointer-events-none";
+
+    public override string ColorPickerSlider()
+    {
+        var builder = new StringBuilder( "relative w-full min-h-10 [direction:ltr] " );
+
+        builder.Append( "before:content-[''] before:absolute before:inset-x-2 before:top-1/2 before:h-2 before:rounded-full before:-translate-y-1/2 before:pointer-events-none " );
+        builder.Append( "data-[color-channel=hue]:before:bg-[linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)] " );
+        builder.Append( "data-[color-channel=brightness]:before:bg-[linear-gradient(to_right,#000,currentColor)] " );
+        builder.Append( "data-[color-channel=opacity]:before:bg-[linear-gradient(to_right,transparent,currentColor),repeating-conic-gradient(#fff_0%_25%,#ccc_0%_50%)] " );
+        builder.Append( "data-[color-channel=opacity]:before:[background-size:100%_100%,.5rem_.5rem] " );
+        builder.Append( "[&_input[type=range]]:relative [&_input[type=range]]:block [&_input[type=range]]:w-full [&_input[type=range]]:!h-10 " );
+        builder.Append( "[&_input[type=range]]:m-0 [&_input[type=range]]:p-0 [&_input[type=range]]:border-0 [&_input[type=range]]:outline-none " );
+        builder.Append( "[&_input[type=range]]:!bg-transparent [&_input[type=range]]:text-inherit [&_input[type=range]]:opacity-100 [&_input[type=range]]:cursor-pointer [&_input[type=range]]:appearance-none " );
+        builder.Append( "[&_input[type=range]::-webkit-slider-runnable-track]:h-2 [&_input[type=range]::-webkit-slider-runnable-track]:border-0 [&_input[type=range]::-webkit-slider-runnable-track]:bg-transparent [&_input[type=range]::-webkit-slider-runnable-track]:text-inherit " );
+        builder.Append( "[&_input[type=range]::-moz-range-track]:h-2 [&_input[type=range]::-moz-range-track]:border-0 [&_input[type=range]::-moz-range-track]:bg-transparent " );
+        builder.Append( "[&_input[type=range]::-moz-range-progress]:h-2 [&_input[type=range]::-moz-range-progress]:border-0 [&_input[type=range]::-moz-range-progress]:!bg-transparent " );
+        builder.Append( "[&_input[type=range]::-webkit-slider-thumb]:box-border [&_input[type=range]::-webkit-slider-thumb]:!w-4 [&_input[type=range]::-webkit-slider-thumb]:!h-4 " );
+        builder.Append( "[&_input[type=range]::-webkit-slider-thumb]:!-mt-1 [&_input[type=range]::-webkit-slider-thumb]:!border-2 [&_input[type=range]::-webkit-slider-thumb]:border-white [&_input[type=range]::-webkit-slider-thumb]:rounded-full " );
+        builder.Append( "[&_input[type=range]::-webkit-slider-thumb]:!bg-current [&_input[type=range]::-webkit-slider-thumb]:!shadow-[0_0_0_1px_rgba(0,0,0,.25)] [&_input[type=range]::-webkit-slider-thumb]:cursor-pointer [&_input[type=range]::-webkit-slider-thumb]:appearance-none " );
+        builder.Append( "[&_input[type=range]::-moz-range-thumb]:box-border [&_input[type=range]::-moz-range-thumb]:!w-4 [&_input[type=range]::-moz-range-thumb]:!h-4 " );
+        builder.Append( "[&_input[type=range]::-moz-range-thumb]:!border-2 [&_input[type=range]::-moz-range-thumb]:border-white [&_input[type=range]::-moz-range-thumb]:rounded-full " );
+        builder.Append( "[&_input[type=range]::-moz-range-thumb]:!bg-current [&_input[type=range]::-moz-range-thumb]:!shadow-[0_0_0_1px_rgba(0,0,0,.25)] [&_input[type=range]::-moz-range-thumb]:cursor-pointer " );
+        builder.Append( "[&_input[type=range]:focus-visible::-webkit-slider-thumb]:!outline-2 [&_input[type=range]:focus-visible::-webkit-slider-thumb]:!outline-primary-600 [&_input[type=range]:focus-visible::-webkit-slider-thumb]:outline-offset-2 [&_input[type=range]:focus-visible::-webkit-slider-thumb]:transform-none " );
+        builder.Append( "[&_input[type=range]:focus-visible::-moz-range-thumb]:outline-2 [&_input[type=range]:focus-visible::-moz-range-thumb]:outline-primary-600 [&_input[type=range]:focus-visible::-moz-range-thumb]:outline-offset-2 [&_input[type=range]:focus-visible::-moz-range-thumb]:transform-none" );
+
+        return builder.ToString();
+    }
+
+    #endregion
+
+    #region NumericPicker
+
+    public override string NumericPicker( bool plaintext ) => TextInput( plaintext );
+
+    public override string NumericPickerSize( Size size ) => TextInputSize( size );
+
+    public override string NumericPickerColor( Color color ) => TextInputColor( color );
+
+    public override string NumericPickerValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region InputMask
+
+    public override string InputMask( bool plaintext ) => TextInput( plaintext );
+
+    public override string InputMaskSize( Size size ) => TextInputSize( size );
+
+    public override string InputMaskColor( Color color ) => TextInputColor( color );
+
+    public override string InputMaskValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region Check
+
+    public override string Check() => "text-primary-600 bg-gray-100 rounded-sm border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600";
+
+    public override string CheckSize( Size size )
+    {
+        if ( size == Size.Default )
+            return null;
+
+        return size switch
+        {
+            Size.ExtraSmall => "w-2 h-2",
+            Size.Small => "w-3 h-3",
+            Size.Medium => "w-5 h-5",
+            Size.Large => "w-6 h-6",
+            Size.ExtraLarge => "w-8 h-8",
+            _ => "w-4 h-4"
+        };
+    }
+
+    public override string CheckInline( bool inline ) => null;
+
+    public override string CheckCursor( Cursor cursor ) => cursor != Cursor.Default ? $"cursor-{ToCursor( cursor )}" : null;
+
+    public override string CheckValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region RadioGroup
+
+    public override string RadioGroup( bool buttons, Orientation orientation )
+        => buttons
+            ? orientation == Orientation.Horizontal
+                ? "inline-flex flex-row items-center text-sm font-medium"
+                : "inline-flex flex-col items-start justify-center text-sm font-medium"
+                    : "inline-flex flex-wrap";
+
+    public override string RadioGroupSize( bool buttons, Orientation orientation, Size size ) => null;
+
+    public override string RadioGroupValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region Radio
+
+    public override string Radio( bool button ) => button
+        ? "absolute cursor-none"
+        : "text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600";
+
+    public override string RadioSize( bool button, Size size )
+    {
+        return size switch
+        {
+            Size.ExtraSmall => "w-2 h-2",
+            Size.Small => "w-3 h-3",
+            Size.Medium => "w-5 h-5",
+            Size.Large => "w-6 h-6",
+            Size.ExtraLarge => "w-8 h-8",
+            _ => "w-4 h-4"
+        };
+    }
+
+    public override string RadioInline( bool inline ) => inline
+        ? UseCustomInputStyles ? "custom-control-inline" : "form-check-inline"
+        : null;
+
+    public override string RadioCursor( Cursor cursor ) => cursor != Cursor.Default ? $"cursor-{ToCursor( cursor )}" : null;
+
+    public override string RadioValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region Switch
+
+    public override string Switch() => "sr-only peer";
+
+    public override string SwitchColor( Color color ) => color?.IsCssValue == true ? null : color.IsNotNullOrDefault() ? $"{Switch()}-{ToColor( color )}" : null;
+
+    public override string SwitchSize( Size size ) => null;
+
+    public override string SwitchChecked( bool @checked ) => null;
+
+    public override string SwitchCursor( Cursor cursor ) => null;
+
+    public override string SwitchValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region FileInput
+
+    public override string FileInput() => $"{TextInput( false, "tw-file-input" )} cursor-pointer";
+
+    public override string FileInputSize( Size size ) => TextInputSize( size, "tw-file-input" );
+
+    public override string FileInputValidation( ValidationStatus validationStatus ) => validationStatus != ValidationStatus.None ? ToValidationStatus( validationStatus ) : null;
+
+    #endregion
+
+    #region Slider
+
+    public override string Slider() => BuildTailwindSliderInputClasses( rangeSlider: false );
+
+    public override string SliderColor( Color color ) => color.IsNotNullOrDefault() ? BuildTailwindSliderColorClasses( color ) : null;
+
+    public override string SliderValidation( ValidationStatus validationStatus ) => BuildTailwindSliderValidationClasses( validationStatus );
+
+    #endregion
+
+    #region RangeSlider
+
+    public override string RangeSlider() => "tw-range-slider min-h-8 aria-disabled:opacity-60";
+
+    public override string RangeSliderTrack() => "tw-range-slider-track top-[calc(50%+1.5px)] h-2 -translate-y-1/2 rounded-lg bg-gray-200 dark:bg-gray-700";
+
+    public override string RangeSliderRange() => "tw-range-slider-range top-[calc(50%+1.5px)] h-2 -translate-y-1/2 rounded-lg bg-blue-600 dark:bg-blue-500";
+
+    public override string RangeSliderInput() => "tw-range-slider-input absolute top-1/2 left-0 w-full h-2 m-0 -translate-y-1/2 rounded-lg bg-transparent pointer-events-none appearance-none accent-blue-600 dark:accent-blue-500 disabled:cursor-not-allowed disabled:opacity-60";
+
+    public override string RangeSliderStart() => null;
+
+    public override string RangeSliderEnd() => null;
+
+    public override string RangeSliderTooltip() => "tw-range-slider-tooltip z-10 whitespace-nowrap rounded-full border border-gray-200 bg-white h-6 px-2 text-xs font-medium leading-6 text-gray-700 shadow-sm pointer-events-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100";
+
+    public override string RangeSliderValidation( ValidationStatus validationStatus ) => validationStatus switch
+    {
+        ValidationStatus.Success => "tw-range-slider-success",
+        ValidationStatus.Warning => "tw-range-slider-warning",
+        ValidationStatus.Error => "tw-range-slider-danger",
+        _ => null,
+    };
+
+    #endregion
+
+    #region Resizer
+
+    public override string Resizer() => "tw-resizer absolute z-10 border-0 bg-transparent p-0 outline-none select-none touch-none";
+
+    public override string ResizerOrientation( Orientation orientation )
+        => orientation == Orientation.Vertical
+            ? "tw-resizer-vertical top-0 bottom-0 w-2 cursor-col-resize"
+            : "tw-resizer-horizontal left-0 right-0 h-2 cursor-row-resize";
+
+    public override string ResizerPlacement( Placement placement ) => placement switch
+    {
+        Placement.Top => "tw-resizer-top top-0",
+        Placement.Bottom => "tw-resizer-bottom bottom-0",
+        Placement.Start => "tw-resizer-start start-0",
+        Placement.End => "tw-resizer-end end-0",
+        _ => null,
+    };
+
+    public override string ResizerGutter( bool showGutter ) => showGutter ? "tw-resizer-gutter" : null;
+
+    public override string ResizerDisabled( bool disabled ) => disabled ? "tw-resizer-disabled pointer-events-none opacity-50" : null;
+
+    public override string ResizerFocused( bool focused ) => focused ? "tw-resizer-focused" : null;
+
+    public override string ResizerResizing( bool resizing ) => resizing ? "tw-resizer-resizing" : null;
+
+    public override string ResizerTargetResizing( bool resizing ) => resizing ? "tw-resizer-target-resizing !transition-none" : null;
+
+    #endregion
+
+    private static string BuildTailwindSliderInputClasses( bool rangeSlider )
+    {
+        if ( !rangeSlider )
+        {
+            var builder = new StringBuilder( "tw-slider w-full h-2 rounded-lg cursor-pointer bg-gray-200 accent-blue-600 dark:accent-blue-500 dark:bg-gray-700 " );
+
+            builder.Append( "aria-[orientation=vertical]:w-4 aria-[orientation=vertical]:h-40 aria-[orientation=vertical]:[writing-mode:vertical-lr] aria-[orientation=vertical]:[direction:rtl]" );
+
+            return builder.ToString();
+        }
+
+        string layoutClasses = rangeSlider
+            ? "absolute top-1/2 left-0 w-full m-0 -translate-y-1/2 bg-transparent pointer-events-none"
+            : "w-full cursor-pointer bg-gray-200 dark:bg-gray-700";
+
+        string trackClasses = rangeSlider
+            ? "[&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:bg-transparent [&::-moz-range-progress]:bg-transparent"
+            : "[&::-webkit-slider-runnable-track]:bg-gray-200 dark:[&::-webkit-slider-runnable-track]:bg-gray-700 [&::-moz-range-track]:bg-gray-200 dark:[&::-moz-range-track]:bg-gray-700 [&::-moz-range-progress]:bg-gray-200 dark:[&::-moz-range-progress]:bg-gray-700";
+
+        string thumbPointerClasses = rangeSlider
+            ? "[&::-webkit-slider-thumb]:pointer-events-auto [&::-moz-range-thumb]:pointer-events-auto"
+            : null;
+
+        return string.Join( " ", new[]
+        {
+            layoutClasses,
+            "h-2 rounded-lg appearance-none accent-blue-600 dark:accent-blue-500",
+            "[&::-webkit-slider-runnable-track]:h-2",
+            "[&::-webkit-slider-runnable-track]:rounded-lg",
+            "[&::-webkit-slider-runnable-track]:border-0",
+            "[&::-moz-range-track]:h-2",
+            "[&::-moz-range-track]:rounded-lg",
+            "[&::-moz-range-track]:border-0",
+            "[&::-moz-range-progress]:h-2",
+            "[&::-moz-range-progress]:rounded-lg",
+            "[&::-moz-range-progress]:border-0",
+            trackClasses,
+            "[&::-webkit-slider-thumb]:appearance-none",
+            "[&::-webkit-slider-thumb]:-mt-1",
+            "[&::-webkit-slider-thumb]:h-4",
+            "[&::-webkit-slider-thumb]:w-4",
+            "[&::-webkit-slider-thumb]:rounded-full",
+            "[&::-webkit-slider-thumb]:border-2",
+            "[&::-webkit-slider-thumb]:border-white",
+            "dark:[&::-webkit-slider-thumb]:border-gray-800",
+            "[&::-webkit-slider-thumb]:bg-blue-600",
+            "dark:[&::-webkit-slider-thumb]:bg-blue-500",
+            "[&::-webkit-slider-thumb]:shadow-sm",
+            "[&::-webkit-slider-thumb]:cursor-pointer",
+            "[&::-moz-range-thumb]:h-4",
+            "[&::-moz-range-thumb]:w-4",
+            "[&::-moz-range-thumb]:rounded-full",
+            "[&::-moz-range-thumb]:border-2",
+            "[&::-moz-range-thumb]:border-white",
+            "dark:[&::-moz-range-thumb]:border-gray-800",
+            "[&::-moz-range-thumb]:bg-blue-600",
+            "dark:[&::-moz-range-thumb]:bg-blue-500",
+            "[&::-moz-range-thumb]:shadow-sm",
+            "[&::-moz-range-thumb]:cursor-pointer",
+            thumbPointerClasses,
+            "disabled:cursor-not-allowed",
+            "disabled:opacity-60",
+            "disabled:[&::-webkit-slider-thumb]:cursor-not-allowed",
+            "disabled:[&::-moz-range-thumb]:cursor-not-allowed",
+        }.Where( x => !string.IsNullOrWhiteSpace( x ) ) );
+    }
+
+    private static string BuildTailwindSliderValidationClasses( ValidationStatus validationStatus )
+    {
+        return validationStatus switch
+        {
+            ValidationStatus.Success => "accent-green-500 dark:accent-green-500 [&::-webkit-slider-thumb]:bg-green-500 dark:[&::-webkit-slider-thumb]:bg-green-500 [&::-moz-range-thumb]:bg-green-500 dark:[&::-moz-range-thumb]:bg-green-500",
+            ValidationStatus.Warning => "accent-warning-500 dark:accent-warning-500 [&::-webkit-slider-thumb]:bg-warning-500 dark:[&::-webkit-slider-thumb]:bg-warning-500 [&::-moz-range-thumb]:bg-warning-500 dark:[&::-moz-range-thumb]:bg-warning-500",
+            ValidationStatus.Error => "accent-red-500 dark:accent-red-500 [&::-webkit-slider-thumb]:bg-red-500 dark:[&::-webkit-slider-thumb]:bg-red-500 [&::-moz-range-thumb]:bg-red-500 dark:[&::-moz-range-thumb]:bg-red-500",
+            _ => null,
+        };
+    }
+
+    private static string BuildTailwindSliderColorClasses( Color color )
+    {
+        return color.Name switch
+        {
+            "primary" => "accent-primary-600 dark:accent-primary-500",
+            "secondary" => "accent-secondary-600 dark:accent-secondary-500",
+            "success" => "accent-green-500 dark:accent-green-500",
+            "danger" => "accent-red-500 dark:accent-red-500",
+            "warning" => "accent-warning-500 dark:accent-warning-400",
+            "info" => "accent-info-600 dark:accent-info-500",
+            "light" => "accent-light-500 dark:accent-light-400",
+            "dark" => "accent-dark-700 dark:accent-dark-400",
+            "link" => "accent-primary-600 dark:accent-primary-500",
+            _ => null,
+        };
+    }
+
+    #region Rating
+
+    public override string Rating() => "flex items-center";
+
+    public override string RatingDisabled( bool disabled ) => disabled ? "cursor-not-allowed opacity-60" : null;
+
+    public override string RatingReadonly( bool @readonly ) => null;
+
+    public override string RatingItem() => "w-5 h-5";
+
+    public override string RatingItemColor( Color color ) => color?.IsCssValue == true ? "text-[color:var(--tw-rating-color)]" : color.IsNotNullOrDefault() ? $"text-{ToColor( color )}-400" : null;
+
+    public override string RatingItemSelected( bool selected ) => null;
+
+    public override string RatingItemHovered( bool hover ) => hover ? "hover:opacity-80" : null;
+
+    #endregion
+
+    #region Label
+
+    public override string LabelType( LabelType labelType ) => labelType switch
+    {
+        Blazorise.LabelType.Check or Blazorise.LabelType.Radio => "ml-2 text-sm font-medium text-gray-900 dark:text-gray-300",
+        Blazorise.LabelType.Switch => "inline-flex relative items-center cursor-pointer",
+        Blazorise.LabelType.File => UseCustomInputStyles ? "custom-file-label" : null,
+        _ => null,
+    };
+
+    public override string LabelCursor( Cursor cursor ) => cursor != Cursor.Default ? $"cursor-{ToCursor( cursor )}" : null;
+
+    #endregion
+
+    #region Help
+
+    public override string Help() => "form-text text-muted";
+
+    #endregion
+
+    #region Validation
+
+    public override string ValidationSuccess() => "b-validation-success mt-2 text-sm text-success-600 dark:text-success-500";
+
+    public override string ValidationSuccessTooltip() => "valid-tooltip";
+
+    public override string ValidationWarning() => "b-validation-warning mt-2 text-sm text-warning-600 dark:text-warning-500";
+
+    public override string ValidationWarningTooltip() => "warning-tooltip";
+
+    public override string ValidationError() => "b-validation-error mt-2 text-sm text-danger-600 dark:text-danger-500";
+
+    public override string ValidationErrorTooltip() => "invalid-tooltip";
+
+    public override string ValidationNone() => "b-validation-none mt-2 text-sm text-gray-500 dark:text-gray-400";
+
+    public override string ValidationSummary() => "text-danger";
+
+    public override string ValidationSummaryError() => "text-danger";
+
+    #endregion
+
+    #region Fields
+
+    public override string Fields() => "flex flex-row flex-wrap -mx-2";
+
+    public override string FieldsBody() => null;
+
+    public override string FieldsColumn() => "basis-0 grow pl-2 pr-2 w-full";
+
+    #endregion
+
+    #region FieldSet
+
+    public override string FieldSet() => "mb-3";
+
+    public override string FieldSetHorizontal( bool horizontal ) => horizontal ? "flex flex-wrap flex-row" : null;
+
+    public override string FieldSetValidation( ValidationStatus validationStatus ) => null;
+
+    #endregion
+
+    #region Field
+
+    public override string Field() => "mb-3";
+
+    public override string FieldHorizontal( bool horizontal ) => horizontal ? "flex flex-wrap flex-row" : null;
+
+    public override string FieldColumn() => "relative basis-0 grow pl-2 pr-2 w-full max-w-full";
+
+    public override string FieldSize( Size size ) => null;
+
+    public override string FieldJustifyContent( JustifyContent justifyContent ) => ToJustifyContent( justifyContent );
+
+    public override string FieldValidation( ValidationStatus validationStatus ) => null;
+
+    #endregion
+
+    #region FieldLabel
+
+    public override string FieldLabel( bool horizontal ) => horizontal
+        ? "block my-auto text-sm font-medium text-gray-900 dark:text-white"
+        : "block my-2 text-sm font-medium text-gray-900 dark:text-white";
+
+    public override string FieldLabelRequiredIndicator( bool requiredIndicator )
+        => requiredIndicator
+            ? "after:content-['_*'] after:[color:var(--b-theme-danger,--btw-color-danger-500)]"
+            : null;
+
+    public override string FieldLabelScreenreader( Screenreader screenreader ) => screenreader != Screenreader.Always ? ToScreenreader( screenreader ) : null;
+
+    #endregion
+
+    #region Legend
+
+    public override string Legend( bool horizontal ) => horizontal
+        ? "block my-auto text-sm font-medium text-gray-900 dark:text-white"
+        : "block my-2 text-sm font-medium text-gray-900 dark:text-white";
+
+    public override string LegendRequiredIndicator( bool requiredIndicator )
+        => requiredIndicator
+            ? "after:content-['_*'] after:[color:var(--b-theme-danger,--btw-color-danger-500)]"
+            : null;
+
+    public override string LegendScreenreader( Screenreader screenreader ) => screenreader != Screenreader.Always ? ToScreenreader( screenreader ) : null;
+
+    #endregion
+
+    #region FieldBody
+
+    public override string FieldBody() => null;
+
+    #endregion
+
+    #region FieldHelp
+
+    public override string FieldHelp() => "block mt-1 text-xs text-gray-600";
+
+    #endregion
+
+    #region FocusTrap
+
+    public override string FocusTrap() => "contents";
+
+    #endregion
+
+    #region OnScreenKeyboard
+
+    public override string OnScreenKeyboard() => "z-50 w-full";
+
+    public override string OnScreenKeyboardPlacement( OnScreenKeyboardPlacement placement ) => placement switch
+    {
+        Blazorise.OnScreenKeyboardPlacement.Top => "fixed start-0 top-0",
+        Blazorise.OnScreenKeyboardPlacement.Bottom => "fixed start-0 bottom-0",
+        _ => null,
+    };
+
+    public override string OnScreenKeyboardRow() => "flex gap-1 mb-1";
+
+    public override string OnScreenKeyboardKey() => "min-w-10";
+
+    #endregion
+
+    #region Control
+
+    public override string ControlCheck( ControlRole role ) => role == ControlRole.Check ? "inline-flex items-center mr-4" : null;
+
+    public override string ControlRadio( ControlRole role ) => role == ControlRole.Radio ? "inline-flex items-center mr-4" : null;
+
+    public override string ControlSwitch( ControlRole role ) => role == ControlRole.Switch ? "inline-flex relative items-center cursor-pointer mr-4" : null;
+
+    public override string ControlFile( ControlRole role ) => role == ControlRole.File ? UseCustomInputStyles ? "custom-file" : "form-group" : null;
+
+    public override string ControlText( ControlRole role ) => null;
+
+    public override string ControlInline( ControlRole role, bool inline ) => null;
+
+    #endregion
+
+    #region Addons
+
+    public override string Addons() => "b-addons flex";
+
+    public override string AddonsSize( Size size ) => null;
+
+    public override string AddonsHasButton( bool hasButton ) => null;
+
+    public override string AddonsValidation( ValidationStatus validationStatus ) => validationStatus switch
+    {
+        ValidationStatus.Success => "b-is-valid",
+        ValidationStatus.Warning => "b-is-warning",
+        ValidationStatus.Error => "b-is-invalid",
+        _ => null,
+    };
+
+    public override string Addon( AddonType addonType )
+    {
+        return addonType switch
+        {
+            AddonType.Start => "b-addon-start inline-flex items-center text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600",
+            AddonType.End => "b-addon-end inline-flex items-center text-gray-900 bg-gray-200 border border-l-0 border-gray-300 rounded-r-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600",
+            _ => "b-addon-body contents",
+        };
+    }
+
+    public override string AddonSize( Size size )
+    {
+        return size switch
+        {
+            Size.ExtraSmall => "sm:text-xs",
+            Size.Small => "sm:text-xs",
+            Size.Medium => "text-base",
+            Size.Large => "sm:text-base",
+            Size.ExtraLarge => "sm:text-lg",
+            _ => "text-sm"
+        };
+    }
+
+    public override string AddonLabel() => "b-addon-label block px-3 font-medium text-gray-900 dark:text-white";
+
+    #endregion
+
+    #region Inline
+
+    public override string Inline() => "flex flex-row flex-wrap";
+
+    #endregion
+
+    #region Button
+
+    public override string Button( bool outline ) => outline
+        ? "b-button inline-flex items-center border focus:ring-4 focus:outline-hidden font-medium text-center"
+        : "b-button inline-flex items-center focus:ring-4 font-medium focus:outline-hidden";
+
+    public override string ButtonGhost( bool ghost, Color color )
+    {
+        if ( !ghost )
+        {
+            return null;
+        }
+
+        var builder = new StringBuilder( "bg-transparent bg-none border-transparent shadow-none text-[color:var(--tw-button-bg)] " );
+        builder.Append( "[&:not(:disabled):not([aria-disabled=true])]:text-[color:var(--tw-button-bg)] " );
+        builder.Append( "[&:where(:hover):not(:disabled):not([aria-disabled=true])]:bg-[color:var(--tw-button-hover-bg)] " );
+        builder.Append( "[&:is(:active,.active,[aria-pressed=true],[aria-expanded=true]):not(:disabled):not([aria-disabled=true])]:bg-[color:var(--tw-button-active-bg)] " );
+        builder.Append( "[&:focus:not(:focus-visible)]:ring-0 " );
+        builder.Append( "[&:focus-visible:not(:disabled):not([aria-disabled=true])]:ring-4 " );
+        builder.Append( "[&:focus-visible:not(:disabled):not([aria-disabled=true])]:outline-solid " );
+        builder.Append( "[&:focus-visible:not(:disabled):not([aria-disabled=true])]:outline-2 " );
+        builder.Append( "[&:focus-visible:not(:disabled):not([aria-disabled=true])]:outline-transparent " );
+        builder.Append( "[&:focus-visible:not(:disabled):not([aria-disabled=true])]:outline-offset-2 " );
+        builder.Append( "[&:is(:disabled,[aria-disabled=true])]:bg-transparent " );
+        builder.Append( "[&:is(:disabled,[aria-disabled=true])]:border-transparent " );
+        builder.Append( "[&:is(:disabled,[aria-disabled=true])]:shadow-none " );
+        builder.Append( "[&:is(:disabled,[aria-disabled=true])]:ring-0 " );
+        builder.Append( "[&:is(:disabled,[aria-disabled=true])]:opacity-50" );
+
+        if ( color?.IsCssValue == true )
+        {
+            builder.Append( " [--tw-button-hover-bg:color-mix(in_srgb,var(--tw-button-bg)_10%,transparent)] " );
+            builder.Append( "[--tw-button-active-bg:color-mix(in_srgb,var(--tw-button-bg)_20%,transparent)] " );
+            builder.Append( "ring-[color:color-mix(in_srgb,var(--tw-button-bg)_30%,transparent)]" );
+
+            return builder.ToString();
+        }
+
+        var colorClasses = color?.Name switch
+        {
+            "primary" => "[--tw-button-bg:var(--color-primary-600)] [--tw-button-hover-bg:var(--color-primary-50)] [--tw-button-active-bg:var(--color-primary-100)] ring-primary-300 dark:[--tw-button-bg:var(--color-primary-300)] dark:[--tw-button-hover-bg:var(--color-primary-900)] dark:[--tw-button-active-bg:var(--color-primary-800)] dark:ring-primary-800",
+            "secondary" => "[--tw-button-bg:var(--color-secondary-600)] [--tw-button-hover-bg:var(--color-secondary-50)] [--tw-button-active-bg:var(--color-secondary-100)] ring-secondary-300 dark:[--tw-button-bg:var(--color-secondary-300)] dark:[--tw-button-hover-bg:var(--color-secondary-900)] dark:[--tw-button-active-bg:var(--color-secondary-800)] dark:ring-secondary-800",
+            "success" => "[--tw-button-bg:var(--color-success-600)] [--tw-button-hover-bg:var(--color-success-50)] [--tw-button-active-bg:var(--color-success-100)] ring-success-300 dark:[--tw-button-bg:var(--color-success-300)] dark:[--tw-button-hover-bg:var(--color-success-900)] dark:[--tw-button-active-bg:var(--color-success-800)] dark:ring-success-800",
+            "danger" => "[--tw-button-bg:var(--color-danger-600)] [--tw-button-hover-bg:var(--color-danger-50)] [--tw-button-active-bg:var(--color-danger-100)] ring-danger-300 dark:[--tw-button-bg:var(--color-danger-300)] dark:[--tw-button-hover-bg:var(--color-danger-900)] dark:[--tw-button-active-bg:var(--color-danger-800)] dark:ring-danger-800",
+            "warning" => "[--tw-button-bg:var(--color-warning-600)] [--tw-button-hover-bg:var(--color-warning-50)] [--tw-button-active-bg:var(--color-warning-100)] ring-warning-300 dark:[--tw-button-bg:var(--color-warning-300)] dark:[--tw-button-hover-bg:var(--color-warning-900)] dark:[--tw-button-active-bg:var(--color-warning-800)] dark:ring-warning-800",
+            "info" => "[--tw-button-bg:var(--color-info-600)] [--tw-button-hover-bg:var(--color-info-50)] [--tw-button-active-bg:var(--color-info-100)] ring-info-300 dark:[--tw-button-bg:var(--color-info-300)] dark:[--tw-button-hover-bg:var(--color-info-900)] dark:[--tw-button-active-bg:var(--color-info-800)] dark:ring-info-800",
+            "light" => "[--tw-button-bg:var(--color-light-600)] [--tw-button-hover-bg:var(--color-light-50)] [--tw-button-active-bg:var(--color-light-100)] ring-light-300 dark:[--tw-button-bg:var(--color-light-300)] dark:[--tw-button-hover-bg:var(--color-light-900)] dark:[--tw-button-active-bg:var(--color-light-800)] dark:ring-light-800",
+            "dark" => "[--tw-button-bg:var(--color-dark-600)] [--tw-button-hover-bg:var(--color-dark-50)] [--tw-button-active-bg:var(--color-dark-100)] ring-dark-300 dark:[--tw-button-bg:var(--color-dark-300)] dark:[--tw-button-hover-bg:var(--color-dark-900)] dark:[--tw-button-active-bg:var(--color-dark-800)] dark:ring-dark-800",
+            "link" => "[--tw-button-bg:var(--color-primary-600)] [--tw-button-hover-bg:var(--color-primary-50)] [--tw-button-active-bg:var(--color-primary-100)] ring-primary-300 dark:[--tw-button-bg:var(--color-primary-300)] dark:[--tw-button-hover-bg:var(--color-primary-900)] dark:[--tw-button-active-bg:var(--color-primary-800)] dark:ring-primary-800",
+            _ => "[--tw-button-bg:var(--color-gray-900)] [--tw-button-hover-bg:var(--color-gray-50)] [--tw-button-active-bg:var(--color-gray-200)] ring-gray-100 dark:[--tw-button-bg:var(--color-white)] dark:[--tw-button-hover-bg:var(--color-gray-800)] dark:[--tw-button-active-bg:var(--color-gray-700)] dark:ring-gray-800",
+        };
+
+        builder.Append( ' ' );
+        builder.Append( colorClasses );
+
+        return builder.ToString();
+    }
+
+    public override string ButtonColor( Color color, bool outline )
+    {
+        if ( color?.IsCssValue == true )
+            return BuildCustomButtonColorClasses( outline );
+
+        var name = color?.Name;
+
+        if ( outline )
+        {
+            return name switch
+            {
+                "primary" => "b-button-outline-primary text-700 hover:text-white border border-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:border-primary-500 dark:text-primary-500 dark:hover:text-white dark:hover:bg-primary-600 dark:focus:ring-primary-800",
+                "secondary" => "b-button-outline-secondary text-secondary-500 hover:text-white border border-secondary-500 hover:bg-secondary-600 focus:ring-secondary-100 dark:border-secondary-300 dark:text-secondary-300 dark:hover:text-white dark:hover:bg-secondary-400 dark:focus:ring-secondary-600",
+                "success" => "b-button-outline-success text-success-700 hover:text-white border-success-700 hover:bg-success-800 focus:ring-success-300 dark:border-success-500 dark:text-success-500 dark:hover:text-white dark:hover:bg-success-600 dark:focus:ring-success-800",
+                "danger" => "b-button-outline-danger text-danger-700 hover:text-white border-danger-700 hover:bg-danger-800 focus:ring-danger-300 dark:border-danger-500 dark:text-danger-500 dark:hover:text-white dark:hover:bg-danger-600 dark:focus:ring-danger-900",
+                "warning" => "b-button-outline-warning text-warning-400 hover:text-white border-warning-400 hover:bg-warning-500 focus:ring-warning-300 dark:border-warning-300 dark:text-warning-300 dark:hover:text-white dark:hover:bg-warning-400 dark:focus:ring-warning-900",
+                "info" => "b-button-outline-info text-info-700 hover:text-white border-info-700 hover:bg-info-800 focus:ring-info-300 dark:border-info-400 dark:text-info-400 dark:hover:text-white dark:hover:bg-info-500 dark:focus:ring-info-900",
+                "light" => "b-button-outline-light text-light-200 hover:text-white border-light-300 hover:bg-light-100 focus:ring-light-200 dark:border-light-600 dark:text-white dark:hover:text-white dark:hover:bg-light-700 dark:focus:ring-light-700",
+                "dark" => "b-button-outline-dark text-dark-900 hover:text-white border-dark-800 hover:bg-dark-900 focus:ring-dark-300 dark:border-dark-600 dark:text-dark-400 dark:hover:text-white dark:hover:bg-dark-600 dark:focus:ring-dark-800",
+                "link" => "b-button-outline-link text-primary-600 dark:text-primary-500 hover:underline",
+                _ => null,
+            };
+        }
+
+        return name switch
+        {
+            "primary" => "b-button-primary text-white bg-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800",
+            "secondary" => "b-button-secondary text-white bg-secondary-500 hover:bg-secondary-600 focus:ring-secondary-100 dark:bg-secondary-400 dark:hover:bg-secondary-500 dark:focus:ring-secondary-600",
+            "success" => "b-button-success text-white bg-success-700 hover:bg-success-800 focus:ring-success-300 dark:bg-success-600 dark:hover:bg-success-700 dark:focus:ring-success-800",
+            "danger" => "b-button-danger text-white bg-danger-700 hover:bg-danger-800 focus:ring-danger-300 dark:bg-danger-600 dark:hover:bg-danger-700 dark:focus:ring-danger-900",
+            "warning" => "b-button-warning text-white bg-warning-400 hover:bg-warning-500 focus:ring-warning-300 dark:focus:ring-warning-900",
+            "info" => "b-button-info text-white bg-info-700 hover:bg-info-800 focus:ring-info-300 dark:bg-info-600 dark:hover:bg-info-700 dark:focus:ring-info-900",
+            "light" => "b-button-light text-light-900 bg-light-300 border border-light-300 hover:bg-light-100 focus:ring-light-200 dark:bg-light-800 dark:text-white dark:border-light-600 dark:hover:bg-light-700 dark:hover:border-light-600 dark:focus:ring-light-700",
+            "dark" => "b-button-dark text-white bg-dark-800 hover:bg-dark-900 focus:ring-dark-300 dark:bg-dark-800 dark:hover:bg-dark-700 dark:focus:ring-dark-700 dark:border-dark-700",
+            "link" => "b-button-link text-primary-600 dark:text-primary-500 hover:underline",
+            _ => null,
+        };
+    }
+
+    private static string BuildCustomButtonColorClasses( bool outline )
+    {
+        const string interactionClasses =
+            "border-[color:var(--tw-button-bg)] ring-[color:color-mix(in_srgb,var(--tw-button-bg)_50%,transparent)] "
+            + "[&:is(:disabled,[aria-disabled=true])]:ring-0 "
+            + "[&:where(:hover):not(:disabled):not([aria-disabled=true])]:bg-[color:var(--tw-button-hover-bg)] "
+            + "[&:where(:hover):not(:disabled):not([aria-disabled=true])]:border-[color:var(--tw-button-hover-bg)] "
+            + "[&:where(:hover):not(:disabled):not([aria-disabled=true])]:text-white "
+            + "supports-[color:contrast-color(white)]:[&:where(:hover):not(:disabled):not([aria-disabled=true])]:text-[color:contrast-color(var(--tw-button-hover-bg))] "
+            + "[&:is(:active,.active,[aria-expanded=true]):not(:disabled):not([aria-disabled=true])]:bg-[color:var(--tw-button-active-bg)] "
+            + "[&:is(:active,.active,[aria-expanded=true]):not(:disabled):not([aria-disabled=true])]:border-[color:var(--tw-button-active-bg)] "
+            + "[&:is(:active,.active,[aria-expanded=true]):not(:disabled):not([aria-disabled=true])]:text-white "
+            + "supports-[color:contrast-color(white)]:[&:is(:active,.active,[aria-expanded=true]):not(:disabled):not([aria-disabled=true])]:text-[color:contrast-color(var(--tw-button-active-bg))]";
+
+        return outline
+            ? "border border-solid bg-transparent text-[color:var(--tw-button-bg)] "
+                + "[--tw-button-hover-bg:var(--tw-button-bg)] [--tw-button-active-bg:var(--tw-button-bg)] "
+                + interactionClasses
+            : "bg-[color:var(--tw-button-bg)] text-white supports-[color:contrast-color(white)]:text-[color:contrast-color(var(--tw-button-bg))] "
+                + "[--tw-button-hover-bg:color-mix(in_srgb,var(--tw-button-bg)_85%,black)] "
+                + "[--tw-button-active-bg:color-mix(in_srgb,var(--tw-button-bg)_80%,black)] "
+                + interactionClasses;
+    }
+
+    public override string ButtonSize( Size size, bool outline )
+    {
+        return size switch
+        {
+            Size.ExtraSmall => "px-3 py-2 text-xs",
+            Size.Small => "px-3 py-2 text-sm",
+            Size.Medium => "px-6 py-3 text-base",
+            Size.Large => "px-6 py-3.5 text-base",
+            Size.ExtraLarge => "px-6 py-4 text-base",
+            _ => "px-5 py-2.5 text-sm"
+        };
+    }
+
+    public override string ButtonBlock( bool outline, bool block ) => block ? "w-full" : null;
+
+    public override string ButtonActive( bool outline, bool active ) => active ? "active" : null;
+
+    public override string ButtonDisabled( bool outline, bool disabled ) => disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer";
+
+    public override string ButtonLoading( bool outline, bool loading ) => null;
+
+    public override string ButtonStretchedLink( bool stretched ) => stretched ? "after:absolute after:top-0 after:right-0 after:bottom-0 after:left-0 after:z-1 after:content-['_']" : null;
+
+    #endregion
+
+    #region Buttons
+
+    public override string Buttons( ButtonsRole role, Orientation orientation )
+    {
+        if ( role == ButtonsRole.Toolbar )
+            return "group b-button-group-toolbar inline-flex gap-x-2";
+
+        if ( orientation == Orientation.Vertical )
+            return "b-button-group-vertical";
+
+        return "group b-button-group inline-flex gap-x-0";
+    }
+
+    public override string ButtonsSize( Size size ) => size != Size.Default ? $"b-button-group-{ToSize( size )}" : null;
+
+    #endregion
+
+    #region CloseButton
+
+    public override string CloseButton() => "tw-close-button text-sm inline-flex";
+
+    #endregion
+
+    #region Dropdown
+
+    public override string Dropdown( bool isDropdownSubmenu ) => isDropdownSubmenu
+        ? "b-dropdown b-dropdown-submenu relative inline-flex w-full"
+        : "b-dropdown relative inline-flex";
+
+    public override string DropdownDisabled( bool disabled ) => disabled ? "b-dropdown-disabled" : null;
+
+    public override string DropdownGroup( bool group ) => group ? "b-dropdown-group align-middle" : null;
+
+    public override string DropdownObserverShow() => "b-dropdown-show";
+
+    public override string DropdownShow( bool show ) => show ? "b-dropdown-show" : null;
+
+    public override string DropdownRight( bool rightAligned ) => null;
+
+    public override string DropdownItem() => "b-dropdown-item block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white";
+
+    public override string DropdownItemActive( bool active ) => "b-dropdown-item-active";
+
+    public override string DropdownItemDisabled( bool disabled ) => disabled ? "b-dropdown-item-disabled cursor-not-allowed opacity-60" : "cursor-pointer";
+
+    public override string DropdownDivider() => "b-dropdown-divider";
+
+    public override string DropdownHeader() => "b-dropdown-header py-3 px-4 text-sm text-gray-900 dark:text-white";
+
+    public override string DropdownMenu() => "b-dropdown-menu z-10 w-max bg-white rounded-sm divide-y divide-gray-100 shadow-sm dark:bg-gray-700";
+
+    public override string DropdownMenuPositionStrategy( DropdownPositionStrategy dropdownPositionStrategy )
+        => $"max-w-max top-0 left-0 {( dropdownPositionStrategy == DropdownPositionStrategy.Fixed ? "fixed" : "absolute" )}";
+
+    public override string DropdownFixedHeaderVisible( bool visible )
+        => visible ? "!z-20" : null;
+
+    public override string DropdownMenuSelector() => "b-dropdown-menu>ul";
+
+    public override string DropdownMenuScrollable( bool scrollable ) => scrollable ? "b-dropdown-menu-scrollable max-h-[var(--dropdown-list-menu-max-height)] overflow-y-scroll" : null;
+
+    public override string DropdownMenuVisible( bool visible ) => visible
+        ? "b-dropdown-menu-show block"
+        : "b-dropdown-menu-hide hidden";
+
+    public override string DropdownMenuEnd( bool endAligned ) => endAligned ? "b-dropdown-menu-right" : null;
+
+    public override string DropdownToggle( bool isDropdownSubmenu, bool outline ) => isDropdownSubmenu
+        ? "b-dropdown-toggle-submenu block flex flex-row justify-between w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+        : "b-button b-dropdown-toggle focus:outline-hidden font-medium text-sm text-center inline-flex items-center";
+
+    public override string DropdownToggleSelector( bool isDropdownSubmenu ) => isDropdownSubmenu
+        ? "b-dropdown-toggle-submenu"
+        : "b-button b-dropdown-toggle";
+
+    public override string DropdownToggleColor( Color color, bool outline )
+    {
+        if ( color?.IsCssValue == true )
+            return BuildCustomButtonColorClasses( outline );
+
+        var name = color?.Name;
+
+        if ( outline )
+        {
+            return name switch
+            {
+                "primary" => "b-button-outline-primary text-700 hover:text-white border border-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:border-primary-500 dark:text-primary-500 dark:hover:text-white dark:hover:bg-primary-600 dark:focus:ring-primary-800",
+                "secondary" => "b-button-outline-secondary text-secondary-500 hover:text-white border border-secondary-500 hover:bg-secondary-600 focus:ring-secondary-100 dark:border-secondary-300 dark:text-secondary-300 dark:hover:text-white dark:hover:bg-secondary-400 dark:focus:ring-secondary-600",
+                "success" => "b-button-outline-success text-success-700 hover:text-white border-success-700 hover:bg-success-800 focus:ring-success-300 dark:border-success-500 dark:text-success-500 dark:hover:text-white dark:hover:bg-success-600 dark:focus:ring-success-800",
+                "danger" => "b-button-outline-danger text-danger-700 hover:text-white border-danger-700 hover:bg-danger-800 focus:ring-danger-300 dark:border-danger-500 dark:text-danger-500 dark:hover:text-white dark:hover:bg-danger-600 dark:focus:ring-danger-900",
+                "warning" => "b-button-outline-warning text-warning-400 hover:text-white border-warning-400 hover:bg-warning-500 focus:ring-warning-300 dark:border-warning-300 dark:text-warning-300 dark:hover:text-white dark:hover:bg-warning-400 dark:focus:ring-warning-900",
+                "info" => "b-button-outline-info text-info-700 hover:text-white border-info-700 hover:bg-info-800 focus:ring-info-300 dark:border-info-400 dark:text-info-400 dark:hover:text-white dark:hover:bg-info-500 dark:focus:ring-info-900",
+                "light" => "b-button-outline-light text-light-200 hover:text-white border-light-300 hover:bg-light-100 focus:ring-light-200 dark:border-light-600 dark:text-white dark:hover:text-white dark:hover:bg-light-700 dark:focus:ring-light-700",
+                "dark" => "b-button-outline-dark text-dark-900 hover:text-white border-dark-800 hover:bg-dark-900 focus:ring-dark-300 dark:border-dark-600 dark:text-dark-400 dark:hover:text-white dark:hover:bg-dark-600 dark:focus:ring-dark-800",
+                "link" => "b-button-outline-link text-primary-600 dark:text-primary-500 hover:underline",
+                _ => null,
+            };
+        }
+
+        return name switch
+        {
+            "primary" => "b-button-primary text-white bg-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800",
+            "secondary" => "b-button-secondary text-white bg-secondary-500 hover:bg-secondary-600 focus:ring-secondary-100 dark:bg-secondary-400 dark:hover:bg-secondary-500 dark:focus:ring-secondary-600",
+            "success" => "b-button-success text-white bg-success-700 hover:bg-success-800 focus:ring-success-300 dark:bg-success-600 dark:hover:bg-success-700 dark:focus:ring-success-800",
+            "danger" => "b-button-danger text-white bg-danger-700 hover:bg-danger-800 focus:ring-danger-300 dark:bg-danger-600 dark:hover:bg-danger-700 dark:focus:ring-danger-900",
+            "warning" => "b-button-warning text-white bg-warning-400 hover:bg-warning-500 focus:ring-warning-300 dark:focus:ring-warning-900",
+            "info" => "b-button-info text-white bg-info-700 hover:bg-info-800 focus:ring-info-300 dark:bg-info-600 dark:hover:bg-info-700 dark:focus:ring-info-900",
+            "light" => "b-button-light text-light-900 bg-light-300 border border-light-300 hover:bg-light-100 focus:ring-light-200 dark:bg-light-800 dark:text-white dark:border-light-600 dark:hover:bg-light-700 dark:hover:border-light-600 dark:focus:ring-light-700",
+            "dark" => "b-button-dark text-white bg-dark-800 hover:bg-dark-900 focus:ring-dark-300 dark:bg-dark-800 dark:hover:bg-dark-700 dark:focus:ring-dark-700 dark:border-dark-700",
+            "link" => "b-button-link text-primary-600 dark:text-primary-500 hover:underline",
+            _ => null,
+        };
+    }
+
+    public override string DropdownToggleSize( Size size, bool outline )
+    {
+        return size switch
+        {
+            Size.ExtraSmall => "px-3 py-2 text-xs",
+            Size.Small => "px-3 py-2 text-sm",
+            Size.Medium => "px-6 py-4 text-base",
+            Size.Large => "px-6 py-5 text-base",
+            Size.ExtraLarge => "px-6 py-6 text-base",
+            _ => "px-4 py-2.5 text-sm"
+        };
+    }
+
+    public override string DropdownToggleSplit( bool split ) => split
+        ? "b-dropdown-toggle-split rounded-l-0 rounded-r-lg"
+        : "rounded-lg";
+
+    public override string DropdownToggleIcon( bool visible ) => visible ? null : "b-dropdown-toggle-hidden";
+
+    public override string DropdownDirection( Direction direction ) => direction switch
+    {
+        Direction.Up => "dropup",
+        Direction.End => "dropright",
+        Direction.Start => "dropleft",
+        _ => null,
+    };
+
+    public override string ContextMenu() => "tw-context-menu";
+
+    public override string ContextMenuToggle() => "tw-context-menu-toggle";
+
+    public override string ContextMenuBody() => $"{DropdownMenu()} tw-context-menu-menu";
+
+    public override string ContextMenuBodyVisible( bool visible ) => DropdownMenuVisible( visible );
+
+    public override string ContextMenuBodyPositionStrategy( DropdownPositionStrategy dropdownPositionStrategy ) => DropdownMenuPositionStrategy( dropdownPositionStrategy );
+
+    public override string ContextMenuItem() => $"{DropdownItem()} tw-context-menu-item";
+
+    public override string ContextMenuItemActive( bool active ) => DropdownItemActive( active );
+
+    public override string ContextMenuItemDisabled( bool disabled ) => DropdownItemDisabled( disabled );
+
+    public override string ContextMenuItemContent() => "tw-context-menu-item-content";
+
+    public override string ContextMenuItemCheck() => "tw-context-menu-item-check";
+
+    public override string ContextMenuItemShortcut() => "tw-context-menu-item-shortcut";
+
+    public override string ContextMenuDivider() => $"{DropdownDivider()} tw-context-menu-divider";
+
+    public override string ContextMenuHeader() => $"{DropdownHeader()} tw-context-menu-header";
+
+    public override string ContextMenuGroup() => "tw-context-menu-group";
+
+    public override string ContextMenuToolbar() => "tw-context-menu-toolbar";
+
+    public override string ContextMenuToolbarItem() => "tw-context-menu-toolbar-item";
+
+    public override string ContextMenuToolbarItemActive( bool active ) => active ? "tw-context-menu-toolbar-item-active" : null;
+
+    public override string ContextMenuToolbarItemDisabled( bool disabled ) => disabled ? "tw-context-menu-toolbar-item-disabled" : null;
+
+    public override string ContextMenuToolbarItemEndAligned( bool endAligned ) => endAligned ? "tw-context-menu-toolbar-item-end-aligned" : null;
+
+    public override string ContextMenuSubmenu() => "tw-context-menu-submenu";
+
+    public override string ContextMenuSubmenuTrigger() => "tw-context-menu-submenu-trigger";
+
+    public override string ContextMenuSubmenuTriggerDisabled( bool disabled ) => DropdownItemDisabled( disabled );
+
+    public override string ContextMenuSubmenuBody() => "tw-context-menu-submenu-menu";
+
+    #endregion
+
+    #region PropertyGrid
+
+    public override string PropertyGrid() => "tw-property-grid";
+
+    public override string PropertyGridViewport() => "tw-property-grid-viewport";
+
+    public override string PropertyGridToolbar() => "tw-property-grid-toolbar";
+
+    public override string PropertyGridToolbarButton() => "tw-property-grid-toolbar-button";
+
+    public override string PropertyGridToolbarSearch() => "tw-property-grid-toolbar-search";
+
+    public override string PropertyGridEmpty() => "tw-property-grid-empty";
+
+    public override string PropertyGridHelp() => "tw-property-grid-help";
+
+    public override string PropertyGridHelpTitle() => "tw-property-grid-help-title";
+
+    public override string PropertyGridHelpDescription() => "tw-property-grid-help-description";
+
+    public override string PropertyGridGroup() => "tw-property-grid-group";
+
+    public override string PropertyGridGroupHeader() => "tw-property-grid-group-header";
+
+    public override string PropertyGridGroupToggle() => "tw-property-grid-group-toggle";
+
+    public override string PropertyGridGroupBody() => "tw-property-grid-group-body";
+
+    public override string PropertyGridItem() => "tw-property-grid-item";
+
+    public override string PropertyGridItemSelected( bool selected ) => selected ? "tw-property-grid-item-selected" : null;
+
+    public override string PropertyGridItemMultiline( bool multiline ) => multiline ? "tw-property-grid-item-multiline" : null;
+
+    public override string PropertyGridItemLabel() => "tw-property-grid-item-label";
+
+    public override string PropertyGridItemBody() => "tw-property-grid-item-body";
+
+    #endregion
+
+    #region Tabs
+
+    public override string Tabs( bool pills ) => pills
+        ? "flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400"
+        : "flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400";
+
+    public override string TabsCards( bool cards ) => cards ? "card-header-tabs" : null;
+
+    public override string TabsFullWidth( bool fullWidth ) => fullWidth ? "w-full" : null;
+
+    public override string TabsJustified( bool justified ) => justified ? "nav-justified" : null;
+
+    public override string TabsVertical( bool vertical ) => vertical ? "flex-col" : null;
+
+    public override string TabItem( TabPosition tabPosition ) => "mr-2";
+
+    public override string TabItemActive( bool active ) => null;
+
+    public override string TabItemDisabled( bool disabled ) => null;
+
+    public override string TabLink( TabPosition tabPosition )
+    {
+        return tabPosition switch
+        {
+            TabPosition.Start => "w-full inline-block p-4 rounded-l-lg border-transparent border-r-2",
+            TabPosition.End => "w-full inline-block p-4 rounded-r-lg border-transparent border-l-2",
+            TabPosition.Bottom => "inline-block p-4 rounded-b-lg border-transparent border-t-2",
+            _ => "inline-block p-4 rounded-t-lg border-transparent border-b-2"
+        };
+    }
+    public override string TabLinkActive( bool active ) => active
+        ? "text-primary-600 hover:text-primary-600 dark:text-primary-500 dark:hover:text-primary-500 border-primary-600 dark:border-primary-500"
+        : "dark:border-transparent text-gray-500 hover:text-gray-600 dark:text-gray-400 border-gray-100 hover:border-gray-300 dark:border-gray-700 dark:hover:text-gray-300";
+
+    public override string TabLinkDisabled( bool disabled )
+        => disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer";
+
+    public override string TabsContent() => null;
+
+    public override string TabPanel() => "p-4 bg-gray-50 rounded-lg dark:bg-gray-800";
+
+    public override string TabPanelActive( bool active ) => active ? null : "hidden";
+
+    #endregion
+
+    #region Steps
+
+    public override string Steps() => "tw-steps w-full list-none p-1.5";
+
+    public override string StepsPosition( StepPosition stepPosition )
+    {
+        if ( stepPosition is not (StepPosition.Start or StepPosition.End) )
+        {
+            return "flex items-start overflow-x-auto "
+                + "[&>.tw-step]:flex-[1_0_7rem] [&>.tw-step:first-child]:flex-none [&>.tw-step:first-child]:w-28 "
+                + "[&>.tw-step>.tw-step-container]:ms-auto [&>.tw-step>.tw-step-container]:w-28 "
+                + "[&>.tw-step:last-child:not(:first-child)]:basis-10 [&>.tw-step:last-child:not(:first-child)]:min-w-28 "
+                + "[&>.tw-step:last-child:not(:first-child)>.tw-step-connector]:end-14 "
+                + "[&>.tw-step:last-child:not(:first-child)>.tw-step-connector]:before:ms-0 "
+                + "[&>.tw-step:last-child:not(:first-child)>.tw-step-container]:items-end "
+                + "[&>.tw-step:last-child:not(:first-child)>.tw-step-container>.tw-step-caption]:pe-0 [&>.tw-step:last-child:not(:first-child)>.tw-step-container>.tw-step-caption]:text-end";
+        }
+
+        var classes = "tw-steps-vertical grid grid-cols-[minmax(0,1fr)] auto-rows-fr items-stretch [:where(&)]:gap-y-6 overflow-visible "
+            + "[&>.tw-step]:w-full "
+            + "[&>.tw-step>.tw-step-connector]:-top-full "
+            + "[&>.tw-step>.tw-step-connector]:h-full [&>.tw-step>.tw-step-connector]:w-1 [&>.tw-step>.tw-step-connector]:translate-y-0 "
+            + "[&>.tw-step>.tw-step-connector]:grid-cols-[100%] [&>.tw-step>.tw-step-connector]:grid-rows-[0_100%] "
+            + "[&>.tw-step>.tw-step-connector]:content-end [&>.tw-step>.tw-step-connector]:[gap:inherit] "
+            + "[&>.tw-step>.tw-step-connector]:before:ms-0 [&>.tw-step>.tw-step-connector]:before:mt-12 [&>.tw-step>.tw-step-connector]:before:mb-2 "
+            + "[&>.tw-step>.tw-step-container]:gap-3 "
+            + "[&>.tw-step>.tw-step-container>.tw-step-caption]:mt-0 [&>.tw-step>.tw-step-container>.tw-step-caption]:min-w-0 "
+            + "[&>.tw-step>.tw-step-container>.tw-step-caption]:flex-1 [&>.tw-step>.tw-step-container>.tw-step-caption]:pt-2 "
+            + "[&>.tw-step>.tw-step-container>.tw-step-caption]:pe-0 ";
+
+        return stepPosition == StepPosition.End
+            ? classes + "tw-steps-end [&>.tw-step>.tw-step-connector]:start-auto [&>.tw-step>.tw-step-connector]:end-4.5 [&>.tw-step>.tw-step-container]:flex-row-reverse [&>.tw-step>.tw-step-container>.tw-step-caption]:text-end"
+            : classes + "[&>.tw-step>.tw-step-connector]:start-4.5 [&>.tw-step>.tw-step-connector]:end-auto [&>.tw-step>.tw-step-container]:flex-row [&>.tw-step>.tw-step-container>.tw-step-caption]:text-start";
+    }
+
+    public override string StepsLayout( StepPosition stepPosition, StepAlignment stepAlignment )
+    {
+        if ( stepAlignment is StepAlignment.Default or StepAlignment.SpaceBetween
+            || stepPosition is StepPosition.Start or StepPosition.End )
+        {
+            return StepsPosition( stepPosition );
+        }
+
+        var sb = new StringBuilder( "flex items-start overflow-x-auto [&>.tw-step>.tw-step-container]:w-28" );
+
+        if ( stepAlignment == StepAlignment.Justified )
+        {
+            sb.Append( " [&>.tw-step]:flex-[1_0_7rem] [&>.tw-step>.tw-step-container]:mx-auto" );
+            sb.Append( " [&>.tw-step>.tw-step-connector]:end-[calc(50%+4.5rem)]" );
+
+            return sb.ToString();
+        }
+
+        sb.Append( stepAlignment switch
+        {
+            StepAlignment.Center => " [justify-content:safe_center]",
+            StepAlignment.End => " [justify-content:safe_flex-end]",
+            _ => " justify-start",
+        } );
+        sb.Append( " [&>.tw-step]:flex-none [&>.tw-step]:w-28 [&>.tw-step>.tw-step-container]:ms-auto" );
+
+        return sb.ToString();
+    }
+
+    public override string StepItem()
+        => "tw-step group/step relative min-w-0 cursor-pointer [gap:inherit] focus-visible:outline-none "
+            + "[&:first-child>.tw-step-connector]:hidden "
+            + "[&:is(.tw-step-active,.tw-step-completed)>.tw-step-connector]:before:bg-[color:color-mix(in_srgb,var(--tw-step-bg)_25%,white)] "
+            + "dark:[&:is(.tw-step-active,.tw-step-completed)>.tw-step-connector]:before:bg-[color:color-mix(in_srgb,var(--tw-step-bg)_45%,var(--color-gray-900))]";
+
+    public override string StepItemActive( bool active ) => active ? "tw-step-active" : null;
+
+    public override string StepItemCompleted( bool completed ) => completed ? "tw-step-completed" : null;
+
+    public override string StepItemColor( Color color )
+    {
+        if ( color?.IsCssValue == true )
+        {
+            return null;
+        }
+
+        return color?.Name switch
+        {
+            "secondary" => "[--tw-step-bg:var(--color-secondary-600)]",
+            "success" => "[--tw-step-bg:var(--color-success-600)]",
+            "danger" => "[--tw-step-bg:var(--color-danger-600)]",
+            "warning" => "[--tw-step-bg:var(--color-warning-600)]",
+            "info" => "[--tw-step-bg:var(--color-info-600)]",
+            "light" => "[--tw-step-bg:var(--color-light-600)]",
+            "dark" => "[--tw-step-bg:var(--color-dark-800)]",
+            _ => "[--tw-step-bg:var(--color-primary-600)]",
+        };
+    }
+
+    public override string StepItemMarker()
+        => "tw-step-marker flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium "
+            + "outline-2 outline-offset-2 outline-transparent "
+            + "group-focus-visible/step:ring-2 group-focus-visible/step:ring-primary-600 group-focus-visible/step:ring-offset-2 group-focus-visible/step:ring-offset-white "
+            + "group-focus-visible/step:shadow-[0_0_0_6px_color-mix(in_srgb,var(--color-primary-600)_16%,transparent)] "
+            + "dark:group-focus-visible/step:ring-primary-400 dark:group-focus-visible/step:ring-offset-gray-900 "
+            + "forced-colors:group-focus-visible/step:outline-[color:Highlight] forced-colors:group-focus-visible/step:ring-0 forced-colors:group-focus-visible/step:shadow-none";
+
+    public override string StepItemMarkerColor( Color color, bool active )
+    {
+        if ( active )
+        {
+            if ( color?.Name == "light" )
+            {
+                return "bg-light-300 text-light-900 dark:bg-light-700 dark:text-white";
+            }
+
+            var textClass = color?.Name == "info" ? "text-gray-950" : "text-white";
+
+            return $"bg-[color:var(--tw-step-bg)] {textClass} supports-[color:contrast-color(white)]:text-[color:contrast-color(var(--tw-step-bg))]";
+        }
+
+        if ( color.IsNullOrDefault() )
+        {
+            return "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300";
+        }
+
+        return "bg-[color:color-mix(in_srgb,var(--tw-step-bg)_10%,white)] text-[color:var(--tw-step-bg)] "
+            + "dark:bg-[color:color-mix(in_srgb,var(--tw-step-bg)_25%,var(--color-gray-900))] "
+            + "dark:text-[color:color-mix(in_srgb,var(--tw-step-bg)_50%,white)]";
+    }
+
+    public override string StepItemDescription() => "tw-step-caption mt-2 block max-w-full whitespace-normal break-words [word-break:normal] pe-4 text-sm font-medium text-gray-600 dark:text-gray-300";
+
+    public override string StepsContent() => "tw-steps-content";
+
+    public override string StepPanel() => "tw-step-panel";
+
+    public override string StepPanelActive( bool active ) => active ? "block" : "hidden";
+
+    #endregion
+
+    #region Carousel
+
+    public override string Carousel() => "b-carousel relative";
+
+    public override string CarouselSlides() => "b-carousel-slides relative overflow-hidden rounded-lg h-56 md:h-96";
+
+    public override string CarouselSlide() => "b-carousel-slide duration-700 ease-in-out absolute inset-0 transition-all transform";
+
+    public override string CarouselSlideActive( bool active ) => active ? "b-carousel-slide-active" : null;
+
+    public override string CarouselSlideIndex( int activeSlideIndex, int slideindex, int totalSlides )
+    {
+        if ( activeSlideIndex == slideindex )
+            return "z-20 translate-x-0";
+
+        if ( ( activeSlideIndex == 0 && slideindex == totalSlides - 1 )
+            || ( slideindex == activeSlideIndex - 1 ) )
+            return "z-10 -translate-x-full";
+
+        if ( ( activeSlideIndex == totalSlides - 1 && slideindex == 0 )
+            || ( slideindex == activeSlideIndex + 1 ) )
+            return "z-10 translate-x-full";
+
+        return "z-10 translate-x-full hidden";
+    }
+
+    public override string CarouselSlideSlidingLeft( bool left ) => left ? "b-carousel-slide-start" : null;
+
+    public override string CarouselSlideSlidingRight( bool right ) => right ? "b-carousel-slide-end" : null;
+
+    public override string CarouselSlideSlidingPrev( bool previous ) => previous ? "b-carousel-slide-prev" : null;
+
+    public override string CarouselSlideSlidingNext( bool next ) => next ? "b-carousel-slide-next" : null;
+
+    public override string CarouselIndicators() => "b-carousel-indicators absolute z-30 flex space-x-3 -translate-x-1/2 bottom-5 left-1/2";
+
+    public override string CarouselIndicator() => "b-carousel-indicator w-3 h-3 rounded-full";
+
+    public override string CarouselIndicatorActive( bool active ) => active ? "b-carousel-indicator-active bg-white dark:bg-gray-800" : "bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800";
+
+    public override string CarouselFade( bool fade ) => fade ? "b-carousel-fade" : null;
+
+    public override string CarouselCaption() => "b-carousel-caption";
+
+    #endregion
+
+    #region Jumbotron
+
+    public override string Jumbotron() => "b-jumbotron py-8 px-4 mx-auto w-full text-center lg:py-16 lg:px-12 text-gray-100 dark:text-gray-800";
+
+    public override string JumbotronBackground( Background background ) => background.IsNotNullOrDefault() ? $"bg-{ToBackground( background )}" : null;
+
+    public override string JumbotronTitle( JumbotronTitleSize jumbotronTitleSize ) => $"b-jumbotron-title text-gray-100 dark:text-gray-800 {DisplayHeadingSize( (Blazorise.DisplayHeadingSize)jumbotronTitleSize )}";
+
+    public override string JumbotronSubtitle() => "b-jumbotron-subtitle mb-8 text-lg font-normal text-gray-100 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-800";
+
+    #endregion
+
+    #region Card
+
+    public override string CardDeck() => "b-card-deck flex flex-row gap-x-4";
+
+    public override string CardGroup() => "b-card-group flex flex-row gap-x-0";
+
+    public override string Card() => "b-card relative max-w bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 ";
+
+    public override string CardWhiteText( bool whiteText ) => whiteText ? "text-white" : null;
+
+    public override string CardActions() => "b-card-actions";
+
+    public override string CardBody() => "b-card-body p-5 text-inherit text-gray-700 dark:text-gray-400";
+
+    public override string CardFooter() => "b-card-footer px-5 py-4 text-inherit";
+
+    public override string CardHeader() => "b-card-header px-5 py-4 text-inherit";
+
+    public override string CardImage() => "b-card-image rounded-t-lg text-inherit";
+
+    public override string CardTitle( bool insideHeader ) => "b-card-title mb-2 text-2xl font-bold tracking-tight text-inherit text-gray-900 dark:text-white";
+
+    public override string CardTitleSize( bool insideHeader, HeadingSize? size ) => null;
+
+    public override string CardSubtitle( bool insideHeader ) => "b-card-subtitle text-inherit";
+
+    public override string CardSubtitleSize( bool insideHeader, HeadingSize? size ) => null;
+
+    public override string CardText() => "b-card-text mb-3 font-normal text-inherit";
+
+    public override string CardLink() => "";
+
+    public override string CardLinkUnstyled( bool unstyled )
+    {
+        if ( unstyled )
+        {
+            return "inline-flex items-center dark:text-primary-500 hover:underline";
+        }
+        else
+        {
+            return "b-card-link inline-flex items-center text-primary-600 dark:text-primary-500 hover:underline";
+        }
+    }
+
+    public override string CardLinkActive( bool active ) => LinkActive( active );
+
+    #endregion
+
+    #region ListGroup
+
+    public override string ListGroup() => "b-listgroup w-full text-sm font-medium text-gray-900 bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white";
+
+    public override string ListGroupFlush( bool flush ) => flush ? "b-listgroup-flush border-y border-x-0" : "border rounded-lg";
+
+    public override string ListGroupScrollable( bool scrollable ) => scrollable ? "b-listgroup-scrollable overflow-y-scroll" : null;
+
+    public override string ListGroupItem() => "b-listgroup-item py-3 px-4 w-full border-b last:border-b-0";
+
+    public override string ListGroupItemSelectable( bool selectable ) => selectable ? "b-listgroup-item-selectable cursor-pointer focus:outline-hidden" : null;
+
+    public override string ListGroupItemActive( bool active ) => active ? "b-listgroup-item-active" : null;
+
+    public override string ListGroupItemDisabled( bool disabled ) => disabled ? "b-listgroup-item-disabled bg-gray-100 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400" : null;
+
+    public override string ListGroupItemColor( Color color, bool selectable, bool active )
+    {
+        if ( color?.IsCssValue == true )
+        {
+            StringBuilder builder = new( "!bg-[color:var(--tw-list-group-fill)] border-[color:color-mix(in_srgb,var(--tw-list-group-bg)_35%,var(--tw-list-group-fill))] [&.b-listgroup-item-disabled]:opacity-50 [&.b-listgroup-item-disabled]:pointer-events-none " );
+
+            if ( active )
+            {
+                builder.Append( "[--tw-list-group-fill:var(--tw-list-group-bg)] text-white supports-[color:contrast-color(white)]:text-[color:contrast-color(var(--tw-list-group-fill))]" );
+            }
+            else
+            {
+                builder.Append( "[--tw-list-group-fill:color-mix(in_srgb,var(--tw-list-group-bg)_15%,var(--color-white))] dark:[--tw-list-group-fill:color-mix(in_srgb,var(--tw-list-group-bg)_20%,var(--color-gray-900))] " );
+                builder.Append( "text-[color:color-mix(in_srgb,var(--tw-list-group-bg)_40%,var(--color-gray-900))] dark:text-[color:color-mix(in_srgb,var(--tw-list-group-bg)_40%,var(--color-gray-100))] " );
+                builder.Append( "supports-[color:contrast-color(white)]:text-[color:color-mix(in_srgb,var(--tw-list-group-bg)_30%,contrast-color(var(--tw-list-group-fill)))] dark:supports-[color:contrast-color(white)]:text-[color:color-mix(in_srgb,var(--tw-list-group-bg)_30%,contrast-color(var(--tw-list-group-fill)))]" );
+
+                if ( selectable )
+                {
+                    builder.Append( " [&:hover:not(.b-listgroup-item-disabled)]:[--tw-list-group-fill:color-mix(in_srgb,var(--tw-list-group-bg)_25%,var(--color-white))] dark:[&:hover:not(.b-listgroup-item-disabled)]:[--tw-list-group-fill:color-mix(in_srgb,var(--tw-list-group-bg)_30%,var(--color-gray-900))]" );
+                }
+            }
+
+            if ( selectable )
+                builder.Append( " focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[color:var(--tw-list-group-bg)]" );
+
+            return builder.ToString();
+        }
+        var sb = new StringBuilder();
+
+        var name = color?.Name;
+
+        if ( active )
+        {
+            sb.Append( name switch
+            {
+                "primary" => "text-white bg-primary-700",
+                "secondary" => "text-white bg-secondary-700",
+                "success" => "text-white bg-success-700",
+                "danger" => "text-white bg-danger-700",
+                "warning" => "text-white bg-warning-700",
+                "info" => "text-white bg-info-700",
+                "light" => "text-gray-800 bg-light-300",
+                "dark" => "text-white bg-dark-700",
+                "link" => "text-primary-700 dark:text-primary-200",
+                _ => "text-white bg-primary-700",
+            } );
+        }
+        else
+        {
+            sb.Append( name switch
+            {
+                "primary" => "text-white bg-primary-400 dark:bg-primary-600",
+                "secondary" => "text-white bg-secondary-400 dark:bg-secondary-400",
+                "success" => "text-white bg-success-400 dark:bg-success-600",
+                "danger" => "text-white bg-danger-400 dark:bg-danger-600",
+                "warning" => "text-white bg-warning-400 dark:bg-warning-600",
+                "info" => "text-white bg-info-400 dark:bg-info-600",
+                "light" => "text-gray-800 bg-light-100 dark:text-white dark:bg-light-300",
+                "dark" => "text-white bg-dark-700",
+                "link" => "text-primary-400 dark:text-primary-500",
+                _ => name,
+            } );
+        }
+
+        if ( color.IsNotNullOrDefault() && selectable )
+        {
+            sb.Append( ' ' ).Append( name switch
+            {
+                "primary" => "hover:bg-primary-500 focus:ring-primary-500 dark:hover:bg-primary-700 dark:focus:ring-primary-800",
+                "secondary" => "hover:bg-secondary-500 focus:ring-secondary-500 dark:hover:bg-secondary-500 dark:focus:ring-secondary-600",
+                "success" => "hover:bg-success-500 focus:ring-success-500 dark:hover:bg-success-700 dark:focus:ring-success-800",
+                "danger" => "hover:bg-danger-500 focus:ring-danger-500 dark:hover:bg-danger-700 dark:focus:ring-danger-900",
+                "warning" => "hover:bg-warning-500 focus:ring-warning-500 dark:focus:ring-warning-900",
+                "info" => "hover:bg-info-500 focus:ring-info-500 dark:hover:bg-info-700 dark:focus:ring-info-900",
+                "light" => "hover:bg-light-200 focus:ring-light-300 dark:hover:border-light-600 dark:focus:ring-light-700",
+                "dark" => "hover:bg-dark-600 focus:ring-dark-600 dark:bg-dark-800 dark:hover:bg-dark-700 dark:focus:ring-dark-700",
+                "link" => "hover:underline",
+                _ => name,
+            } );
+        }
+        else
+        {
+            sb.Append( ' ' ).Append( "border-gray-200 dark:border-gray-600" );
+        }
+
+        return sb.ToString();
+    }
+
+    #endregion
+
+    #region Layout
+
+    public override string Layout() => "b-layout";
+
+    public override string LayoutHasSider( bool hasSider ) => hasSider ? "b-layout-has-sider" : null;
+
+    public override string LayoutContent() => "b-layout-content";
+
+    public override string LayoutHeader() => "b-layout-header z-30";
+
+    public override string LayoutHeaderFixed( bool @fixed ) => @fixed ? "b-layout-header-fixed" : null;
+
+    public override string LayoutFooter() => "b-layout-footer";
+
+    public override string LayoutFooterFixed( bool @fixed ) => @fixed ? "b-layout-footer-fixed" : null;
+
+    public override string LayoutSider() => "b-layout-sider";
+
+    public override string LayoutSiderContent() => "b-layout-sider-content";
+
+    public override string LayoutLoading() => "b-layout-loading";
+
+    public override string LayoutRoot( bool root ) => root ? "b-layout-root" : null;
+
+    #endregion
+
+    #region Container
+
+    public override string Container( Breakpoint breakpoint ) => breakpoint != Breakpoint.None && breakpoint != Breakpoint.Mobile
+        ? $"{ToBreakpoint( breakpoint )}:container {ToBreakpoint( breakpoint )}:mx-auto {ToBreakpoint( breakpoint )}:px-4"
+        : "container mx-auto px-4";
+
+    public override string ContainerFluid() => "container mx-auto";
+
+    #endregion
+
+    #region Bar
+
+    public override string Bar( BarMode mode ) => "b-bar";
+
+    public override string BarInitial( BarMode mode, bool initial ) => mode != Blazorise.BarMode.Horizontal && initial ? "b-bar-initial" : null;
+
+    public override string BarAlignment( BarMode mode, Alignment alignment ) => alignment != Alignment.Default ? $"justify-{ToAlignment( alignment )}" : null;
+
+    public override string BarThemeContrast( BarMode mode, ThemeContrast themeContrast ) => themeContrast != ThemeContrast.None ? $"navbar-{ToThemeContrast( themeContrast )} b-bar-{ToThemeContrast( themeContrast )}" : null;
+
+    public override string BarBreakpoint( BarMode mode, Breakpoint breakpoint ) => breakpoint != Breakpoint.None && breakpoint != Breakpoint.Mobile
+        ? $"navbar-expand-{ToBreakpoint( breakpoint )}"
+        : null;
+
+    public override string BarMode( BarMode mode ) => mode == Blazorise.BarMode.Horizontal
+        ? $"b-bar-{ToBarMode( mode )} px-2 sm:px-4 py-2.5"
+        : $"b-bar-{ToBarMode( mode )}";
+
+    public override string BarItem( BarMode mode, bool hasDropdown ) => mode == Blazorise.BarMode.Horizontal
+        ? hasDropdown
+            ? "b-bar-item relative"
+            : "b-bar-item relative"
+        : "b-bar-item";
+
+    public override string BarItemActive( BarMode mode, bool active ) => active ? Active() : null;
+
+    public override string BarItemDisabled( BarMode mode, bool disabled ) => disabled ? Disabled() : null;
+
+    public override string BarItemHasDropdown( BarMode mode, bool hasDropdown ) => null;
+
+    public override string BarLink( BarMode mode ) => mode == Blazorise.BarMode.Horizontal
+        ? "b-bar-link block px-4 py-2 text-gray-700 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-primary-700 dark:text-gray-400 md:dark:hover:text-primary-600 dark:hover:bg-gray-700 md:dark:hover:bg-transparent"
+        : "b-bar-link";
+
+    public override string BarLinkDisabled( BarMode mode, bool disabled ) => disabled ? Disabled() : null;
+
+    public override string BarIcon( BarMode mode ) => "b-bar-icon";
+
+    public override string BarBrand( BarMode mode ) => mode == Blazorise.BarMode.Horizontal
+        ? "b-bar-brand flex items-center"
+        : "b-bar-brand";
+
+    public override string BarBrandToggler( BarMode mode ) => "b-bar-mobile-toggle";
+
+    public override string BarToggler( BarMode mode, BarTogglerMode togglerMode ) => mode == Blazorise.BarMode.Horizontal
+        ? "b-bar-toggler navbar-toggler inline-flex items-center p-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden focus:outline-hidden focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:focus:ring-gray-600"
+        : togglerMode == BarTogglerMode.Popout
+            ? "b-bar-toggler-popout"
+            : "b-bar-toggler-inline inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden focus:outline-hidden focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:focus:ring-gray-600";
+
+    public override string BarTogglerCollapsed( BarMode mode, BarTogglerMode togglerMode, bool isShow ) => isShow || mode != Blazorise.BarMode.Horizontal ? null : "collapsed";
+
+    public override string BarMenu( BarMode mode ) => mode == Blazorise.BarMode.Horizontal
+        ? "b-bar-menu collapse navbar-collapse z-30"
+        : "b-bar-menu";
+
+    public override string BarMenuShow( BarMode mode, bool show ) => show ? Show() : null;
+
+    public override string BarStart( BarMode mode ) => mode == Blazorise.BarMode.Horizontal
+        ? "b-bar-start items-center justify-between hidden w-full md:flex md:w-auto md:order-1 mr-auto"
+        : "b-bar-start";
+
+    public override string BarEnd( BarMode mode ) => mode == Blazorise.BarMode.Horizontal
+        ? "b-bar-end items-center justify-between hidden w-full md:flex md:w-auto md:order-1 ml-auto"
+        : "b-bar-end";
+
+    public override string BarDropdown( BarMode mode, bool isBarDropDownSubmenu ) => mode == Blazorise.BarMode.Horizontal
+        ? "b-bar-dropdown b-bar-dropdown-horizontal relative"
+        : "b-bar-dropdown";
+
+    public override string BarDropdownShow( BarMode mode, bool show ) => show ? Show() : null;
+
+    public override string BarDropdownToggle( BarMode mode, bool isBarDropDownSubmenu ) => mode == Blazorise.BarMode.Horizontal
+        ? isBarDropDownSubmenu
+            ? "b-bar-dropdown-toggle flex items-center justify-between w-full px-4 py-2 font-medium text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-primary-700 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent"
+            : "b-bar-dropdown-toggle flex items-center justify-between w-full px-4 py-2 font-medium text-gray-700 md:hover:text-primary-700 md:w-auto dark:text-gray-400"
+        : "b-bar-link b-bar-dropdown-toggle";
+
+    public override string BarDropdownToggleDisabled( BarMode mode, bool isBarDropDownSubmenu, bool disabled ) => mode == Blazorise.BarMode.Horizontal && disabled
+        ? "disabled"
+        : null;
+
+    public override string BarDropdownToggleIcon( bool isToggleIconVisible ) => null;
+
+    public override string BarDropdownToggleContent( BarMode mode ) => "b-bar-dropdown-toggle-content";
+
+    public override string BarDropdownToggleContentText( BarMode mode ) => "b-bar-dropdown-toggle-content-text";
+
+    public override string BarDropdownToggleContentIcon( BarMode mode ) => "b-bar-dropdown-toggle-content-icon";
+
+    public override string BarDropdownToggleIconContainer( BarMode mode ) => "b-bar-dropdown-toggle-icon-container";
+
+    public override string BarDropdownToggleIconLayer( BarMode mode ) => "b-bar-dropdown-toggle-icon-layer";
+
+    public override string BarDropdownToggleIconLayerVisible( BarMode mode, bool visible ) => visible ? "b-bar-dropdown-toggle-icon-layer-visible" : null;
+
+    public override string BarDropdownToggleIconLayerHiddenExpand( BarMode mode, bool hiddenExpand ) => hiddenExpand ? "b-bar-dropdown-toggle-icon-layer-hidden-expand" : null;
+
+    public override string BarDropdownToggleIconLayerHiddenCollapse( BarMode mode, bool hiddenCollapse ) => hiddenCollapse ? "b-bar-dropdown-toggle-icon-layer-hidden-collapse" : null;
+
+    public override string BarDropdownItem( BarMode mode ) => mode == Blazorise.BarMode.Horizontal
+        ? "b-bar-dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+        : "b-bar-dropdown-item";
+
+    public override string BarDropdownItemDisabled( BarMode mode, bool disabled ) => null;
+
+    public override string BarTogglerIcon( BarMode mode ) => "b-bar-toggler-icon";
+
+    public override string BarDropdownDivider( BarMode mode ) => "b-bar-dropdown-divider";
+
+    public override string BarDropdownMenu( BarMode mode ) => mode == Blazorise.BarMode.Horizontal
+        ? "b-bar-dropdown-menu absolute z-10 font-normal bg-white divide-y divide-gray-100 rounded-sm shadow-sm w-max dark:bg-gray-700 dark:divide-gray-600"
+        : "b-bar-dropdown-menu";
+
+    public override string BarDropdownMenuVisible( BarMode mode, bool visible ) => visible
+        ? "b-bar-dropdown-menu-show block"
+        : "b-bar-dropdown-menu-hide hidden";
+
+    public override string BarDropdownMenuRight( BarMode mode, bool rightAligned ) => rightAligned
+        ? mode == Blazorise.BarMode.Horizontal
+            ? "b-bar-dropdown-menu-right right-0 left-auto"
+            : "b-bar-right"
+        : null;
+
+    public override string BarDropdownMenuContainer( BarMode mode ) => mode == Blazorise.BarMode.Horizontal ? null : "b-bar-dropdown-menu-container";
+
+    public override string BarDropdownMenuPositionStrategy( BarMode mode, DropdownPositionStrategy positionStrategy )
+        => ToDropdownPositionStrategy( mode == Blazorise.BarMode.Horizontal ? DropdownPositionStrategy.Absolute : positionStrategy );
+
+    public override string BarCollapsed( BarMode mode, bool visible ) => null;
+
+    public override string BarLabel( BarMode mode ) => "b-bar-label";
+
+    #endregion
+
+    #region Accordion
+
+    public override string Accordion() => "b-accordion";
+
+    public override string AccordionToggle() => "b-accordion-button flex items-center justify-between w-full p-5 font-medium text-left border border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800";
+
+    public override string AccordionToggleCollapsed( bool collapsed ) => collapsed
+        ? "b-accordion-toggle-collapsed bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
+        : "b-accordion-toggle-collapsed text-gray-500 dark:text-gray-400";
+
+    public override string AccordionItem() => "b-accordion-item";
+
+    public override string AccordionItemActive( bool active ) => "b-accordion-active";
+
+    public override string AccordionHeader() => "b-accordion-header";
+
+    public override string AccordionBody() => "b-accordion-body";
+
+    public override string AccordionBodyActive( bool active ) => active ? null : "hidden";
+
+    public override string AccordionBodyContent( bool firstInAccordion, bool lastInAccordion )
+        => lastInAccordion
+        ? "p-5 font-light border border-gray-200 dark:border-gray-700 dark:bg-gray-900"
+        : "p-5 font-light border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900";
+
+    #endregion
+
+    #region Collapse
+
+    public override string Collapse() => "b-collapse";
+
+    public override string CollapseActive( bool active ) => "b-collapse-active";
+
+    public override string CollapseHeader() => "b-collapse-header";
+
+    public override string CollapseBody() => "b-collapse-body";
+
+    public override string CollapseBodyActive( bool active ) => active ? null : "hidden";
+
+    public override string CollapseBodyContent()
+        => "p-5 font-light border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900";
+
+    #endregion
+
+    #region Row
+
+    public override string Row() => "flex flex-row flex-wrap -mx-2";
+
+    public override string RowColumns( RowColumnsSize rowColumnsSize, RowColumnsDefinition rowColumnsDefinition )
+    {
+        if ( rowColumnsDefinition.Breakpoint != Breakpoint.None && rowColumnsDefinition.Breakpoint != Breakpoint.Mobile )
+            return $"row-cols-{ToBreakpoint( rowColumnsDefinition.Breakpoint )}-{ToRowColumnsSize( rowColumnsSize )}";
+
+        return $"row-cols-{ToRowColumnsSize( rowColumnsSize )}";
+    }
+
+    #endregion
+
+    #region Column
+
+    public override string Column( bool grid, bool hasSizes ) => hasSizes ? null : $"relative w-full basis-0 grow{( grid ? null : " pl-2 pr-2" )}";
+
+    public override string Column( bool grid, ColumnWidth columnWidth, Breakpoint breakpoint, bool offset )
+    {
+        var columnWidthNumber = ToColumnWidthNumber( columnWidth );
+
+        var breakpointPart = breakpoint != Blazorise.Breakpoint.None && breakpoint >= Blazorise.Breakpoint.Tablet
+            ? $"{ToBreakpoint( breakpoint )}:"
+            : null;
+
+        if ( grid )
+        {
+            var columnSpanValue = ToColumnSpan( columnWidth );
+
+            if ( columnSpanValue == "auto" )
+            {
+                return $"relative w-auto max-w-full {breakpointPart}col-{columnSpanValue}";
+            }
+
+            return $"relative w-full {breakpointPart}col-span-{columnSpanValue}";
+        }
+
+        var columnWidthValue = ToColumnWidth( columnWidth );
+
+        if ( offset && columnWidthNumber > 0 )
+        {
+            var percentage = Math.Round( ( columnWidthNumber / 12d ) * 100, 6 ).ToString( CultureInfo.InvariantCulture );
+
+            return $"{breakpointPart}ml-[{percentage}%]";
+        }
+
+        if ( columnWidthValue == "auto" )
+        {
+            return $"relative w-auto max-w-full {breakpointPart}basis-{columnWidthValue}";
+        }
+
+        return $"relative w-full {breakpointPart}basis-{columnWidthValue}";
+    }
+
+    public override string Column( bool grid, IEnumerable<ColumnDefinition> columnDefinitions )
+       => $"{string.Join( ' ', columnDefinitions.Select( x => Column( grid, x.ColumnWidth, x.Breakpoint, x.Offset ) ) )}{( grid ? null : " pl-2 pr-2" )}";
+
+    #endregion
+
+    #region Grid
+
+    public override string Grid() => "grid grid-cols-12 gap-4";
+
+    public override string GridRows( GridRowsSize gridRows, GridRowsDefinition gridRowsDefinition )
+    {
+        var breakpointPart = gridRowsDefinition.Breakpoint != Blazorise.Breakpoint.None && gridRowsDefinition.Breakpoint >= Blazorise.Breakpoint.Tablet
+            ? $"{ToBreakpoint( gridRowsDefinition.Breakpoint )}:"
+            : null;
+
+        return $"{breakpointPart}grid-rows-{ToGridRowsSize( gridRows )}";
+    }
+
+    public override string GridColumns( GridColumnsSize gridColumns, GridColumnsDefinition gridColumnsDefinition )
+    {
+        var breakpointPart = gridColumnsDefinition.Breakpoint != Blazorise.Breakpoint.None && gridColumnsDefinition.Breakpoint >= Blazorise.Breakpoint.Tablet
+            ? $"{ToBreakpoint( gridColumnsDefinition.Breakpoint )}:"
+            : null;
+
+        return $"{breakpointPart}grid-cols-{ToGridColumnsSize( gridColumns )}";
+    }
+
+    #endregion
+
+    #region Display
+
+    public override string Display( DisplayType displayType, DisplayDefinition displayDefinition )
+    {
+        var baseClass = displayDefinition.Breakpoint != Breakpoint.None && displayDefinition.Breakpoint != Blazorise.Breakpoint.Mobile
+            ? $"{ToBreakpoint( displayDefinition.Breakpoint )}:{ToDisplayType( displayType )}"
+            : $"{ToDisplayType( displayType )}";
+
+        if ( displayDefinition.Direction != DisplayDirection.Default )
+            return $"{baseClass} flex-{ToDisplayDirection( displayDefinition.Direction )}";
+
+        return baseClass;
+    }
+
+    #endregion
+
+    #region Alert
+
+    public override string Alert() => "b-alert group relative p-4 mb-4 text-sm rounded-lg";
+
+    public override string AlertColor( Color color )
+    {
+        if ( color?.IsCssValue == true )
+            return "[--tw-alert-fill:color-mix(in_srgb,var(--tw-alert-bg)_15%,var(--color-white))] "
+                + "dark:[--tw-alert-fill:color-mix(in_srgb,var(--tw-alert-bg)_20%,var(--color-gray-950))] "
+                + "bg-[color:var(--tw-alert-fill)] text-[color:color-mix(in_srgb,var(--tw-alert-bg)_40%,var(--color-gray-900))] "
+                + "dark:text-[color:color-mix(in_srgb,var(--tw-alert-bg)_40%,var(--color-gray-100))] "
+                + "supports-[color:contrast-color(white)]:text-[color:color-mix(in_srgb,var(--tw-alert-bg)_30%,contrast-color(var(--tw-alert-fill)))] "
+                + "dark:supports-[color:contrast-color(white)]:text-[color:color-mix(in_srgb,var(--tw-alert-bg)_30%,contrast-color(var(--tw-alert-fill)))] "
+                + "border border-[color:color-mix(in_srgb,var(--tw-alert-bg)_35%,var(--tw-alert-fill))] "
+                + "[&_.alert-link]:text-inherit [&_.tw-close-button]:text-inherit [&_.tw-close-button:hover]:text-inherit "
+                + "[&_.tw-close-button]:bg-transparent [&_.tw-close-button:hover]:bg-current/10 "
+                + "[&_.tw-close-button:focus]:ring-current/30";
+
+        if ( color.IsNullOrDefault() )
+            return null;
+
+        var name = color?.Name;
+
+        return name switch
+        {
+            "primary" => "text-primary-800 bg-primary-300 dark:bg-primary-500 dark:text-primary-800",
+            "secondary" => "text-secondary-500 bg-secondary-300 dark:bg-secondary-100 dark:text-secondary-600",
+            "success" => "text-success-700 bg-success-100 dark:bg-success-200 dark:text-success-800",
+            "danger" => "text-danger-700 bg-danger-100 dark:bg-danger-200 dark:text-danger-800",
+            "warning" => "text-warning-700 bg-warning-100 dark:bg-warning-200 dark:text-warning-800",
+            "info" => "text-info-700 bg-info-100 dark:bg-info-200 dark:text-info-800",
+            "light" => "text-light-500 bg-light-100 dark:bg-light-100 dark:text-light-600",
+            "dark" => "text-dark-100 bg-dark-800 dark:bg-dark-300 dark:text-dark-700",
+            "link" => "text-primary-600 dark:text-primary-500 hover:underline",
+            _ => name,
+        };
+    }
+
+    public override string AlertDismisable( bool dismissable ) => dismissable ? "alert-dismissible" : null;
+
+    public override string AlertFade( bool dismissable ) => dismissable ? Fade() : null;
+
+    public override string AlertShow( bool dismissable, bool visible ) => dismissable && visible ? Show() : null;
+
+    public override string AlertHasMessage( bool hasMessage ) => null;
+
+    public override string AlertHasDescription( bool hasDescription ) => null;
+
+    public override string AlertMessage() => null;
+
+    public override string AlertDescription() => null;
+
+    #endregion
+
+    #region Modal
+
+    public override string Modal() => "b-modal fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-modal md:h-full justify-center items-center";
+
+    public override string ModalFade( bool showing, bool hiding ) => showing || hiding ? "b-modal-fade" : null;
+
+    public override string ModalVisible( bool visible ) => visible ? "flex" : null;
+
+    public override string ModalSize( ModalSize modalSize ) => null;
+
+    public override string ModalCentered( bool centered ) => null;
+
+    public override string ModalBackdrop() => "bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40";
+
+    public override string ModalBackdropFade() => "b-modal-fade";
+
+    public override string ModalBackdropVisible( bool visible ) => null;
+
+    public override string ModalContent( bool dialog ) => "relative flex flex-col w-full bg-white rounded-lg shadow-sm dark:bg-gray-700";
+
+    public override string ModalContentSize( ModalSize modalSize )
+    {
+        if ( modalSize == Blazorise.ModalSize.Fullscreen )
+            return "h-screen w-screen max-w-none h-full m-0 rounded-none border-none border-0";
+
+        return null;
+    }
+
+    public override string ModalContentCentered( bool centered ) => null;
+
+    public override string ModalContentScrollable( bool scrollable ) => null;
+
+    public override string ModalBody() => "relative flex-auto p-6 space-y-6";
+
+    public override string ModalHeader() => "flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600";
+
+    public override string ModalFooter() => "flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600";
+
+    public override string ModalTitle() => "text-xl font-semibold text-gray-900 dark:text-white";
+
+    #endregion
+
+    #region Offcanvas
+
+    public override string Offcanvas() => "fixed flex flex-col z-40 bg-white dark:bg-gray-800 transition-transform";
+
+    public override string OffcanvasSize( OffcanvasSize offcanvasSize ) => offcanvasSize switch
+    {
+        Blazorise.OffcanvasSize.Small => "[&.tw-offcanvas-start]:w-64 [&.tw-offcanvas-end]:w-64 [&.tw-offcanvas-top]:h-48 [&.tw-offcanvas-bottom]:h-48",
+        Blazorise.OffcanvasSize.Large => "[&.tw-offcanvas-start]:w-96 [&.tw-offcanvas-end]:w-96 [&.tw-offcanvas-top]:h-80 [&.tw-offcanvas-bottom]:h-80",
+        Blazorise.OffcanvasSize.ExtraLarge => "[&.tw-offcanvas-start]:w-[min(32rem,100vw)] [&.tw-offcanvas-end]:w-[min(32rem,100vw)] [&.tw-offcanvas-top]:h-[min(24rem,100dvh)] [&.tw-offcanvas-bottom]:h-[min(24rem,100dvh)]",
+        Blazorise.OffcanvasSize.Fullscreen => "[&.tw-offcanvas-start]:w-screen [&.tw-offcanvas-end]:w-screen [&.tw-offcanvas-top]:h-screen [&.tw-offcanvas-bottom]:h-screen",
+        _ => null,
+    };
+
+    public override string OffcanvasPlacement( Placement placement, bool visible )
+    {
+        var sb = new StringBuilder( placement switch
+        {
+            Placement.End => "top-0 right-0 h-screen overflow-y-auto border-l w-80 border-gray-200 tw-offcanvas-end",
+            Placement.Top => "top-0 left-0 right-0 w-full h-60 tw-offcanvas-top",
+            Placement.Bottom => "bottom-0 left-0 right-0 w-full h-60 tw-offcanvas-bottom",
+            _ => "top-0 left-0 h-screen overflow-y-auto border-r w-80 border-gray-200 tw-offcanvas-start",
+        } );
+
+        if ( !visible )
+        {
+            sb.Append( placement switch
+            {
+                Placement.Start => " -translate-x-full",
+                Placement.End => " translate-x-full",
+                Placement.Top => " -translate-y-full",
+                Placement.Bottom => " translate-y-full",
+                _ => null,
+            } );
+        }
+
+        return sb.ToString();
+    }
+
+    public override string OffcanvasFade( bool showing, bool hiding ) => showing
+        ? "opacity-100"
+        : hiding
+            ? "transform-none pointer-events-none"
+            : null;
+
+    public override string OffcanvasVisible( bool visible ) => null;
+
+    public override string OffcanvasHeader() => "flex items-center justify-between p-4";
+
+    public override string OffcanvasFooter() => "flex items-center justify-between p-4";
+
+    public override string OffcanvasBody() => "grow overflow-y-auto text-sm text-gray-500 dark:text-gray-400 p-4";
+
+    public override string OffcanvasBackdrop() => "bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-39";
+
+    public override string OffcanvasBackdropFade( bool showing, bool hiding ) => "fade";
+
+    public override string OffcanvasBackdropVisible( bool visible ) => visible ? Show() : null;
+
+    #endregion
+
+    #region Toast
+
+    public override string Toast() => "b-toast p-4 text-gray-500 bg-white rounded-lg shadow-sm dark:text-gray-400 dark:bg-gray-800 [&:not(:last-child)]:mb-4";
+
+    public override string ToastAnimated( bool animated ) => null;
+
+    public override string ToastFade( bool visible, bool showing, bool hiding ) => showing || hiding ? "b-toast-fade" : null;
+
+    public override string ToastVisible( bool visible ) => visible ? "flex" : "hidden";
+
+    public override string ToastHeader() => "flex items-center mb-1 text-sm font-semibold text-gray-900 dark:text-white";
+
+    public override string ToastBody() => "text-sm font-normal";
+
+    public override string Toaster() => "z-50";
+
+    public override string ToasterPlacement( ToasterPlacement placement ) => placement switch
+    {
+        Blazorise.ToasterPlacement.Top => "top-5 right-auto bottom-auto left-1/2 -translate-x-1/2",
+        Blazorise.ToasterPlacement.TopStart => "left-5 top-5",
+        Blazorise.ToasterPlacement.TopEnd => "right-5 top-5",
+        Blazorise.ToasterPlacement.Bottom => "top-auto right-auto bottom-5 left-1/2 -translate-x-1/2",
+        Blazorise.ToasterPlacement.BottomStart => "left-5 top-auto bottom-5",
+        Blazorise.ToasterPlacement.BottomEnd => "right-5 top-auto bottom-5",
+        _ => null,
+    };
+
+    public override string ToasterPlacementStrategy( ToasterPlacementStrategy placementStrategy ) => placementStrategy switch
+    {
+        Blazorise.ToasterPlacementStrategy.Fixed => "fixed",
+        Blazorise.ToasterPlacementStrategy.Absolute => "absolute",
+        _ => null,
+    };
+
+    #endregion
+
+    #region Pagination
+
+    public override string Pagination() => "pagination flex -space-x-px mb-3";
+
+    public override string PaginationSize( Size size ) => null;
+
+    public override string PaginationAlignment( Alignment alignment ) => alignment != Alignment.Default ? $"justify-{ToAlignment( alignment )}" : null;
+
+    public override string PaginationBackgroundColor( Background background )
+    {
+        if ( background.IsNullOrDefault() )
+            return null;
+
+        var name = background?.Name;
+
+        return name switch
+        {
+            "primary" => "!bg-primary-500",
+            "secondary" => "!bg-secondary-500",
+            "success" => "!bg-success-500",
+            "danger" => "!bg-danger-500",
+            "warning" => "!bg-warning-400",
+            "info" => "!bg-info",
+            "light" => "!bg-light",
+            "dark" => "!bg-dark",
+            "white" => "!bg-white",
+            "transparent" => "!bg-transparent",
+            "body" => "!bg-body",
+            _ => name,
+        };
+    }
+
+    public override string PaginationItem() => "pagination-item";
+
+    public override string PaginationItemActive( bool active ) => null;
+
+    public override string PaginationItemDisabled( bool disabled ) => null;
+
+    public override string PaginationLink()
+        => "pagination-link relative flex items-center justify-center leading-tight border rounded-lg h-full";
+
+    public override string PaginationLinkSize( Size size )
+    {
+        return size switch
+        {
+            Size.ExtraSmall => "px-2 py-1.5 sm:text-xs leading-tight",
+            Size.Small => "px-2.5 py-2 sm:text-xs leading-tight",
+            Size.Medium => "px-3.5 py-3 text-base leading-tight",
+            Size.Large => "px-4 py-4 sm:text-base leading-tight",
+            Size.ExtraLarge => "px-5 py-4.5 sm:text-lg leading-tight",
+            _ => "px-3 py-2.5 text-sm leading-tight"
+        };
+    }
+
+    public override string PaginationLinkActive( bool active ) => active
+        ? "text-primary-600 bg-primary-50 hover:bg-primary-100 hover:text-primary-700 dark:bg-gray-700 dark:text-white"
+        : "text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white";
+
+    public override string PaginationLinkDisabled( bool disabled ) => disabled
+        ? "cursor-not-allowed opacity-60"
+        : "cursor-pointer";
+
+    #endregion
+
+    #region Progress
+
+    public override string Progress() => "w-full bg-gray-200 rounded-full dark:bg-gray-700";
+
+    public override string ProgressSize( Size size )
+    {
+        return size switch
+        {
+            Blazorise.Size.ExtraSmall => "h-1",
+            Blazorise.Size.Small => "h-1.5",
+            Blazorise.Size.Medium => "h-3",
+            Blazorise.Size.Large => "h-4",
+            Blazorise.Size.ExtraLarge => "h-6",
+            _ => "h-2.5",
+        };
+    }
+
+    public override string ProgressColor( Color color ) => null;
+
+    public override string ProgressStriped( bool stripped ) => null;
+
+    public override string ProgressAnimated( bool animated ) => null;
+
+    public override string ProgressIndeterminate( bool indeterminate ) => indeterminate ? "overflow-hidden" : null;
+
+    public override string ProgressWidth( int width ) => null;
+
+    public override string ProgressBar() => "text-xs shadow-none flex flex-col text-center whitespace-nowrap justify-center";
+
+    public override string ProgressBarSize( Size size ) => null;
+
+    public override string ProgressBarColor( Color color )
+    {
+        if ( color?.IsCssValue == true )
+            return "bg-[color:var(--tw-progress-bar-bg)] text-white supports-[color:contrast-color(white)]:text-[color:contrast-color(var(--tw-progress-bar-bg))]";
+
+        if ( color.IsNullOrDefault() )
+            return null;
+
+        var name = color?.Name;
+
+        return name switch
+        {
+            "primary" => "bg-primary-600 text-primary-100",
+            "secondary" => "bg-secondary-600 text-secondary-100",
+            "success" => "bg-success-600 text-success-100",
+            "danger" => "bg-danger-600 text-danger-100",
+            "warning" => "bg-warning-400 text-warning-100",
+            "info" => "bg-info-600 text-info-100",
+            "light" => "bg-light-100 text-light-600",
+            "dark" => "bg-dark-600 text-dark-100",
+            _ => name,
+        };
+    }
+
+    public override string ProgressBarStriped( bool striped ) => striped ? "progress-bar-striped" : null;
+
+    public override string ProgressBarAnimated( bool animated ) => animated ? "progress-bar-animated" : null;
+
+    public override string ProgressBarIndeterminate( bool indeterminate ) => indeterminate ? "progress-bar-indeterminate" : null;
+
+    public override string ProgressBarWidth( int width ) => null;
+
+    public override string PageProgress() => "b-page-progress";
+
+    public override string PageProgressActive( bool visible ) => visible ? "b-page-progress-active" : null;
+
+    public override string PageProgressIndicator() => "b-page-progress-indicator";
+
+    public override string PageProgressIndicatorColor( Color color ) => color?.IsCssValue == true ? "!bg-[color:var(--tw-page-progress-bg)]" : color.IsNotNullOrDefault() ? $"b-page-progress-indicator-{ToColor( color )}" : null;
+
+    public override string PageProgressIndicatorIndeterminate( bool indeterminate ) => indeterminate ? "b-page-progress-indicator-indeterminate" : null;
+
+    #endregion
+
+    #region Chart
+
+    public override string Chart() => null;
+
+    #endregion
+
+    #region Colors
+
+    public override string BackgroundColor( Background background )
+    {
+        var name = background?.Name;
+
+        return name switch
+        {
+            // Subtle variants
+            "primary-subtle" => "!bg-primary-100",
+            "secondary-subtle" => "!bg-secondary-100",
+            "success-subtle" => "!bg-success-100",
+            "danger-subtle" => "!bg-danger-100",
+            "warning-subtle" => "!bg-warning-100",
+            "info-subtle" => "!bg-info-100",
+            "light-subtle" => "!bg-light-50",
+            "dark-subtle" => "!bg-dark-600",
+            "link-subtle" => "!bg-link-100",
+            "body-subtle" => "!bg-body-subtle",
+
+            // Base variants
+            "primary" => "!bg-primary-500",
+            "secondary" => "!bg-secondary-500",
+            "success" => "!bg-success-500",
+            "danger" => "!bg-danger-500",
+            "warning" => "!bg-warning-400",
+            "info" => "!bg-info",
+            "light" => "!bg-light",
+            "dark" => "!bg-dark",
+            "white" => "!bg-white",
+            "transparent" => "!bg-transparent",
+            "body" => "!bg-body",
+            _ => name
+        };
+    }
+
+    #endregion
+
+    #region Table
+
+    public override string Table() => "b-table w-full text-sm text-left text-gray-500 dark:text-gray-400 group mb-3";
+
+    public override string TableFullWidth( bool fullWidth ) => fullWidth ? "b-table-fullwidth" : null;
+
+    public override string TableStriped( bool striped ) => striped ? "b-table-striped" : null;
+
+    public override string TableHoverable( bool hoverable ) => hoverable ? "b-table-hoverable" : null;
+
+    public override string TableBordered( bool bordered ) => bordered ? "b-table-bordered border" : null;
+
+    public override string TableNarrow( bool narrow ) => narrow ? "b-table-sm" : null;
+
+    public override string TableBorderless( bool borderless ) => borderless ? "b-table-borderless border-0" : null;
+
+    public override string TableHeader() => "text-xs text-gray-800 bg-white dark:bg-gray-700 dark:text-gray-400";
+
+    public override string TableHeaderThemeContrast( ThemeContrast themeContrast )
+        => themeContrast == ThemeContrast.Light
+            ? "text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-gray-700"
+            : themeContrast == ThemeContrast.Dark
+                ? "text-gray-100 bg-gray-700 dark:text-gray-700 dark:bg-gray-100"
+                : null;
+
+    public override string TableHeaderCell() => "py-4 px-4";
+
+    public override string TableHeaderCellCursor( Cursor cursor ) => cursor != Cursor.Default ? $"cursor-{ToCursor( cursor )}" : null;
+
+    public override string TableHeaderCellFixed( TableColumnFixedPosition fixedPosition )
+    {
+        return fixedPosition switch
+        {
+            TableColumnFixedPosition.Start => "sticky border-l-0 border-s-0 z-10 bg-white left-0",
+            TableColumnFixedPosition.End => "sticky border-l-0 border-s-0 z-10 bg-white right-0",
+            _ => null,
+        };
+    }
+
+    public override string TableFooter() => "b-table-footer";
+
+    public override string TableBody() => "b-table-body";
+
+    public override string TableRow( bool striped, bool hoverable )
+    {
+        if ( striped && hoverable )
+            return "b-table-row odd:bg-white even:bg-gray-50 odd:hover:bg-gray-100 even:hover:bg-white odd:bg-white even:bg-gray-50 hover:bg-gray-100 group-[:not(.border-0)]:border-b dark:bg-gray-800 group-[:not(.border-0)]:dark:border-gray-700";
+
+        if ( striped )
+            return "b-table-row odd:bg-white even:bg-gray-50 group-[:not(.border-0)]:border-b dark:bg-gray-800 group-[:not(.border-0)]:dark:border-gray-700";
+
+        if ( hoverable )
+            return "b-table-row bg-white hover:bg-gray-100 group-[:not(.border-0)]:border-b group-[:not(.border-0)]:border-gray-200 dark:bg-gray-800 group-[:not(.border-0)]:dark:border-gray-700";
+
+        return "b-table-row bg-white group-[:not(.border-0)]:border-b group-[:not(.border-0)]:border-gray-200 dark:bg-gray-800 group-[:not(.border-0)]:dark:border-gray-700";
+    }
+
+    public override string TableRowColor( Color color )
+    {
+        if ( color?.IsCssValue == true )
+        {
+            return "[--tw-table-fill:var(--tw-table-bg)] !bg-[color:var(--tw-table-fill)] text-white "
+                + "supports-[color:contrast-color(white)]:text-[color:contrast-color(var(--tw-table-fill))] "
+                + "[.b-table-striped_&:nth-of-type(odd)]:[--tw-table-fill:color-mix(in_srgb,var(--tw-table-bg)_90%,black)] "
+                + "[.b-table-hoverable_&:hover]:[--tw-table-fill:color-mix(in_srgb,var(--tw-table-bg)_85%,black)] "
+                + "[&>td:not(.tw-table-cell-colored)]:bg-[color:var(--tw-table-fill)] "
+                + "[&>td:not(.tw-table-cell-colored)]:text-inherit "
+                + "[&>th]:!bg-[color:var(--tw-table-fill)] [&>th]:!text-inherit";
+        }
+        if ( color.IsNullOrDefault() )
+            return null;
+
+        var name = color?.Name;
+
+        return name switch
+        {
+            "primary" => "!text-primary-800 !bg-primary-300 !dark:bg-primary-500 !dark:text-primary-800",
+            "secondary" => "!text-secondary-500 !bg-secondary-300 !dark:bg-secondary-100 !dark:text-secondary-600",
+            "success" => "!text-success-700 !bg-success-100 !dark:bg-success-200 !dark:text-success-800",
+            "danger" => "!text-danger-700 !bg-danger-100 !dark:bg-danger-200 !dark:text-danger-800",
+            "warning" => "!text-warning-700 !bg-warning-100 !dark:bg-warning-200 !dark:text-warning-800",
+            "info" => "!text-info-700 !bg-info-100 !dark:bg-info-200 !dark:text-info-800",
+            "light" => "!text-light-500 !bg-light-100 !dark:bg-light-100 !dark:text-light-600",
+            "dark" => "!text-dark-100 !bg-dark-800 !dark:bg-dark-300 !dark:text-dark-700",
+            "link" => "!text-primary-600 !dark:text-primary-500 !hover:underline",
+            _ => name,
+        };
+    }
+
+    public override string TableRowHoverCursor( Cursor cursor ) => cursor != Cursor.Default ? "b-table-row-selectable cursor-pointer" : null;
+
+    public override string TableRowIsSelected( bool selected ) => selected ? "b-table-row-selected !text-primary-800 !bg-primary-300 !dark:bg-primary-500 !dark:text-primary-800" : null;
+
+    public override string TableRowHeader() => "group-[.b-table-sm]:py-2 group-[:not(.b-table-sm)]:py-4 px-4 font-medium text-gray-900 whitespace-nowrap dark:text-white";
+
+    public override string TableRowHeaderFixed( TableColumnFixedPosition fixedPosition )
+    {
+        return fixedPosition switch
+        {
+            TableColumnFixedPosition.Start => "sticky border-l-0 border-s-0 z-10 bg-white left-0",
+            TableColumnFixedPosition.End => "sticky border-l-0 border-s-0 z-10 bg-white right-0",
+            _ => null,
+        };
+    }
+
+    public override string TableRowCell() => "group-[.b-table-sm]:py-2 group-[:not(.b-table-sm)]:py-4 px-4";
+
+    public override string TableRowCellColor( Color color ) => color.IsNotNullOrDefault()
+        ? color.IsCssValue
+            ? "tw-table-cell-colored !bg-[color:var(--tw-table-bg)] !text-white supports-[color:contrast-color(white)]:!text-[color:contrast-color(var(--tw-table-bg))]"
+            : TableRowColor( color )
+        : null;
+
+    public override string TableRowCellFixed( TableColumnFixedPosition fixedPosition )
+    {
+        return fixedPosition switch
+        {
+            TableColumnFixedPosition.Start => "sticky border-l-0 border-s-0 z-10 bg-white left-0",
+            TableColumnFixedPosition.End => "sticky border-l-0 border-s-0 z-10 bg-white right-0",
+            _ => null,
+        };
+    }
+
+    public override string TableRowGroup( bool expanded ) => "b-table-group bg-gray-50 group-[:not(.border-0)]:border-b dark:bg-gray-800 group-[:not(.border-0)]:dark:border-gray-700 font-bold cursor-pointer";
+
+    public override string TableRowGroupCell() => "b-table-group-cell group-[.b-table-sm]:py-2 group-[:not(.b-table-sm)]:py-4 px-4";
+
+    public override string TableRowGroupIndentCell() => "b-table-group-indentcell";
+
+    public override string TableResponsive( bool responsive ) => responsive ? "b-table-responsive overflow-x-auto relative shadow-md sm:rounded-lg" : null;
+
+    public override string TableFixedHeader( bool fixedHeader ) => fixedHeader ? "b-table-fixed-header" : null;
+
+    public override string TableFixedColumns( bool fixedColumns ) => fixedColumns
+        ? "b-table-fixed-columns w-full overflow-x-auto whitespace-nowrap relative" :
+        null;
+
+    public override string TableResponsiveMode( TableResponsiveMode responsiveMode ) => responsiveMode == Blazorise.TableResponsiveMode.Mobile ? "b-table-mobile" : null;
+
+    public override string TableCaption() => "b-table-caption";
+
+    public override string TableCaptionSide( TableCaptionSide side ) => side != Blazorise.TableCaptionSide.Default ? $"caption-{ToTableCaptionSide( side )}" : null;
+
+    #endregion
+
+    #region Badge
+
+    public override string Badge() => "b-badge inline-flex items-center text-[0.75em] leading-[1em] font-semibold px-2.5 py-1 rounded-sm";
+
+    public override string BadgeColor( Color color, bool subtle )
+    {
+        if ( color?.IsCssValue == true )
+        {
+            const string sharedClasses = "bg-[color:var(--tw-badge-fill)] [&[href]:focus-visible]:outline-2 [&[href]:focus-visible]:outline-current [&[href]:focus-visible]:outline-offset-2 ";
+
+            return subtle
+                ? sharedClasses
+                    + "[--tw-badge-fill:color-mix(in_srgb,var(--tw-badge-bg)_12%,var(--color-white))] "
+                    + "dark:[--tw-badge-fill:color-mix(in_srgb,var(--tw-badge-bg)_20%,var(--color-gray-950))] "
+                    + "text-[color:color-mix(in_srgb,var(--tw-badge-bg)_40%,var(--color-gray-900))] "
+                    + "dark:text-[color:color-mix(in_srgb,var(--tw-badge-bg)_40%,var(--color-gray-100))] "
+                    + "supports-[color:contrast-color(white)]:text-[color:color-mix(in_srgb,var(--tw-badge-bg)_30%,contrast-color(var(--tw-badge-fill)))] "
+                    + "dark:supports-[color:contrast-color(white)]:text-[color:color-mix(in_srgb,var(--tw-badge-bg)_30%,contrast-color(var(--tw-badge-fill)))] "
+                    + "border border-[color:color-mix(in_srgb,var(--tw-badge-bg)_30%,var(--tw-badge-fill))] "
+                    + "[&[href]:hover]:[--tw-badge-fill:color-mix(in_srgb,var(--tw-badge-bg)_25%,var(--color-white))] "
+                    + "dark:[&[href]:hover]:[--tw-badge-fill:color-mix(in_srgb,var(--tw-badge-bg)_30%,var(--color-gray-950))]"
+                : sharedClasses
+                    + "[--tw-badge-fill:var(--tw-badge-bg)] text-white supports-[color:contrast-color(white)]:text-[color:contrast-color(var(--tw-badge-fill))] "
+                    + "[&[href]:hover]:[--tw-badge-fill:color-mix(in_srgb,var(--tw-badge-bg)_85%,black)]";
+        }
+
+        if ( color.IsNullOrDefault() )
+            return null;
+
+        var name = color?.Name;
+
+        if ( subtle )
+        {
+            return name switch
+            {
+                "primary" => "bg-primary-50 text-primary-700 border border-primary-100 dark:bg-primary-900/30 dark:text-primary-300 dark:border-primary-800",
+                "secondary" => "bg-secondary-50 text-secondary-700 border border-secondary-100 dark:bg-secondary-900/30 dark:text-secondary-300 dark:border-secondary-800",
+                "success" => "bg-success-50 text-success-700 border border-success-100 dark:bg-success-900/30 dark:text-success-300 dark:border-success-800",
+                "danger" => "bg-danger-50 text-danger-700 border border-danger-100 dark:bg-danger-900/30 dark:text-danger-300 dark:border-danger-800",
+                "warning" => "bg-warning-50 text-warning-700 border border-warning-100 dark:bg-warning-900/30 dark:text-warning-300 dark:border-warning-800",
+                "info" => "bg-info-50 text-info-700 border border-info-100 dark:bg-info-900/30 dark:text-info-300 dark:border-info-800",
+                "light" => "bg-light-50 text-light-700 border border-light-100 dark:bg-light-900/30 dark:text-light-300 dark:border-light-800",
+                "dark" => "bg-dark-700 text-dark-100 border border-dark-600 dark:bg-dark-300 dark:text-dark-900 dark:border-dark-400",
+                "link" => "bg-primary-50 text-primary-700 border border-primary-100 dark:bg-primary-900/30 dark:text-primary-300 dark:border-primary-800",
+                _ => name,
+            };
+        }
+
+        return name switch
+        {
+            "primary" => "bg-primary-100 text-primary-800 dark:bg-primary-200 dark:text-primary-800",
+            "secondary" => "bg-secondary-100 text-secondary-800 dark:bg-secondary-200 dark:text-secondary-800",
+            "success" => "bg-success-100 text-success-800 dark:bg-success-200 dark:text-success-900",
+            "danger" => "bg-danger-100 text-danger-800 dark:bg-danger-200 dark:text-danger-900",
+            "warning" => "bg-warning-100 text-warning-800 dark:bg-warning-200 dark:text-warning-900",
+            "info" => "bg-info-100 text-info-800 dark:bg-info-200 dark:text-info-900",
+            "light" => "bg-light-100 text-light-800 dark:bg-light-200 dark:text-light-800",
+            "dark" => "bg-dark-800 text-dark-100 dark:bg-dark-300 dark:text-dark-700",
+            "link" => "text-primary-600 dark:text-primary-500 hover:underline",
+            _ => name,
+        };
+    }
+
+    public override string BadgePill( bool pill ) => pill ? "b-badge-pill rounded-full" : null;
+
+    public override string BadgeClose() => null;
+
+    public override string BadgeCloseColor( Color color, bool subtle ) => color?.IsCssValue == true
+        ? "text-inherit bg-transparent hover:bg-current/10 focus-visible:outline-2 focus-visible:outline-current"
+        : BadgeColor( color, subtle );
+
+    #endregion
+
+    #region Media
+
+    public override string Media() => "b-media flex";
+
+    public override string MediaLeft() => "b-media-left shrink-0";
+
+    public override string MediaRight() => "b-media-right shrink ml-3";
+
+    public override string MediaBody() => "b-media-body shrink ml-3";
+
+    #endregion
+
+    #region Text
+
+    public override string TextColor( TextColor textColor )
+    {
+        var name = textColor?.Name;
+
+        return name switch
+        {
+            // Emphasis variants
+            "primary-emphasis" => "!text-primary-700 !dark:text-primary-400",
+            "secondary-emphasis" => "!text-secondary-700 !dark:text-secondary-400",
+            "success-emphasis" => "!text-success-700 !dark:text-success-400",
+            "danger-emphasis" => "!text-danger-700 !dark:text-danger-400",
+            "warning-emphasis" => "!text-warning-600 !dark:text-warning-300",
+            "info-emphasis" => "!text-info-700 !dark:text-info-400",
+            "light-emphasis" => "!text-light-700 !dark:text-light-500",
+            "dark-emphasis" => "!text-gray-900 !dark:text-gray-100",
+            "body-emphasis" => "!text-gray-700 !dark:text-gray-300",
+            "muted-emphasis" => "!text-gray-400 !dark:text-gray-500",
+            "black-50-emphasis" => "!text-gray-700 !dark:text-gray-400",
+            "white-50-emphasis" => "!text-gray-200 !dark:text-gray-400",
+
+            // Base variants
+            "primary" => "!text-primary-600 !dark:text-primary-500",
+            "secondary" => "!text-secondary-600 !dark:text-secondary-500",
+            "success" => "!text-success-500 !dark:text-success-400",
+            "danger" => "!text-danger-600 !dark:text-danger-500",
+            "warning" => "!text-warning-400 !dark:text-warning-300",
+            "info" => "!text-info-600 !dark:text-info-500",
+            "light" => "!text-light-600 !dark:text-light-500",
+            "dark" => "!text-gray-800 !dark:text-gray-200",
+            "body" => "!text-gray-500 !dark:text-gray-400",
+            "muted" => "!text-gray-300 !dark:text-gray-600",
+            "white" => "!text-white !dark:text-black",
+            "black-50" => "!text-gray-600 !dark:text-gray-300",
+            "white-50" => "!text-gray-300 !dark:text-gray-400",
+            _ => "!text-gray-500 !dark:text-gray-400",
+        };
+    }
+
+    public override string TextAlignment( TextAlignment textAlignment ) => $"text-{ToTextAlignment( textAlignment )}";
+
+    public override string TextTransform( TextTransform textTransform ) => ToTextTransform( textTransform );
+
+    public override string TextDecoration( TextDecoration textDecoration ) => ToTextDecoration( textDecoration );
+
+    public override string TextWeight( TextWeight textWeight ) => $"font-{ToTextWeight( textWeight )}";
+
+    public override string TextOverflow( TextOverflow textOverflow )
+    {
+        return textOverflow switch
+        {
+            Blazorise.TextOverflow.Wrap => "whitespace-normal",
+            Blazorise.TextOverflow.NoWrap => "whitespace-nowrap",
+            Blazorise.TextOverflow.Truncate => "text-ellipsis overflow-hidden whitespace-nowrap",
+            _ => null,
+        };
+    }
+
+    public override string TextSize( TextSizeType textSizeType, TextSizeDefinition textSizeDefinition )
+    {
+        if ( textSizeType == TextSizeType.Default )
+            return null;
+
+        if ( textSizeDefinition.Breakpoint != Breakpoint.None && textSizeDefinition.Breakpoint != Breakpoint.Mobile )
+            return $"!{ToBreakpoint( textSizeDefinition.Breakpoint )}:text-{ToTextSizeType( textSizeType )}";
+
+        return $"text-{ToTextSizeType( textSizeType )}";
+    }
+
+    public override string TextItalic( bool italic ) => italic ? "italic" : null;
+
+    #endregion
+
+    #region Kbd
+
+    public override string Kbd()
+        => "px-2 py-1.5 font-mono text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg whitespace-nowrap "
+        + "dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500 "
+        + "[&_kbd]:p-0 [&_kbd]:text-[1em] [&_kbd]:text-inherit [&_kbd]:bg-transparent [&_kbd]:border-0 [&_kbd]:rounded-none [&_kbd]:shadow-none "
+        + "dark:[&_kbd]:text-inherit dark:[&_kbd]:bg-transparent";
+
+    #endregion
+
+    #region Code
+
+    public override string Code() => "b-code";
+
+    #endregion
+
+    #region Heading
+
+    public override string HeadingSize( HeadingSize headingSize )
+    {
+        return headingSize switch
+        {
+            Blazorise.HeadingSize.Is1 => "b-heading-1 text-5xl font-extrabold dark:text-white",
+            Blazorise.HeadingSize.Is2 => "b-heading-2 text-4xl font-bold dark:text-white",
+            Blazorise.HeadingSize.Is3 => "b-heading-3 text-3xl font-bold dark:text-white",
+            Blazorise.HeadingSize.Is4 => "b-heading-4 text-2xl font-bold dark:text-white",
+            Blazorise.HeadingSize.Is5 => "b-heading-5 text-xl font-bold dark:text-white",
+            Blazorise.HeadingSize.Is6 => "b-heading-6 text-lg font-bold dark:text-white",
+            _ => null,
+        };
+    }
+
+    #endregion
+
+    #region DisplayHeading
+
+    public override string DisplayHeadingSize( DisplayHeadingSize displayHeadingSize )
+    {
+        return displayHeadingSize switch
+        {
+            Blazorise.DisplayHeadingSize.Is1 => "b-displayheading-1 text-7xl font-light dark:text-white",
+            Blazorise.DisplayHeadingSize.Is2 => "b-displayheading-2 text-6xl font-light dark:text-white",
+            Blazorise.DisplayHeadingSize.Is3 => "b-displayheading-3 text-5xl font-light dark:text-white",
+            Blazorise.DisplayHeadingSize.Is4 => "b-displayheading-4 text-4xl font-light dark:text-white",
+            _ => null,
+        };
+    }
+
+    #endregion
+
+    #region Lead
+
+    public override string Lead() => "b-lead mb-3 text-lg font-light text-gray-500 md:text-xl dark:text-gray-400";
+
+    #endregion
+
+    #region Paragraph
+
+    public override string Paragraph() => "b-paragraph";
+
+    public override string ParagraphColor( TextColor textColor )
+    {
+        var name = textColor?.Name;
+
+        return name switch
+        {
+            "primary" => "text-primary-600 dark:text-primary-500",
+            "secondary" => "text-secondary-600 dark:text-secondary-500",
+            "success" => "text-success-500 dark:text-success-400",
+            "danger" => "text-danger-600 dark:text-danger-500",
+            "warning" => "text-warning-400 dark:text-warning-300",
+            "info" => "text-info-600 dark:text-info-500",
+            "light" => "text-light-600 dark:text-light-500",
+            "dark" => "text-gray-500 dark:text-gray-400",
+            "body" => "text-gray-500 dark:text-gray-400",
+            "muted" => "text-gray-500 dark:text-gray-400",
+            "white" => "text-gray-500 dark:text-gray-400",
+            "black-50" => "text-gray-500 dark:text-gray-400",
+            "white-50" => "text-gray-500 dark:text-gray-400",
+            _ => "text-gray-500 dark:text-gray-400",
+        };
+    }
+
+    #endregion
+
+    #region Blockquote
+
+    public override string Blockquote() => "b-blockquote text-xl italic font-semibold text-gray-900 dark:text-white";
+
+    public override string BlockquoteFooter() => "b-blockquote-footer text-sm font-light text-gray-500 dark:text-gray-400";
+
+    #endregion
+
+    #region Figure
+
+    public override string Figure() => "b-figure max-w-lg";
+
+    public override string FigureSize( FigureSize figureSize ) => figureSize != Blazorise.FigureSize.Default ? $"b-figure-{ToFigureSize( figureSize )}" : null;
+
+    public override string FigureImage() => "b-figure-image max-w-full h-auto";
+
+    public override string FigureImageRounded( bool rounded ) => rounded ? "b-figure-rounded rounded-lg" : null;
+
+    public override string FigureCaption() => "b-figure-caption mt-2 text-sm text-center text-gray-500 dark:text-gray-400";
+
+    #endregion
+
+    #region Image
+
+    public override string Image() => null;
+
+    public override string ImageFluid( bool fluid ) => fluid ? "img-fluid" : null;
+
+    #endregion
+
+    #region Breadcrumb
+
+    public override string Breadcrumb() => "b-breadcrumb flex px-5 py-3 mb-3 text-gray-700 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700";
+
+    public override string BreadcrumbItem() => "b-breadcrumb-item";
+
+    public override string BreadcrumbItemActive( bool active ) => null;
+
+    public override string BreadcrumbLink() => "b-breadcrumb-link flex items-center";
+
+    #endregion
+
+    #region Tooltip
+
+    public override string Tooltip() => "tw-tooltip";
+
+    public override string TooltipContent() => "tw-tooltip-content";
+
+    public override string TooltipSurface() => "tw-tooltip-surface";
+
+    public override string TooltipArrow() => "tw-tooltip-arrow";
+
+    public override string TooltipPlacement( TooltipPlacement tooltipPlacement ) => $"tw-tooltip-{ToTooltipPlacement( tooltipPlacement )}";
+
+    public override string TooltipMultiline( bool multiline ) => multiline ? "tw-tooltip-multiline" : null;
+
+    public override string TooltipAlwaysActive( bool alwaysActive ) => alwaysActive ? "tw-tooltip-active" : null;
+
+    public override string TooltipFade( bool fade ) => fade ? "tw-tooltip-fade" : null;
+
+    public override string TooltipInline( bool inline ) => inline ? "tw-tooltip-inline" : null;
+
+    #endregion
+
+    #region Skeleton
+
+    public override string Skeleton() => "b-skeleton max-w-sm flex flex-row flex-wrap gap-2";
+
+    public override string SkeletonAnimation( SkeletonAnimation animation ) => animation != Blazorise.SkeletonAnimation.Default ? $"animate-{ToSkeletonAnimation( animation )}" : null;
+
+    public override string SkeletonItem() => "b-skeleton-item relative min-h-4 bg-gray-200 rounded-full dark:bg-gray-700";
+
+    #endregion
+
+    #region Divider
+
+    public override string Divider() => "divider";
+
+    public override string DividerType( DividerType dividerType ) => $"{Divider()}-{ToDividerType( dividerType )}";
+
+    #endregion
+
+    #region Link
+
+    public override string Link() => "";
+
+    public override string LinkActive( bool active ) => active ? "font-medium active" : null;
+
+    public override string LinkUnstyled( bool unstyled )
+    {
+        if ( unstyled )
+        {
+            return "font-medium text-inherit";
+        }
+        else
+        {
+            return "font-medium text-primary-600 dark:text-primary-500 hover:underline";
+        }
+    }
+
+    public override string LinkStretched( bool stretched ) => stretched ? "after:absolute after:inset-0" : null;
+
+    public override string LinkDisabled( bool disabled ) => disabled ? "opacity-65 cursor-not-allowed" : null;
+
+    #endregion
+
+    #region States
+
+    public override string Show() => "show";
+
+    public override string Fade() => "fade";
+
+    public override string Active() => "active";
+
+    public override string Disabled() => "disabled";
+
+    public override string Collapsed() => "collapsed";
+
+    #endregion
+
+    #region Layout
+
+    public override string Spacing( Spacing spacing, SpacingSize spacingSize, Side side, Breakpoint breakpoint )
+    {
+        if ( breakpoint != Blazorise.Breakpoint.None && breakpoint != Breakpoint.Mobile )
+            return $"!{ToBreakpoint( breakpoint )}:{ToSpacing( spacing )}{ToSide( side )}-{ToSpacingSize( spacingSize )}";
+
+        return $"!{ToSpacing( spacing )}{ToSide( side )}-{ToSpacingSize( spacingSize )}";
+    }
+
+    public override string Spacing( Spacing spacing, SpacingSize spacingSize, IEnumerable<(Side side, Breakpoint breakpoint)> rules )
+        => string.Join( " ", rules.Select( x => Spacing( spacing, spacingSize, x.side, x.breakpoint ) ) );
+
+    #endregion
+
+    #region Gap
+
+    public override string Gap( GapSize gapSize, GapSide gapSide )
+    {
+        var side = gapSide != GapSide.None && gapSide != GapSide.All
+            ? $"{ToGapSide( gapSide )}-"
+            : null;
+
+        return $"gap-{side}{ToGapSize( gapSize )}";
+    }
+
+    public override string Gap( GapSize gapSize, IEnumerable<GapSide> rules )
+        => string.Join( " ", rules.Select( x => Gap( gapSize, x ) ) );
+
+    #endregion
+
+    #region Gutter
+
+    public override string Gutter( GutterSize gutterSize, GutterSide gutterSide, Breakpoint breakpoint )
+    {
+        var fullSize = ToGutterSize( gutterSize );
+        if ( string.IsNullOrEmpty( fullSize ) || gutterSide == GutterSide.None )
+            return null;
+
+        var halfSize = fullSize;
+
+        if ( int.TryParse( fullSize, NumberStyles.Integer, CultureInfo.InvariantCulture, out var fullInt ) )
+        {
+            float halfFloat = fullInt > 0 ? fullInt / 2f : 0f;
+
+            halfSize = halfFloat.ToString( "0.##", CultureInfo.InvariantCulture );
+        }
+
+        var breakpointPart = breakpoint != Breakpoint.None && breakpoint != Breakpoint.Mobile
+            ? $"{ToBreakpoint( breakpoint )}:"
+            : null;
+
+        var classes = new List<string>();
+
+        if ( gutterSide == GutterSide.All || gutterSide == GutterSide.X )
+        {
+            classes.Add( $"{breakpointPart}-mx-{halfSize}" );
+            classes.Add( $"{breakpointPart}[&>*]:px-{halfSize}" );
+        }
+
+        if ( gutterSide == GutterSide.All || gutterSide == GutterSide.Y )
+        {
+            classes.Add( $"{breakpointPart}-mt-{fullSize}" );
+            classes.Add( $"{breakpointPart}[&>*]:mt-{fullSize}" );
+        }
+
+        return classes.Count > 0
+            ? string.Join( " ", classes )
+            : null;
+    }
+
+    public override string Gutter( GutterSize gutterSize, IEnumerable<(GutterSide, Breakpoint)> rules )
+        => string.Join( " ", rules.Select( x => Gutter( gutterSize, x.Item1, x.Item2 ) ) );
+
+    #endregion
+
+    #region Borders
+
+    public override string Border( BorderSize borderSize, BorderDefinition borderDefinition )
+    {
+        var sb = new StringBuilder( "!border" );
+
+        if ( borderDefinition.Side != BorderSide.All )
+            sb.Append( '-' ).Append( ToBorderSide( borderDefinition.Side ) );
+
+        if ( borderSize != BorderSize.Default )
+            sb.Append( '-' ).Append( ToBorderSize( borderSize ) );
+
+        if ( borderDefinition.Color != BorderColor.None )
+        {
+            sb.Append( " !border-" );
+
+            sb.Append( ToBorderColor( borderDefinition.Color ) );
+
+            if ( borderDefinition.Subtle )
+                sb.Append( "-300" );
+            else
+                sb.Append( "-600" );
+        }
+
+        return sb.ToString();
+    }
+
+    public override string Border( BorderSize borderSize, IEnumerable<BorderDefinition> rules )
+        => string.Join( " ", rules.Select( x => Border( borderSize, x ) ) );
+
+    #endregion
+
+    #region Flex
+
+    public override string Flex( FlexType flexType )
+    {
+        return flexType != FlexType.Default
+            ? $"{ToFlexType( flexType )}"
+            : null;
+    }
+
+    public override string Flex( FlexDefinition flexDefinition )
+    {
+        var sb = new StringBuilder();
+
+        var breakpoint = flexDefinition.Breakpoint != Breakpoint.None
+            ? $"{ToBreakpoint( flexDefinition.Breakpoint )}:"
+            : null;
+
+        if ( flexDefinition.Direction != FlexDirection.Default )
+        {
+            sb.Append( breakpoint ).Append( "flex-" ).Append( ToDirection( flexDefinition.Direction ) );
+        }
+
+        if ( flexDefinition.JustifyContent != FlexJustifyContent.Default )
+        {
+            sb.Append( breakpoint ).Append( "justify-" ).Append( ToJustifyContent( flexDefinition.JustifyContent ) );
+        }
+
+        if ( flexDefinition.AlignItems != FlexAlignItems.Default )
+        {
+            sb.Append( breakpoint ).Append( "items-" ).Append( ToAlignItems( flexDefinition.AlignItems ) );
+        }
+
+        if ( flexDefinition.AlignSelf != FlexAlignSelf.Default )
+        {
+            sb.Append( breakpoint ).Append( "self-" ).Append( ToAlignSelf( flexDefinition.AlignSelf ) );
+        }
+
+        if ( flexDefinition.AlignContent != FlexAlignContent.Default )
+        {
+            sb.Append( breakpoint ).Append( "content-" ).Append( ToAlignContent( flexDefinition.AlignContent ) );
+        }
+
+        if ( flexDefinition.GrowShrink != FlexGrowShrink.Default && flexDefinition.GrowShrinkSize != FlexGrowShrinkSize.Default )
+        {
+            sb.Append( breakpoint ).Append( ToGrowShrink( flexDefinition.GrowShrink ) ).Append( '-' ).Append( ToGrowShrinkSize( flexDefinition.GrowShrinkSize ) );
+        }
+
+        if ( flexDefinition.Basis && flexDefinition.BasisSize != FlexBasisSize.Default )
+        {
+            sb.Append( breakpoint ).Append( "basis-" ).Append( ToBasisSize( flexDefinition.BasisSize ) );
+        }
+
+        if ( flexDefinition.Wrap != FlexWrap.Default )
+        {
+            sb.Append( breakpoint ).Append( "flex-" ).Append( ToWrap( flexDefinition.Wrap ) );
+        }
+
+        if ( flexDefinition.Order != FlexOrder.Default )
+        {
+            sb.Append( breakpoint ).Append( "order-" ).Append( ToOrder( flexDefinition.Order ) );
+        }
+
+        if ( flexDefinition.Fill )
+        {
+            sb.Append( breakpoint ).Append( "flex-auto" );
+        }
+
+        return sb.ToString();
+    }
+
+    public override string Flex( FlexRule flexRule )
+    {
+        var sb = new StringBuilder();
+
+        if ( flexRule.FlexType != FlexType.Default )
+        {
+            if ( flexRule.Breakpoint > Breakpoint.None )
+                sb.Append( $"{ToBreakpoint( flexRule.Breakpoint )}:{ToFlexType( flexRule.FlexType )}" );
+            else
+                sb.Append( $"{ToFlexType( flexRule.FlexType )}" );
+
+            sb.Append( ' ' );
+        }
+
+        sb.Append( string.Join( ' ', flexRule.Definitions.Where( x => x.Condition ?? true ).Select( x => Flex( x ) ) ) );
+
+        return sb.ToString();
+    }
+
+    #endregion
+
+    #region Sizing
+
+    public override string Sizing( SizingType sizingType, SizingSize sizingSize, SizingDefinition sizingDefinition )
+    {
+        var sb = new StringBuilder();
+
+        if ( sizingDefinition.Breakpoint != Breakpoint.None && sizingDefinition.Breakpoint != Breakpoint.Mobile )
+            sb.Append( $"{ToBreakpoint( sizingDefinition.Breakpoint )}:" );
+
+        if ( sizingDefinition.IsMin )
+            sb.Append( "min-" );
+        else if ( sizingDefinition.IsMax )
+            sb.Append( "max-" );
+
+        sb.Append( sizingType == SizingType.Width
+            ? "w"
+            : "h" );
+
+        sb.Append( $"-{ToSizingSize( sizingSize )}" );
+
+        if ( sizingDefinition.IsViewport )
+            sb.Append( "screen" );
+
+        return sb.ToString();
+    }
+
+    public override string Sizing( SizingType sizingType, SizingSize sizingSize, IEnumerable<SizingDefinition> rules )
+        => string.Join( " ", rules.Select( x => Sizing( sizingType, sizingSize, x ) ) );
+
+    #endregion
+
+    #region Visibility
+
+    public override string Visibility( Visibility visibility )
+    {
+        return visibility switch
+        {
+            Blazorise.Visibility.Visible => "visible",
+            Blazorise.Visibility.Invisible => "invisible",
+            _ => null,
+        };
+    }
+
+    #endregion
+
+    #region VerticalAlignment
+
+    public override string VerticalAlignment( VerticalAlignment verticalAlignment )
+        => $"align-{ToVerticalAlignment( verticalAlignment )}";
+
+    #endregion
+
+    #region ZIndex
+
+    public override string ZIndex( ZIndex zIndex ) => zIndex?.Name switch
+    {
+        "n1" => "!-z-1",
+        "n2" => "!-z-2",
+        "n3" => "!-z-3",
+        "0" => "!z-0",
+        "1" => "!z-1",
+        "2" => "!z-2",
+        "3" => "!z-3",
+        "dropdown" => "!z-10",
+        "sticky" => "!z-20",
+        "fixed" => "!z-30",
+        "sidebar-backdrop" => "!z-34",
+        "sidebar" => "!z-35",
+        "offcanvas-backdrop" => "!z-39",
+        "offcanvas" or "modal-backdrop" => "!z-40",
+        "modal" or "popover" or "toast" => "!z-50",
+        "tooltip" => "!z-[var(--tw-tooltip-z-index,10)]",
+        "snackbar" => "!z-1090",
+        "on-screen-keyboard" => "!z-150",
+        _ => null,
+    };
+
+    #endregion
+
+    #region Shadow
+
+    public override string Shadow( Shadow shadow ) => shadow switch
+    {
+        Blazorise.Shadow.None => "shadow-none",
+        Blazorise.Shadow.Remove => "shadow-none",
+        Blazorise.Shadow.Default => "shadow-sm",
+        Blazorise.Shadow.Small => "shadow-xs",
+        Blazorise.Shadow.Large => "shadow-lg",
+        _ => throw new ArgumentOutOfRangeException( nameof( shadow ), shadow, null )
+    };
+
+    #endregion
+
+    #region Overflow
+
+    public override string Overflow( OverflowType overflowType, OverflowType secondOverflowType ) => secondOverflowType != OverflowType.Default
+        ? $"overflow-x-{ToOverflowType( overflowType )} overflow-y-{ToOverflowType( secondOverflowType )}"
+        : $"overflow-{ToOverflowType( overflowType )}";
+
+    #endregion
+
+    #region Position
+
+    public override string Position( PositionType positionType, PositionEdgeType edgeType, int edgeOffset, PositionTranslateType translateType )
+    {
+        return $"{ToPositionEdgeType( edgeType )}-{( edgeOffset == 50 ? "1/2" : edgeOffset == 100 ? "full" : edgeOffset )}";
+    }
+
+    public override string Position( PositionType positionType, IEnumerable<(PositionEdgeType edgeType, int edgeOffset)> edges, PositionTranslateType translateType )
+    {
+        var sb = new StringBuilder( $"{ToPositionType( positionType )}" );
+
+        if ( edges is not null && edges.Any() )
+        {
+            sb.Append( ' ' ).Append( string.Join( " ", edges.Select( x => Position( positionType, x.edgeType, x.edgeOffset, translateType ) ) ) );
+        }
+
+        if ( translateType != PositionTranslateType.None )
+        {
+            sb.Append( ' ' ).Append( ToPositionTranslateType( translateType ) );
+        }
+
+        return sb.ToString();
+    }
+
+    #endregion
+
+    #region ObjectFit
+
+    public override string ObjectFit( ObjectFitType objectFitType, ObjectFitDefinition objectFitDefinition )
+    {
+        if ( objectFitType == ObjectFitType.Default )
+            return null;
+
+        if ( objectFitDefinition.Breakpoint != Breakpoint.None && objectFitDefinition.Breakpoint != Breakpoint.Mobile )
+            return $"{ToBreakpoint( objectFitDefinition.Breakpoint )}:object-{ToObjectFitType( objectFitType )}";
+
+        return $"object-{ToObjectFitType( objectFitType )}";
+    }
+
+    #endregion
+
+    #region Elements
+
+    public override string UnorderedList() => "unordered-list";
+
+    public override string UnorderedListUnstyled( bool unstyled ) => unstyled ? "list-unstyled" : null;
+
+    public override string OrderedList() => "ordered-list";
+
+    public override string OrderedListUnstyled( bool unstyled ) => unstyled ? "list-unstyled" : null;
+
+    public override string OrderedListType( OrderedListType orderedListType ) => orderedListType != Blazorise.OrderedListType.Default ? $"ordered-list-{ToOrderedListType( orderedListType )}" : null;
+
+    public override string DescriptionList() => null;
+
+    public override string DescriptionListTerm() => null;
+
+    public override string DescriptionListDefinition() => null;
+
+    #endregion
+
+    #region DockLayout
+
+    public override string DockLayout() => "tw-dock-layout";
+
+    public override string DockSplit() => "tw-dock-split";
+
+    public override string DockSplitOrientation( Orientation orientation )
+        => orientation == Blazorise.Orientation.Vertical ? "tw-dock-split-vertical" : "tw-dock-split-horizontal";
+
+    public override string DockPane( DockPanePosition position, bool resizable, bool collapsed ) => "tw-dock-pane";
+
+    public override string DockPanePosition( DockPanePosition position )
+        => position switch
+        {
+            Blazorise.DockPanePosition.Center => "tw-dock-pane-center",
+            Blazorise.DockPanePosition.Right => "tw-dock-pane-right",
+            Blazorise.DockPanePosition.Top => "tw-dock-pane-top",
+            Blazorise.DockPanePosition.Bottom => "tw-dock-pane-bottom",
+            _ => "tw-dock-pane-left",
+        };
+
+    public override string DockPaneResizable( bool resizable ) => resizable ? "tw-dock-pane-resizable" : null;
+
+    public override string DockPaneCollapsed( bool collapsed ) => collapsed ? "tw-dock-pane-collapsed" : null;
+
+    public override string DockPaneAutoHide( bool autoHide ) => autoHide ? "tw-dock-pane-autohide" : null;
+
+    public override string DockPaneBordered() => "tw-dock-pane-bordered";
+
+    public override string DockPaneAutoHideRail( DockPanePosition position )
+        => position switch
+        {
+            Blazorise.DockPanePosition.Right => "tw-dock-auto-hide-rail tw-dock-auto-hide-rail-right",
+            Blazorise.DockPanePosition.Top => "tw-dock-auto-hide-rail tw-dock-auto-hide-rail-top",
+            Blazorise.DockPanePosition.Bottom => "tw-dock-auto-hide-rail tw-dock-auto-hide-rail-bottom",
+            _ => "tw-dock-auto-hide-rail tw-dock-auto-hide-rail-left",
+        };
+
+    public override string DockPaneAutoHideTab( DockPanePosition position )
+        => position switch
+        {
+            Blazorise.DockPanePosition.Right => "tw-dock-pane-autohide-tab tw-dock-pane-autohide-tab-right",
+            Blazorise.DockPanePosition.Top => "tw-dock-pane-autohide-tab tw-dock-pane-autohide-tab-top",
+            Blazorise.DockPanePosition.Bottom => "tw-dock-pane-autohide-tab tw-dock-pane-autohide-tab-bottom",
+            _ => "tw-dock-pane-autohide-tab tw-dock-pane-autohide-tab-left",
+        };
+
+    public override string DockPaneAutoHideFlyout( DockPanePosition position )
+        => position switch
+        {
+            Blazorise.DockPanePosition.Right => "tw-dock-auto-hide-flyout tw-dock-auto-hide-flyout-right",
+            Blazorise.DockPanePosition.Top => "tw-dock-auto-hide-flyout tw-dock-auto-hide-flyout-top",
+            Blazorise.DockPanePosition.Bottom => "tw-dock-auto-hide-flyout tw-dock-auto-hide-flyout-bottom",
+            _ => "tw-dock-auto-hide-flyout tw-dock-auto-hide-flyout-left",
+        };
+
+    public override string DockPaneHeader() => "tw-dock-pane-header";
+
+    public override string DockPaneHeaderContent() => "tw-dock-pane-header-content";
+
+    public override string DockPaneHeaderActions() => "tw-dock-pane-header-actions";
+
+    public override string DockPaneHeaderAction() => "tw-dock-pane-header-action";
+
+    public override string DockPaneBody() => "tw-dock-pane-body";
+
+    public override string DockPaneFooter() => "tw-dock-pane-footer";
+
+    public override string DockContent() => "tw-dock-content";
+
+    public override string DockPaneTabs() => "tw-dock-pane-tabs";
+
+    public override string DockPaneTabPosition( DockPaneTabPosition position )
+        => position == Blazorise.DockPaneTabPosition.Top ? "tw-dock-pane-tabs-top" : null;
+
+    public override string DockPaneTabsHost() => "tw-dock-tabs-host";
+
+    public override string DockPaneTab( bool active ) => active ? "tw-dock-pane-tab tw-dock-pane-tab-active" : "tw-dock-pane-tab";
+
+    public override string DockPaneTabLabel() => "tw-dock-pane-tab-label";
+
+    public override string DockPaneTabClose() => "tw-dock-pane-tab-close";
+
+    public override string DockLayoutCompass() => "tw-dock-compass";
+
+    public override string DockLayoutCompassZone( DockZone zone, bool active )
+    {
+        string baseClass = zone switch
+        {
+            DockZone.Center => "tw-dock-compass-zone tw-dock-compass-zone-center",
+            DockZone.Right => "tw-dock-compass-zone tw-dock-compass-zone-right",
+            DockZone.Top => "tw-dock-compass-zone tw-dock-compass-zone-top",
+            DockZone.Bottom => "tw-dock-compass-zone tw-dock-compass-zone-bottom",
+            _ => "tw-dock-compass-zone tw-dock-compass-zone-left",
+        };
+
+        return active ? $"{baseClass} tw-dock-compass-zone-active" : baseClass;
+    }
+
+    public override string DockLayoutCompassZonePlacement( DockCompassZone zone )
+        => zone switch
+        {
+            DockCompassZone.TopOuter => "tw-dock-compass-zone-top-outer",
+            DockCompassZone.TopInner => "tw-dock-compass-zone-top-inner",
+            DockCompassZone.LeftOuter => "tw-dock-compass-zone-left-outer",
+            DockCompassZone.LeftInner => "tw-dock-compass-zone-left-inner",
+            DockCompassZone.RightInner => "tw-dock-compass-zone-right-inner",
+            DockCompassZone.RightOuter => "tw-dock-compass-zone-right-outer",
+            DockCompassZone.BottomInner => "tw-dock-compass-zone-bottom-inner",
+            DockCompassZone.BottomOuter => "tw-dock-compass-zone-bottom-outer",
+            _ => "tw-dock-compass-zone-center",
+        };
+
+    public override string DockLayoutCompassZoneIcon() => "tw-dock-compass-zone-icon";
+
+    public override string DockLayoutDragPreview() => "tw-dock-drag-preview";
+
+    public override string DockLayoutDropPreview() => "tw-dock-drop-preview";
+
+    public override string DockLayoutShellGuide( DockZone zone, bool active )
+    {
+        string baseClass = zone switch
+        {
+            DockZone.Right => "tw-dock-shell-guide tw-dock-shell-guide-right",
+            DockZone.Top => "tw-dock-shell-guide tw-dock-shell-guide-top",
+            DockZone.Bottom => "tw-dock-shell-guide tw-dock-shell-guide-bottom",
+            _ => "tw-dock-shell-guide tw-dock-shell-guide-left",
+        };
+
+        return active ? $"{baseClass} tw-dock-shell-guide-active" : baseClass;
+    }
+
+    #endregion
+
+    #region Class merging
+
+    /// <inheritdoc/>
+    public override string MergeClasses( string classNames ) => TailwindClassMerger.Merge( classNames );
+
+    #endregion
+
+    #region Enums
+
+    public override string ToColumnWidth( ColumnWidth columnWidth )
+    {
+        return columnWidth switch
+        {
+            Blazorise.ColumnWidth.Is1 => "1/12",
+            Blazorise.ColumnWidth.Is2 => "2/12",
+            Blazorise.ColumnWidth.Is3 or Blazorise.ColumnWidth.Quarter => "3/12",
+            Blazorise.ColumnWidth.Is4 or Blazorise.ColumnWidth.Third => "4/12",
+            Blazorise.ColumnWidth.Is5 => "5/12",
+            Blazorise.ColumnWidth.Is6 or Blazorise.ColumnWidth.Half => "6/12",
+            Blazorise.ColumnWidth.Is7 => "7/12",
+            Blazorise.ColumnWidth.Is8 => "8/12",
+            Blazorise.ColumnWidth.Is9 => "9/12",
+            Blazorise.ColumnWidth.Is10 => "10/12",
+            Blazorise.ColumnWidth.Is11 => "11/12",
+            Blazorise.ColumnWidth.Is12 or Blazorise.ColumnWidth.Full => "full",
+            Blazorise.ColumnWidth.Auto => "auto",
+            _ => null,
+        };
+    }
+
+    private static string ToColumnSpan( ColumnWidth columnWidth )
+    {
+        return columnWidth switch
+        {
+            Blazorise.ColumnWidth.Is1 => "1",
+            Blazorise.ColumnWidth.Is2 => "2",
+            Blazorise.ColumnWidth.Is3 or Blazorise.ColumnWidth.Quarter => "3",
+            Blazorise.ColumnWidth.Is4 or Blazorise.ColumnWidth.Third => "4",
+            Blazorise.ColumnWidth.Is5 => "5",
+            Blazorise.ColumnWidth.Is6 or Blazorise.ColumnWidth.Half => "6",
+            Blazorise.ColumnWidth.Is7 => "7",
+            Blazorise.ColumnWidth.Is8 => "8",
+            Blazorise.ColumnWidth.Is9 => "9",
+            Blazorise.ColumnWidth.Is10 => "10",
+            Blazorise.ColumnWidth.Is11 => "11",
+            Blazorise.ColumnWidth.Is12 or Blazorise.ColumnWidth.Full => "full",
+            Blazorise.ColumnWidth.Auto => "auto",
+            _ => null,
+        };
+    }
+
+    private static int ToColumnWidthNumber( ColumnWidth columnWidth )
+    {
+        return columnWidth switch
+        {
+            ColumnWidth.Is1 => 1,
+            ColumnWidth.Is2 => 2,
+            ColumnWidth.Is3 or ColumnWidth.Quarter => 3,
+            ColumnWidth.Is4 or ColumnWidth.Third => 4,
+            ColumnWidth.Is5 => 5,
+            ColumnWidth.Is6 or ColumnWidth.Half => 6,
+            ColumnWidth.Is7 => 7,
+            ColumnWidth.Is8 => 8,
+            ColumnWidth.Is9 => 9,
+            ColumnWidth.Is10 => 10,
+            ColumnWidth.Is11 => 11,
+            ColumnWidth.Is12 or ColumnWidth.Full => 12,
+            ColumnWidth.Auto => 0,
+            _ => 0,
+        };
+    }
+
+    public override string ToModalSize( ModalSize modalSize )
+    {
+        return modalSize switch
+        {
+            Blazorise.ModalSize.Small => "max-w-md md:h-auto",
+            Blazorise.ModalSize.Large => "max-w-4xl md:h-auto",
+            Blazorise.ModalSize.ExtraLarge => "max-w-7xl md:h-auto",
+            _ => "max-w-2xl md:h-auto",
+        };
+    }
+
+    public override string ToBorderSide( BorderSide borderSide )
+    {
+        return borderSide switch
+        {
+            Blazorise.BorderSide.Bottom => "b",
+            Blazorise.BorderSide.Start => "l",
+            Blazorise.BorderSide.End => "r",
+            _ => "t",
+        };
+    }
+
+    public override string ToBorderRadius( BorderRadius borderRadius )
+    {
+        return borderRadius switch
+        {
+            Blazorise.BorderRadius.Rounded => "rounded-sm",
+            Blazorise.BorderRadius.RoundedTop => "rounded-t-sm",
+            Blazorise.BorderRadius.RoundedEnd => "rounded-r-sm",
+            Blazorise.BorderRadius.RoundedBottom => "rounded-b-sm",
+            Blazorise.BorderRadius.RoundedStart => "rounded-l-sm",
+            Blazorise.BorderRadius.RoundedCircle => "rounded-full",
+            Blazorise.BorderRadius.RoundedPill => "rounded-full",
+            Blazorise.BorderRadius.RoundedZero => "rounded-none",
+            _ => null,
+        };
+    }
+
+    public override string ToDirection( FlexDirection direction )
+    {
+        return direction switch
+        {
+            Blazorise.FlexDirection.Row => "row",
+            Blazorise.FlexDirection.ReverseRow => "row-reverse",
+            Blazorise.FlexDirection.Column => "col",
+            Blazorise.FlexDirection.ReverseColumn => "col-reverse",
+            _ => null,
+        };
+    }
+
+    public override string ToPositionEdgeType( PositionEdgeType positionEdgeType )
+    {
+        return positionEdgeType switch
+        {
+            Blazorise.PositionEdgeType.Top => "top",
+            Blazorise.PositionEdgeType.Start => "left",
+            Blazorise.PositionEdgeType.Bottom => "bottom",
+            Blazorise.PositionEdgeType.End => "right",
+            _ => null,
+        };
+    }
+
+    public override string ToPositionTranslateType( PositionTranslateType positionTranslateType )
+    {
+        return positionTranslateType switch
+        {
+            Blazorise.PositionTranslateType.Middle => "-translate-x-1/2 -translate-y-1/2",
+            Blazorise.PositionTranslateType.MiddleX => "-translate-x-1/2",
+            Blazorise.PositionTranslateType.MiddleY => "-translate-y-1/2",
+            _ => null,
+        };
+    }
+
+    public override string ToSizingSize( SizingSize sizingSize )
+    {
+        return sizingSize switch
+        {
+            Blazorise.SizingSize.Is25 => "1/4",
+            Blazorise.SizingSize.Is33 => "1/3",
+            Blazorise.SizingSize.Is50 => "1/2",
+            Blazorise.SizingSize.Is66 => "2/3",
+            Blazorise.SizingSize.Is75 => "3/4",
+            Blazorise.SizingSize.Is100 => "full",
+            Blazorise.SizingSize.Auto => "auto",
+            _ => null,
+        };
+    }
+
+    public override string ToValidationStatus( ValidationStatus validationStatus )
+    {
+        return validationStatus switch
+        {
+            Blazorise.ValidationStatus.Success => "b-is-valid bg-green-50 border border-green-500 text-green-900 dark:text-green-400 placeholder-green-700 dark:placeholder-green-500 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-green-500",
+            Blazorise.ValidationStatus.Warning => "b-is-warning bg-warning-50 border border-warning-500 text-warning-900 placeholder-warning-700 focus:ring-warning-500 dark:bg-gray-700 focus:border-warning-500 dark:text-warning-500 dark:placeholder-warning-500 dark:border-warning-500",
+            Blazorise.ValidationStatus.Error => "b-is-invalid bg-red-50 border border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 dark:bg-gray-700 focus:border-red-500 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500",
+            _ => null,
+        };
+    }
+
+    public override string ToDisplayType( DisplayType displayType )
+    {
+        return displayType switch
+        {
+            Blazorise.DisplayType.None => "hidden",
+            Blazorise.DisplayType.Block => "block",
+            Blazorise.DisplayType.Inline => "inline",
+            Blazorise.DisplayType.InlineBlock => "inline-block",
+            Blazorise.DisplayType.Flex => "flex",
+            Blazorise.DisplayType.InlineFlex => "inline-flex",
+            Blazorise.DisplayType.Table => "table",
+            Blazorise.DisplayType.TableRow => "table-row",
+            Blazorise.DisplayType.TableCell => "table-cell",
+            _ => null,
+        };
+    }
+
+    public override string ToJustifyContent( JustifyContent justifyContent )
+    {
+        return justifyContent switch
+        {
+            Blazorise.JustifyContent.Start => "justify-start",
+            Blazorise.JustifyContent.End => "justify-end",
+            Blazorise.JustifyContent.Center => "justify-center",
+            Blazorise.JustifyContent.Between => "justify-between",
+            Blazorise.JustifyContent.Around => "justify-around",
+            _ => null,
+        };
+    }
+
+    public override string ToBorderColor( BorderColor borderColor )
+    {
+        return $"{borderColor.Name}";
+    }
+
+    public override string ToBreakpoint( Breakpoint breakpoint )
+    {
+        return breakpoint switch
+        {
+            Blazorise.Breakpoint.Mobile or Blazorise.Breakpoint.ExtraSmall => "sm",
+            Blazorise.Breakpoint.Tablet or Blazorise.Breakpoint.Small => "md",
+            Blazorise.Breakpoint.Desktop or Blazorise.Breakpoint.Medium => "lg",
+            Blazorise.Breakpoint.Widescreen or Blazorise.Breakpoint.Large => "xl",
+            Blazorise.Breakpoint.FullHD or Blazorise.Breakpoint.ExtraLarge => "2xl",
+            Blazorise.Breakpoint.QuadHD or Blazorise.Breakpoint.ExtraExtraLarge => "3xl",
+            _ => null,
+        };
+    }
+
+    public override string ToTextSizeType( TextSizeType textSizeType )
+    {
+        return textSizeType switch
+        {
+            Blazorise.TextSizeType.ExtraSmall => "xs",
+            Blazorise.TextSizeType.Small => "sm",
+            Blazorise.TextSizeType.Medium => "md",
+            Blazorise.TextSizeType.Large => "lg",
+            Blazorise.TextSizeType.ExtraLarge => "xl",
+            Blazorise.TextSizeType.Heading1 => "5xl",
+            Blazorise.TextSizeType.Heading2 => "4xl",
+            Blazorise.TextSizeType.Heading3 => "3xl",
+            Blazorise.TextSizeType.Heading4 => "2xl",
+            Blazorise.TextSizeType.Heading5 => "xl",
+            Blazorise.TextSizeType.Heading6 => "lg",
+            _ => null,
+        };
+    }
+
+    public override string ToTextDecoration( TextDecoration textDecoration )
+    {
+        return textDecoration switch
+        {
+            Blazorise.TextDecoration.None => "no-underline",
+            Blazorise.TextDecoration.Underline => "underline",
+            Blazorise.TextDecoration.Overline => "overline",
+            Blazorise.TextDecoration.LineThrough => "line-through",
+            Blazorise.TextDecoration.Inherit => "inherit",
+            _ => null,
+        };
+    }
+
+    public override string ToTableColumnFixedPosition( TableColumnFixedPosition tableColumnFixedPosition ) => null;
+
+    public override string ToObjectFitType( ObjectFitType objectFitType )
+    {
+        return objectFitType switch
+        {
+            ObjectFitType.None => "none",
+            ObjectFitType.Contain => "contain",
+            ObjectFitType.Cover => "cover",
+            ObjectFitType.Fill => "fill",
+            ObjectFitType.Scale => "scale-down",
+            _ => null,
+        };
+    }
+
+    #endregion
+
+    #region Extensions
+
+    #region Autocomplete
+
+    public override string AutocompleteItemFocus( bool focus ) => focus ? "bg-gray-100 dark:bg-gray-600" : null;
+
+    #endregion
+
+    #endregion
+
+    public override bool UseCustomInputStyles { get; set; } = true;
+
+    public override string Provider => "Tailwind";
+}

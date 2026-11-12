@@ -1,0 +1,81 @@
+@mixin make-flex-utilities($infix: "") {
+    @each $direction in $flex-directions {
+        .mui-flex#{$infix}-#{$direction} {
+            flex-direction: #{$direction} !important;
+        }
+    }
+
+    @each $name, $value in $justify-content-values {
+        .mui-justify-content#{$infix}-#{$name} {
+            justify-content: #{$value} !important;
+        }
+    }
+
+    @each $name, $value in $align-items-values {
+        .mui-align-items#{$infix}-#{$name} {
+            align-items: #{$value} !important;
+        }
+    }
+
+    @each $name, $value in $align-self-values {
+        .mui-align-self#{$infix}-#{$name} {
+            align-self: #{$value} !important;
+        }
+    }
+
+    @each $name, $value in $align-content-values {
+        .mui-align-content#{$infix}-#{$name} {
+            align-content: #{$value} !important;
+        }
+    }
+
+    .mui-flex#{$infix}-fill {
+        flex: 1 1 auto !important;
+    }
+
+    .mui-flex#{$infix}-grow-0 {
+        flex-grow: 0 !important;
+    }
+
+    .mui-flex#{$infix}-grow-1 {
+        flex-grow: 1 !important;
+    }
+
+    .mui-flex#{$infix}-shrink-0 {
+        flex-shrink: 0 !important;
+    }
+
+    .mui-flex#{$infix}-shrink-1 {
+        flex-shrink: 1 !important;
+    }
+
+    @each $basis in $flex-basis-values {
+        .mui-flex-basis#{$infix}-#{$basis} {
+            flex-basis: if($basis == full, 100%, $basis) !important;
+        }
+    }
+
+    @each $wrap in $flex-wrap-values {
+        .mui-flex#{$infix}-#{$wrap} {
+            flex-wrap: #{$wrap} !important;
+        }
+    }
+
+    @each $order in $flex-order-values {
+        .mui-order#{$infix}-#{$order} {
+            order: #{$order} !important;
+        }
+    }
+}
+
+@include make-flex-utilities();
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+    $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+    @if $infix != "" {
+        @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+            @include make-flex-utilities($infix);
+        }
+    }
+}

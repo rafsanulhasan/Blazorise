@@ -1,22 +1,72 @@
-﻿<BarItem>
-    <BarLink To="docs">Documentation</BarLink>
+@using Blazorise.Docs.Services
+@implements IDisposable
+<BarItem>
+    <BarLink To="pricing">Pricing</BarLink>
 </BarItem>
 <BarItem>
-    <BarLink To="news">News</BarLink>
+    <BarLink To="support">Support</BarLink>
 </BarItem>
 <BarItem>
-    <BarLink To="https://commercial.blazorise.com/" Target="Target.Blank" TextColor="TextColor.Primary">
-        Commercial
+    <BarLink To="account">Account</BarLink>
+</BarItem>
+<BarItem>
+    <BarLink To="https://github.com/Megabit/Blazorise" Title="GitHub: 3.5k stars" Target="Target.Blank" Flex="Flex.AlignItems.Baseline" Gap="Gap.Is2" aria-label="Star Blazorise on GitHub, 3.5 thousand stars">
+        <Icon Name="@("fab fa-github")" IconSize="IconSize.Large" Flex="Flex.AlignSelf.Center" aria-hidden="true" />
+        <Span TextSize="TextSize.Small" TextWeight="TextWeight.SemiBold">3.5k</Span>
     </BarLink>
 </BarItem>
 <BarItem>
-    <BarLink To="https://support.blazorise.com/" Target="Target.Blank">
-        Support
-    </BarLink>
+    <BarDropdown RightAligned>
+        <BarDropdownToggle>
+            @if ( ThemeService.IsDark )
+            {
+                <Icon Name="IconName.Moon" />
+            }
+            else if ( ThemeService.IsSystem )
+            {
+                <Icon Name="IconName.Adjust" />
+            }
+            else
+            {
+                <Icon Name="IconName.Sun" />
+            }
+        </BarDropdownToggle>
+        <BarDropdownMenu>
+            <BarDropdownItem Clicked="@(() => ThemeService.SetLightTheme())">
+                <Span Display="Display.Flex" Flex="Flex.AlignItems.Center" Width="Width.Is100">
+                    <Icon Name="IconName.Sun" Margin="Margin.Is2.FromEnd" /> Light <Icon Name="IconName.Check" Margin="Margin.IsAuto.FromStart" Visibility="@(ThemeService.IsLight ? Visibility.Visible : Visibility.Invisible)" />
+                </Span>
+            </BarDropdownItem>
+            <BarDropdownItem Clicked="@(() => ThemeService.SetDarkTheme())">
+                <Span Display="Display.Flex" Flex="Flex.AlignItems.Center" Width="Width.Is100">
+                    <Icon Name="IconName.Moon" Margin="Margin.Is2.FromEnd" /> Dark <Icon Name="IconName.Check" Margin="Margin.IsAuto.FromStart" Visibility="@(ThemeService.IsDark ? Visibility.Visible : Visibility.Invisible)" />
+                </Span>
+            </BarDropdownItem>
+            <BarDropdownItem Clicked="@(() => ThemeService.SetSystemTheme())">
+                <Span Display="Display.Flex" Flex="Flex.AlignItems.Center" Width="Width.Is100">
+                    <Icon Name="IconName.Adjust" Margin="Margin.Is2.FromEnd" /> System <Icon Name="IconName.Check" Margin="Margin.IsAuto.FromStart" Visibility="@(ThemeService.IsSystem ? Visibility.Visible : Visibility.Invisible)" />
+                </Span>
+            </BarDropdownItem>
+        </BarDropdownMenu>
+    </BarDropdown>
 </BarItem>
-<BarItem>
-    <BarLink To="https://github.com/Megabit/Blazorise" Target="Target.Blank">
-        <Icon Name="@("fab fa-github")" />
-        GitHub
-    </BarLink>
-</BarItem>
+@code {
+    [Inject] private ThemeService ThemeService { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ThemeService.ThemeChanged += OnThemeChanged;
+
+        base.OnInitialized();
+    }
+
+    public void Dispose()
+    {
+        ThemeService.ThemeChanged -= OnThemeChanged;
+    }
+
+    void OnThemeChanged( object sender, string theme )
+    {
+        InvokeAsync( StateHasChanged );
+    }
+}

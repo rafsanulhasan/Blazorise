@@ -1,0 +1,794 @@
+#region Using directives
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using Blazorise.Extensions;
+using Blazorise.Localization;
+using Blazorise.Utilities;
+using Microsoft.AspNetCore.Components;
+#endregion
+
+namespace Blazorise.Components;
+
+/// <summary>
+/// Provides a password input with configurable validation rules, progress indicator, and localized rule texts.
+/// </summary>
+public partial class PasswordStrength : BaseTextInput<string>
+{
+    #region Members
+
+    private static readonly string[] DefaultBlockedPasswords =
+    [
+        "123456",
+        "12345678",
+        "123456789",
+        "abc123",
+        "admin",
+        "dragon",
+        "football",
+        "iloveyou",
+        "letmein",
+        "login",
+        "master",
+        "monkey",
+        "passw0rd",
+        "password",
+        "password1",
+        "princess",
+        "qwerty",
+        "qwerty123",
+        "welcome",
+        "111111",
+    ];
+
+    private readonly List<PasswordRuleState> ruleStates = new();
+
+    private HashSet<string> effectiveBlockedPasswords = new( StringComparer.OrdinalIgnoreCase );
+
+    private TextInput textInputRef;
+
+    private bool showPassword;
+
+    private int strengthScore;
+
+    private bool isValid;
+
+    private PasswordStrengthLevel strengthLevel;
+
+    private PasswordStrengthClasses passwordStrengthClasses;
+
+    private PasswordStrengthStyles passwordStrengthStyles;
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc />
+    public override async Task SetParametersAsync( ParameterView parameters )
+    {
+        var wasRendered = Rendered;
+        var shouldEvaluate = !Rendered || parameters.IsParameterChanged( Value );
+
+        var rulesChanged = parameters.IsParameterChanged( MinimumLength )
+            || parameters.IsParameterChanged( RequireUppercase )
+            || parameters.IsParameterChanged( RequireLowercase )
+            || parameters.IsParameterChanged( RequireNumber )
+            || parameters.IsParameterChanged( RequireSpecialCharacter )
+            || parameters.IsParameterChanged( RequireNotCompromisedPassword );
+
+        var shouldUpdateBlockedPasswords = !Rendered
+            || parameters.IsParameterChanged( UseDefaultBlockedPasswordList )
+            || parameters.TryGetValue<IEnumerable<string>>( nameof( BlockedPasswords ), out _ );
+
+        await base.SetParametersAsync( parameters );
+
+        if ( shouldUpdateBlockedPasswords )
+        {
+            rulesChanged |= UpdateBlockedPasswordsLookup();
+        }
+
+        if ( shouldEvaluate || rulesChanged )
+        {
+            EvaluatePassword();
+
+            if ( wasRendered && rulesChanged )
+            {
+                ExecuteAfterRender( Revalidate );
+            }
+
+            await InvokeAsync( StateHasChanged );
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if ( LocalizerService is not null )
+        {
+            LocalizerService.LocalizationChanged += OnLocalizationChanged;
+        }
+
+        base.OnInitialized();
+    }
+
+    /// <inheritdoc/>
+    protected override void BuildClasses( ClassBuilder builder )
+    {
+        builder.Append( "b-password-strength" );
+        builder.Append( PasswordStrengthClasses?.Self );
+        builder.Append( PasswordStrengthClasses?.Container );
+
+        base.BuildClasses( builder );
+    }
+
+    /// <inheritdoc/>
+    protected override void BuildStyles( StyleBuilder builder )
+    {
+        builder.Append( PasswordStrengthStyles?.Self );
+        builder.Append( PasswordStrengthStyles?.Container );
+
+        base.BuildStyles( builder );
+    }
+
+    /// <summary>
+    /// Handles localization changes by re-rendering the component when default localization is used.
+    /// </summary>
+    /// <param name="sender">Object that raised the event.</param>
+    /// <param name="eventArgs">Data about the localization event.</param>
+    private async void OnLocalizationChanged( object sender, EventArgs eventArgs )
+    {
+        // no need to refresh if we're using custom localization
+        if ( PasswordStrengthLocalizer is not null )
+            return;
+
+        await InvokeAsync( StateHasChanged );
+    }
+
+    private bool UpdateBlockedPasswordsLookup()
+    {
+        var blockedPasswords = UseDefaultBlockedPasswordList
+            ? new HashSet<string>( DefaultBlockedPasswords, StringComparer.OrdinalIgnoreCase )
+            : new HashSet<string>( StringComparer.OrdinalIgnoreCase );
+
+        if ( BlockedPasswords is not null )
+        {
+            foreach ( var blockedPassword in BlockedPasswords )
+            {
+                if ( !string.IsNullOrWhiteSpace( blockedPassword ) )
+                {
+                    blockedPasswords.Add( blockedPassword.Trim() );
+                }
+            }
+        }
+
+        if ( effectiveBlockedPasswords.SetEquals( blockedPasswords ) )
+        {
+            return false;
+        }
+
+        effectiveBlockedPasswords = blockedPasswords;
+
+        return true;
+    }
+
+    private void EvaluatePassword( string passwordValue = null )
+    {
+        ruleStates.Clear();
+
+        var password = passwordValue ?? Value ?? string.Empty;
+
+        if ( MinimumLength > 0 )
+        {
+            var hasMinimumLength = password.Length >= MinimumLength;
+            ruleStates.Add( new( "At least {0} characters", hasMinimumLength, 3, MinimumLength ) );
+        }
+
+        if ( RequireUppercase )
+        {
+            var hasUppercase = password.Any( char.IsUpper );
+            ruleStates.Add( new( "One uppercase letter", hasUppercase, 1 ) );
+        }
+
+        if ( RequireLowercase )
+        {
+            var hasLowercase = password.Any( char.IsLower );
+            ruleStates.Add( new( "One lowercase letter", hasLowercase, 1 ) );
+        }
+
+        if ( RequireNumber )
+        {
+            var hasNumber = password.Any( char.IsDigit );
+            ruleStates.Add( new( "One number", hasNumber, 1 ) );
+        }
+
+        if ( RequireSpecialCharacter )
+        {
+            var hasSpecialCharacter = password.Any( c => char.IsPunctuation( c ) || char.IsSymbol( c ) );
+            ruleStates.Add( new( "One special character", hasSpecialCharacter, 1 ) );
+        }
+
+        if ( RequireNotCompromisedPassword && effectiveBlockedPasswords.Count > 0 )
+        {
+            var isNotCompromised = IsNotCompromisedPassword( password );
+            ruleStates.Add( new( "Not a common or breached password", isNotCompromised, 2 ) );
+        }
+
+        if ( string.IsNullOrWhiteSpace( password ) )
+        {
+            strengthScore = 0;
+            strengthLevel = PasswordStrengthLevel.None;
+            isValid = false;
+
+            return;
+        }
+
+        var totalWeight = ruleStates.Sum( x => x.Weight );
+        var passedWeight = ruleStates.Where( x => x.IsSatisfied ).Sum( x => x.Weight );
+
+        if ( totalWeight > 0 )
+        {
+            strengthScore = (int)Math.Round( (double)passedWeight / totalWeight * 100d, MidpointRounding.AwayFromZero );
+        }
+        else
+        {
+            strengthScore = CalculateLengthOnlyScore( password );
+        }
+
+        strengthLevel = strengthScore switch
+        {
+            >= 100 => PasswordStrengthLevel.Strong,
+            >= 75 => PasswordStrengthLevel.Good,
+            >= 50 => PasswordStrengthLevel.Fair,
+            _ => PasswordStrengthLevel.Weak,
+        };
+
+        isValid = ruleStates.All( x => x.IsSatisfied );
+    }
+
+    private bool IsNotCompromisedPassword( string password )
+    {
+        if ( string.IsNullOrWhiteSpace( password ) )
+            return false;
+
+        return !effectiveBlockedPasswords.Contains( password.Trim() );
+    }
+
+    private static int CalculateLengthOnlyScore( string password )
+    {
+        if ( string.IsNullOrEmpty( password ) )
+            return 0;
+
+        if ( password.Length >= 15 )
+            return 100;
+
+        if ( password.Length >= 12 )
+            return 75;
+
+        if ( password.Length >= 8 )
+            return 50;
+
+        return 25;
+    }
+
+    private PasswordStrengthChangedEventArgs CreateStrengthChangedEventArgs()
+        => new(
+            Value,
+            strengthLevel,
+            strengthScore,
+            ruleStates.Count( x => x.IsSatisfied ),
+            ruleStates.Count,
+            isValid );
+
+    private Task TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+        return Task.CompletedTask;
+    }
+
+    private string GetRuleText( PasswordRuleState ruleState )
+    {
+        return GetLocalizedString( ruleState.ResourceName, ruleState.Arguments );
+    }
+
+    /// <inheritdoc />
+    protected override Task<ParseValue<string>> ParseValueFromStringAsync( string value )
+    {
+        return Task.FromResult( new ParseValue<string>( true, value ?? string.Empty, null ) );
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnInternalValueChanged( string value )
+    {
+        EvaluatePassword( value );
+
+        await base.OnInternalValueChanged( value );
+        await StrengthChanged.InvokeAsync( CreateStrengthChangedEventArgs() );
+    }
+
+    /// <inheritdoc />
+    protected override void ReleaseResources()
+    {
+        if ( LocalizerService is not null )
+        {
+            LocalizerService.LocalizationChanged -= OnLocalizationChanged;
+        }
+
+        base.ReleaseResources();
+    }
+
+    private string GetLocalizedString( string resourceName, params object[] arguments )
+    {
+        if ( PasswordStrengthLocalizer is not null )
+            return PasswordStrengthLocalizer.Invoke( resourceName, arguments );
+
+        if ( Localizer is null )
+            return arguments?.Length > 0
+                ? string.Format( CultureInfo.CurrentCulture, resourceName, arguments )
+                : resourceName;
+
+        return Localizer[resourceName, arguments];
+    }
+
+    private IconName GetRuleIconName( PasswordRuleState ruleState )
+        => ruleState.IsSatisfied ? IconName.Check : IconName.Times;
+
+    private TextColor GetRuleIconColor( PasswordRuleState ruleState )
+        => ruleState.IsSatisfied ? RuleSatisfiedColor : RuleUnsatisfiedColor;
+
+    private TextColor GetRuleTextColor( PasswordRuleState ruleState )
+        => ruleState.IsSatisfied ? RuleSatisfiedColor : RuleUnsatisfiedColor;
+
+    /// <inheritdoc />
+    public override Task Focus( bool scrollToElement = true )
+    {
+        if ( textInputRef is null )
+            return Task.CompletedTask;
+
+        return textInputRef.Focus( scrollToElement );
+    }
+
+    private string BuildInputClassNames()
+    {
+        string validationClass = ClassProvider.TextInputValidation( ParentValidation?.Status ?? ValidationStatus.None );
+        string inputClass = PasswordStrengthClasses?.Input;
+
+        if ( string.IsNullOrWhiteSpace( validationClass ) )
+            return string.IsNullOrWhiteSpace( inputClass ) ? null : inputClass.Trim();
+
+        if ( string.IsNullOrWhiteSpace( inputClass ) )
+            return validationClass;
+
+        return $"{validationClass} {inputClass.Trim()}";
+    }
+
+    private string BuildAddonsClassNames()
+    {
+        string addonsClass = PasswordStrengthClasses?.Addons;
+
+        return string.IsNullOrWhiteSpace( addonsClass ) ? null : addonsClass.Trim();
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Evaluation results for the configured password rules.
+    /// </summary>
+    protected IReadOnlyList<PasswordRuleState> RuleStates => ruleStates;
+
+    /// <summary>
+    /// Weighted score produced by the satisfied rules.
+    /// </summary>
+    protected int StrengthScore => strengthScore;
+
+    /// <summary>
+    /// Semantic progress color corresponding to the current strength level.
+    /// </summary>
+    protected Color StrengthProgressColor => strengthLevel switch
+    {
+        PasswordStrengthLevel.Strong => Color.Success,
+        PasswordStrengthLevel.Good => Color.Primary,
+        PasswordStrengthLevel.Fair => Color.Warning,
+        PasswordStrengthLevel.Weak => Color.Danger,
+        _ => Color.Secondary,
+    };
+
+    /// <summary>
+    /// Text color used to communicate the current strength level.
+    /// </summary>
+    protected TextColor StrengthTextColor => strengthLevel switch
+    {
+        PasswordStrengthLevel.Strong => TextColor.Success,
+        PasswordStrengthLevel.Good => TextColor.Primary,
+        PasswordStrengthLevel.Fair => TextColor.Warning,
+        PasswordStrengthLevel.Weak => TextColor.Danger,
+        _ => TextColor.Secondary,
+    };
+
+    /// <summary>
+    /// Localized caption introducing the strength result.
+    /// </summary>
+    protected string StrengthLabelCaption => GetLocalizedString( "Strength" );
+
+    /// <summary>
+    /// Localized description of the calculated strength level.
+    /// </summary>
+    protected string StrengthLabelText => strengthLevel switch
+    {
+        PasswordStrengthLevel.Strong => GetLocalizedString( "Strong" ),
+        PasswordStrengthLevel.Good => GetLocalizedString( "Good" ),
+        PasswordStrengthLevel.Fair => GetLocalizedString( "Fair" ),
+        PasswordStrengthLevel.Weak => GetLocalizedString( "Weak" ),
+        _ => string.Empty,
+    };
+
+    /// <summary>
+    /// Explicit placeholder or the localized fallback prompt.
+    /// </summary>
+    protected string InputPlaceholder => string.IsNullOrWhiteSpace( Placeholder )
+        ? GetLocalizedString( "Enter password" )
+        : Placeholder;
+
+    /// <summary>
+    /// Input role selected from the current password-visibility state.
+    /// </summary>
+    protected TextRole InputRole => showPassword ? TextRole.Text : TextRole.Password;
+
+    /// <summary>
+    /// Icon indicating the visibility action available to the user.
+    /// </summary>
+    protected IconName VisibilityIconName => showPassword ? IconName.EyeSlash : IconName.Eye;
+
+    /// <summary>
+    /// Accessible label for the password-visibility toggle.
+    /// </summary>
+    protected string TogglePasswordButtonLabel => showPassword
+        ? GetLocalizedString( "Hide password" )
+        : GetLocalizedString( "Show password" );
+
+    /// <summary>
+    /// Provider classes assembled for the password input.
+    /// </summary>
+    protected string InputClassNames => BuildInputClassNames();
+
+    /// <summary>
+    /// User styles targeting the password input.
+    /// </summary>
+    protected string InputStyleNames => PasswordStrengthStyles?.Input;
+
+    /// <summary>
+    /// Classes rendered on the component container.
+    /// </summary>
+    protected string ContainerClassNames => ClassNames;
+
+    /// <summary>
+    /// Styles rendered on the component container.
+    /// </summary>
+    protected string ContainerStyleNames => StyleNames;
+
+    /// <summary>
+    /// Provider classes for the input addon layout.
+    /// </summary>
+    protected string AddonsClassNames => BuildAddonsClassNames();
+
+    /// <summary>
+    /// Custom styling for the input addon layout.
+    /// </summary>
+    protected string AddonsStyleNames => PasswordStrengthStyles?.Addons;
+
+    /// <summary>
+    /// Classes assigned to the visibility toggle button.
+    /// </summary>
+    protected string ToggleButtonClassNames => PasswordStrengthClasses?.ToggleButton;
+
+    /// <summary>
+    /// Inline styling for the visibility toggle button.
+    /// </summary>
+    protected string ToggleButtonStyleNames => PasswordStrengthStyles?.ToggleButton;
+
+    /// <summary>
+    /// Classes wrapping the strength caption and progress display.
+    /// </summary>
+    protected string StrengthContainerClassNames => PasswordStrengthClasses?.StrengthContainer;
+
+    /// <summary>
+    /// Presentation overrides for the strength display container.
+    /// </summary>
+    protected string StrengthContainerStyleNames => PasswordStrengthStyles?.StrengthContainer;
+
+    /// <summary>
+    /// Classes applied to the localized strength caption.
+    /// </summary>
+    protected string StrengthCaptionClassNames => PasswordStrengthClasses?.StrengthCaption;
+
+    /// <summary>
+    /// Visual overrides for the localized strength caption.
+    /// </summary>
+    protected string StrengthCaptionStyleNames => PasswordStrengthStyles?.StrengthCaption;
+
+    /// <summary>
+    /// Classes applied to the calculated strength text.
+    /// </summary>
+    protected string StrengthValueClassNames => PasswordStrengthClasses?.StrengthValue;
+
+    /// <summary>
+    /// Visual overrides for the calculated strength text.
+    /// </summary>
+    protected string StrengthValueStyleNames => PasswordStrengthStyles?.StrengthValue;
+
+    /// <summary>
+    /// Classes surrounding the strength progress indicator.
+    /// </summary>
+    protected string ProgressContainerClassNames => PasswordStrengthClasses?.ProgressContainer;
+
+    /// <summary>
+    /// Layout styling around the strength progress indicator.
+    /// </summary>
+    protected string ProgressContainerStyleNames => PasswordStrengthStyles?.ProgressContainer;
+
+    /// <summary>
+    /// Classes placed directly on the strength progress bar.
+    /// </summary>
+    protected string ProgressClassNames => PasswordStrengthClasses?.Progress;
+
+    /// <summary>
+    /// Inline presentation for the strength progress bar.
+    /// </summary>
+    protected string ProgressStyleNames => PasswordStrengthStyles?.Progress;
+
+    /// <summary>
+    /// Classes wrapping the password-rule checklist.
+    /// </summary>
+    protected string RulesContainerClassNames => PasswordStrengthClasses?.RulesContainer;
+
+    /// <summary>
+    /// Layout overrides for the password-rule checklist.
+    /// </summary>
+    protected string RulesContainerStyleNames => PasswordStrengthStyles?.RulesContainer;
+
+    /// <summary>
+    /// Classes shared by each password-rule row.
+    /// </summary>
+    protected string RuleItemClassNames => PasswordStrengthClasses?.RuleItem;
+
+    /// <summary>
+    /// Styling shared by each password-rule row.
+    /// </summary>
+    protected string RuleItemStyleNames => PasswordStrengthStyles?.RuleItem;
+
+    /// <summary>
+    /// Classes used by satisfied and unsatisfied rule icons.
+    /// </summary>
+    protected string RuleIconClassNames => PasswordStrengthClasses?.RuleIcon;
+
+    /// <summary>
+    /// Presentation overrides for rule-state icons.
+    /// </summary>
+    protected string RuleIconStyleNames => PasswordStrengthStyles?.RuleIcon;
+
+    /// <summary>
+    /// Classes applied to each localized rule description.
+    /// </summary>
+    protected string RuleTextClassNames => PasswordStrengthClasses?.RuleText;
+
+    /// <summary>
+    /// Text styling for password-rule descriptions.
+    /// </summary>
+    protected string RuleTextStyleNames => PasswordStrengthStyles?.RuleText;
+
+    /// <summary>
+    /// Specifies the DI registered <see cref="ITextLocalizerService"/>.
+    /// </summary>
+    [Inject] protected ITextLocalizerService LocalizerService { get; set; }
+
+    /// <summary>
+    /// Specifies the DI registered <see cref="ITextLocalizer{PasswordStrength}"/>.
+    /// </summary>
+    [Inject] protected ITextLocalizer<PasswordStrength> Localizer { get; set; }
+
+    /// <summary>
+    /// Determines whether to display password strength details.
+    /// </summary>
+    [Parameter] public bool ShowStrength { get; set; } = true;
+
+    /// <summary>
+    /// Determines whether to display the checklist of active rules.
+    /// </summary>
+    [Parameter] public bool ShowRules { get; set; } = true;
+
+    /// <summary>
+    /// Determines whether to show a toggle button for password visibility.
+    /// </summary>
+    [Parameter] public bool ShowPasswordToggle { get; set; } = true;
+
+    /// <summary>
+    /// Specifies the color for the password visibility toggle button.
+    /// </summary>
+    [Parameter] public Color ShowPasswordButtonColor { get; set; } = Color.Light;
+
+    /// <summary>
+    /// Specifies the color used for satisfied password rules.
+    /// </summary>
+    [Parameter] public TextColor RuleSatisfiedColor { get; set; } = TextColor.Success;
+
+    /// <summary>
+    /// Specifies the color used for unsatisfied password rules.
+    /// </summary>
+    [Parameter] public TextColor RuleUnsatisfiedColor { get; set; } = TextColor.Default;
+
+    /// <summary>
+    /// If true, the entered value will be updated after each key press.
+    /// </summary>
+    [Parameter] public bool? Immediate { get; set; } = true;
+
+    /// <summary>
+    /// If true, the entered value will be updated after a delay.
+    /// </summary>
+    [Parameter] public bool? Debounce { get; set; }
+
+    /// <summary>
+    /// Interval in milliseconds used to debounce the text update.
+    /// </summary>
+    [Parameter] public int? DebounceInterval { get; set; } = 300;
+
+    /// <summary>
+    /// The minimum required password length. Defaults to 15 to align with current security recommendations for single-factor passwords.
+    /// </summary>
+    [Parameter] public int MinimumLength { get; set; } = 15;
+
+    /// <summary>
+    /// If true, requires at least one uppercase character.
+    /// <para>
+    /// Disabled by default to follow modern guidance that favors longer passphrases over strict composition rules.
+    /// </para>
+    /// </summary>
+    [Parameter] public bool RequireUppercase { get; set; }
+
+    /// <summary>
+    /// If true, requires at least one lowercase character.
+    /// <para>
+    /// Disabled by default to follow modern guidance that favors longer passphrases over strict composition rules.
+    /// </para>
+    /// </summary>
+    [Parameter] public bool RequireLowercase { get; set; }
+
+    /// <summary>
+    /// If true, requires at least one digit.
+    /// <para>
+    /// Disabled by default to follow modern guidance that favors longer passphrases over strict composition rules.
+    /// </para>
+    /// </summary>
+    [Parameter] public bool RequireNumber { get; set; }
+
+    /// <summary>
+    /// If true, requires at least one symbol or punctuation character.
+    /// <para>
+    /// Disabled by default to follow modern guidance that favors longer passphrases over strict composition rules.
+    /// </para>
+    /// </summary>
+    [Parameter] public bool RequireSpecialCharacter { get; set; }
+
+    /// <summary>
+    /// If true, validates the value against blocked passwords.
+    /// </summary>
+    [Parameter] public bool RequireNotCompromisedPassword { get; set; } = true;
+
+    /// <summary>
+    /// If true, includes a small default list of commonly compromised passwords in blocked checks.
+    /// </summary>
+    [Parameter] public bool UseDefaultBlockedPasswordList { get; set; } = true;
+
+    /// <summary>
+    /// Specifies additional blocked passwords used during validation.
+    /// </summary>
+    [Parameter] public IEnumerable<string> BlockedPasswords { get; set; }
+
+    /// <summary>
+    /// Occurs after strength evaluation has changed.
+    /// </summary>
+    [Parameter] public EventCallback<PasswordStrengthChangedEventArgs> StrengthChanged { get; set; }
+
+    /// <summary>
+    /// Function used to handle custom localization that will override a default <see cref="ITextLocalizer"/>.
+    /// </summary>
+    [Parameter] public TextLocalizerHandler PasswordStrengthLocalizer { get; set; }
+
+    /// <summary>
+    /// Custom CSS class names for PasswordStrength component elements.
+    /// </summary>
+    [Parameter]
+    public PasswordStrengthClasses PasswordStrengthClasses
+    {
+        get => passwordStrengthClasses;
+        set
+        {
+            if ( passwordStrengthClasses == value )
+                return;
+
+            passwordStrengthClasses = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Custom inline styles for PasswordStrength component elements.
+    /// </summary>
+    [Parameter]
+    public PasswordStrengthStyles PasswordStrengthStyles
+    {
+        get => passwordStrengthStyles;
+        set
+        {
+            if ( passwordStrengthStyles == value )
+                return;
+
+            passwordStrengthStyles = value;
+
+            DirtyStyles();
+        }
+    }
+
+    /// <summary>
+    /// Captures all the custom attributes that should be forwarded to the internal password input element.
+    /// </summary>
+    [Parameter] public Dictionary<string, object> InputAttributes { get; set; }
+
+    private Dictionary<string, object> ResolvedInputAttributes
+    {
+        get
+        {
+            if ( string.IsNullOrEmpty( ResolvedAriaRequired ) )
+                return InputAttributes;
+
+            var attributes = InputAttributes is not null
+                ? new Dictionary<string, object>( InputAttributes )
+                : new Dictionary<string, object>();
+
+            attributes["aria-required"] = ResolvedAriaRequired;
+
+            return attributes;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override string DefaultValue => string.Empty;
+
+    #endregion
+
+    #region Data Types
+
+    /// <summary>
+    /// Stores one localized rule result and its contribution to the score.
+    /// </summary>
+    protected sealed class PasswordRuleState
+    {
+        /// <summary>
+        /// Captures the resource key, result, score weight, and formatting values.
+        /// </summary>
+        public PasswordRuleState( string resourceName, bool isSatisfied, int weight, params object[] arguments )
+        {
+            ResourceName = resourceName;
+            IsSatisfied = isSatisfied;
+            Weight = weight;
+            Arguments = arguments ?? [];
+        }
+
+        /// <summary>Localization resource used for the rule text.</summary>
+        public string ResourceName { get; }
+
+        /// <summary>Whether the current password passes this rule.</summary>
+        public bool IsSatisfied { get; }
+
+        /// <summary>Points contributed when the rule is satisfied.</summary>
+        public int Weight { get; }
+
+        /// <summary>Values inserted into the localized rule text.</summary>
+        public object[] Arguments { get; }
+    }
+
+    #endregion
+}

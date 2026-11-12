@@ -1,0 +1,142 @@
+@page "/docs/components/offcanvas"
+
+<Seo Canonical="/docs/components/offcanvas" Title="Blazorise Offcanvas component" Description="Learn to use and work with the Blazorise Offcanvas component, which provides a flexible way to display content off-canvas." />
+
+<DocsPageTitle Path="Components/Offcanvas" AddedVersion="1.3" AddedDate="2023-08-06">
+    Blazorise Offcanvas component
+</DocsPageTitle>
+
+<DocsPageLead>
+    Reveal supporting content in a panel that slides in from the edge of the page.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    Use the <Code>Offcanvas</Code> component for navigation, shopping carts, filters, or details that users need alongside the current view.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    An <Code>Offcanvas</Code> panel can contain a header, body, and footer.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Offcanvas component anatomy">
+    <DocsAnatomyRegion Label="Offcanvas" Description="Controls the panel and its visibility.">
+        <DocsAnatomyRegion Label="OffcanvasHeader" Description="The heading area." />
+        <DocsAnatomyRegion Label="OffcanvasBody" Description="The main panel content." />
+        <DocsAnatomyRegion Label="OffcanvasFooter" Description="An optional area for actions or supporting information." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Start Placement">
+        The Offcanvas with the start placement appears from the beginning of the screen.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="OffcanvasStartExample" Outlined FullWidth>
+        <OffcanvasStartExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Backdrop styling">
+        <Paragraph>
+            Use <Code>Styles</Code> to customize the backdrop element when <Code>ShowBackdrop</Code> is enabled.
+        </Paragraph>
+        <Paragraph>
+            For advanced styling of the backdrop and inner elements, see the <Anchor To="docs/helpers/utilities/styling">Styling</Anchor> guide.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="OffcanvasBackdropStylingExample" Outlined FullWidth>
+        <OffcanvasBackdropStylingExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Top Placement">
+        The Offcanvas with the top placement appears from the top of the screen.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="OffcanvasTopExample" Outlined FullWidth>
+        <OffcanvasTopExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Bottom Placement">
+        The Offcanvas with the bottom placement appears from the bottom of the screen.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="OffcanvasBottomExample" Outlined FullWidth>
+        <OffcanvasBottomExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="End Placement">
+        The Offcanvas with the end placement appears from the end of the screen.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="OffcanvasEndExample" Outlined FullWidth>
+        <OffcanvasEndExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Sizes" AddedVersion="2.2" AddedDate="2026-04-23">
+        <Paragraph>
+            Use <Code>Size</Code> to apply predefined offcanvas dimensions on the active axis for the current placement.
+        </Paragraph>
+        <Paragraph>
+            Treat <Code>Placement</Code> and <Code>Size</Code> as instance configuration. When switching between horizontal and vertical placements, use separate offcanvas instances.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="OffcanvasSizeExample" Outlined FullWidth>
+        <OffcanvasSizeExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Closing">
+        If you want to prevent modal from closing you can use <Code>Closing</Code> event.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="OffcanvasClosingExample" Outlined FullWidth>
+        <OffcanvasClosingExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Footer">
+        To show a footer in the Offcanvas just add an <Code>OffcanvasFooter</Code> component.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="OffcanvasFooterExample" Outlined FullWidth>
+        <OffcanvasFooterExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Secondary Content
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Offcanvas panels suit secondary navigation and supporting tasks that should not permanently reduce the main content area. Choose placement according to reading direction and content type, and verify that the panel does not cover context users still need on smaller screens.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Focus and Stacking
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Give the panel a clear title and an obvious close action, then restore focus to the triggering control after it closes. Avoid stacking offcanvas panels or opening another blocking overlay from one unless the interaction provides a clear and predictable escape path.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/offcanvas/api" Name="<Offcanvas />" />
+</DocsPageApi>

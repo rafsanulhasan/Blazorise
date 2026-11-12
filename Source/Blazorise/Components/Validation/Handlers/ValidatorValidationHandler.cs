@@ -3,52 +3,57 @@ using System.Threading;
 using System.Threading.Tasks;
 #endregion
 
-namespace Blazorise
+namespace Blazorise;
+
+/// <summary>
+/// Default handler implementation to validate <see cref="IValidation"/> using the <see cref="ValidationRule"/> methods.
+/// </summary>
+public class ValidatorValidationHandler : IValidationHandler
 {
-    /// <summary>
-    /// Default handler implementation to validate <see cref="IValidation"/> using the <see cref="ValidationRule"/> methods.
-    /// </summary>
-    public class ValidatorValidationHandler : IValidationHandler
+    /// <inheritdoc/>
+    public void Validate( IValidation validation, object newValidationValue )
     {
-        /// <inheritdoc/>
-        public void Validate( IValidation validation, object newValidationValue )
-        {
-            validation.NotifyValidationStarted();
+        validation.NotifyValidationStarted();
 
-            var validatorEventArgs = new ValidatorEventArgs( newValidationValue );
+        var validatorEventArgs = new ValidatorEventArgs( newValidationValue );
 
+        validation.Validator?.Invoke( validatorEventArgs );
+
+        var matchMessages = GetValidationMessages( validatorEventArgs );
+
+        validation.NotifyValidationStatusChanged( validatorEventArgs.Status, matchMessages );
+    }
+
+    /// <inheritdoc/>
+    public async Task ValidateAsync( IValidation validation, object newValidationValue, CancellationToken cancellationToken = default )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        validation.NotifyValidationStarted();
+
+        var validatorEventArgs = new ValidatorEventArgs( newValidationValue );
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if ( validation.AsyncValidator is not null )
+            await validation.AsyncValidator( validatorEventArgs, cancellationToken );
+        else
             validation.Validator?.Invoke( validatorEventArgs );
 
-            var matchMessages = validatorEventArgs.Status == ValidationStatus.Error && !string.IsNullOrEmpty( validatorEventArgs.ErrorText )
-                ? new string[] { validatorEventArgs.ErrorText }
-                : null;
+        var matchMessages = GetValidationMessages( validatorEventArgs );
 
-            validation.NotifyValidationStatusChanged( validatorEventArgs.Status, matchMessages );
-        }
+        cancellationToken.ThrowIfCancellationRequested();
 
-        /// <inheritdoc/>
-        public async Task ValidateAsync( IValidation validation, object newValidationValue, CancellationToken cancellationToken = default )
+        validation.NotifyValidationStatusChanged( validatorEventArgs.Status, matchMessages );
+    }
+
+    private static string[] GetValidationMessages( ValidatorEventArgs validatorEventArgs )
+    {
+        return validatorEventArgs.Status switch
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            validation.NotifyValidationStarted();
-
-            var validatorEventArgs = new ValidatorEventArgs( newValidationValue );
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if ( validation.AsyncValidator != null )
-                await validation.AsyncValidator( validatorEventArgs, cancellationToken );
-            else
-                validation.Validator?.Invoke( validatorEventArgs );
-
-            var matchMessages = validatorEventArgs.Status == ValidationStatus.Error && !string.IsNullOrEmpty( validatorEventArgs.ErrorText )
-                ? new string[] { validatorEventArgs.ErrorText }
-                : null;
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            validation.NotifyValidationStatusChanged( validatorEventArgs.Status, matchMessages );
-        }
+            ValidationStatus.Error when !string.IsNullOrEmpty( validatorEventArgs.ErrorText ) => new string[] { validatorEventArgs.ErrorText },
+            ValidationStatus.Warning when !string.IsNullOrEmpty( validatorEventArgs.WarningText ) => new string[] { validatorEventArgs.WarningText },
+            _ => null,
+        };
     }
 }

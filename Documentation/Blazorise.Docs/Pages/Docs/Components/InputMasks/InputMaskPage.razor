@@ -1,10 +1,14 @@
-﻿@page "/docs/components/input-mask"
+@page "/docs/components/input-mask"
 
-<Seo Canonical="/docs/components/input-mask" Title="Blazorise InputMask system" Description="The InputMask helps the user with the input by ensuring a predefined format. This can be useful for dates, numerics, phone numbers, ..." />
+<Seo Canonical="/docs/components/input-mask" Title="Blazorise InputMask system" Description="Learn to use and work with the Blazorise InputMask component, that helps the user with the input by ensuring a predefined format. This can be useful for dates, numerics, phone numbers, ..." />
 
-<DocsPageTitle>
-    InputMask component
+<DocsPageTitle Path="Components/Input Mask">
+    Blazorise InputMask component
 </DocsPageTitle>
+
+<DocsPageLead>
+    Input mask allows the user to input a value in a specific format while typing.
+</DocsPageLead>
 
 <DocsPageParagraph>
     The <Code Tag>InputMask</Code> helps the user with the input by ensuring a predefined format. This can be useful for dates, numerics, phone numbers, ...
@@ -22,117 +26,71 @@
     </UnorderedListItem>
 </UnorderedList>
 
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Basic Example">
+    <DocsPageSectionHeader Title="Basic Mask">
         To start you only need to define the <Code>Mask</Code> parameter.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicInputMaskExample" Outlined FullWidth>
         <BasicInputMaskExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicInputMaskExample" />
 </DocsPageSection>
-
-<DocsPageSubtitle>
-    Default masking definitions
-</DocsPageSubtitle>
 
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Alias Example">
+    <DocsPageSectionHeader Title="With Alias">
         Instead of masking an input element, it is also possible to use the inputmask for formatting given values.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="AliasInputMaskExample" Outlined FullWidth>
         <AliasInputMaskExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="AliasInputMaskExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Other examples
+</DocsPageSectionTitle>
 
-<DocsAttributes>
-    <DocsAttributesItem Name="Value" Type="string" Default="null">
-        Input value.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ValueChanged" Type="@("EventCallback<string>")">
-        Occurs after the value has changed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Plaintext" Type="bool" Default="false">
-        Remove the default form field styling and preserve the correct margin and padding.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ReadOnly" Type="bool" Default="false">
-        Prevents modification of the input’s value.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Disabled" Type="bool" Default="false">
-        Prevents user interactions and make it appear lighter.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Placeholder" Type="string" Default="null">
-        Sets the placeholder for the empty text.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Pattern" Type="string" Default="null">
-        Specifies a regular expression that the input element’s value is checked against on form validation.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Color" Type="Color" Default="Default">
-        Component visual or contextual style variants.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Size" Type="Size" Default="Default">
-        Component size variations.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Autofocus" Type="bool" Default="false">
-        Set’s the focus to the component after the rendering is done.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ShowMaskOnFocus" Type="bool" Default="true">
-        Shows the mask when the input gets focus.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ShowMaskOnHover" Type="bool" Default="true">
-        Shows the mask when hovering the mouse.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="NumericInput" Type="bool" Default="false">
-        Numeric input direction. Keeps the caret at the end.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="RightAlign" Type="bool" Default="false">
-        Align the input to the right. By setting the rightAlign you can specify to right-align an inputmask.
-        This is only applied in combination op the numericInput option or the dir-attribute. The default is true.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="DecimalSeparator" Type="string">
-        Define the decimal separator (numeric mode only).
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="GroupSeparator" Type="string">
-        Define the group separator (numeric mode only).
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Nullable" Type="bool" Default="false">
-        Return nothing when the user hasn't entered anything.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="AutoUnmask" Type="bool" Default="false">
-        Automatically unmask the value when retrieved.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="PositionCaretOnClick" Type="InputMaskCaretPosition" Default="LastValidPosition">
-        Defines the positioning of the caret on click.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ClearMaskOnLostFocus" Type="bool" Default="true">
-        Remove the empty mask on blur or when not empty remove the optional trailing part.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="ClearIncomplete" Type="bool" Default="false">
-        Clear the incomplete input on blur.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Completed" Type="EventCallback<string>">
-        Execute a function when the mask is completed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Incompleted" Type="EventCallback<string>">
-        Execute a function when the mask is incomplete. Executes on blur.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Cleared" Type="EventCallback">
-        Execute a function when the mask is cleared.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Alias" Type="string">
-        With an alias, you can define a complex mask definition and call it by using an alias name.
-        So this is mainly to simplify the use of your masks. Some aliases found in the extensions are email,
-        currency, decimal, integer, date, DateTime, dd/mm/yyyy, etc.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="InputFormat" Type="string">
-        Defines the input format when the <Code>Alias</Code> is used.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="OutputFormat" Type="string">
-        Defines the output format of the <Code>Value</Code> when the <Code>Alias</Code> is used.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="With Placeholder">
+        You can control the placeholder that will be used for the mask. The <Code>Placeholder</Code> will be used when the mask is not defined. And the <Code>MaskPlaceholder</Code> will be used when the mask is defined for extra information to the user about the valid input format.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="InputMaskPlaceholderExample" Outlined FullWidth>
+        <InputMaskPlaceholderExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom colors" AddedVersion="2.3" AddedDate="2026-09-24">
+        Use <Code>Color</Code> to set the color variant of the input. Set <Code>TextColor</Code> independently.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="InputMaskCustomColorsExample" Outlined FullWidth>
+        <InputMaskCustomColorsExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Guide and Validate
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    A mask helps users enter a known format but does not prove that the value is valid. Show an example or persistent help message before entry, then apply the same business validation used for unmasked input.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Keep Editing Natural
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Test typing, pasting, deleting, autofill, and mobile keyboards so the mask does not make valid input harder to enter. Store a normalized value when presentation characters such as spaces or dashes are not part of the underlying data.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/input-mask/api" Name="<InputMask />" />
+</DocsPageApi>

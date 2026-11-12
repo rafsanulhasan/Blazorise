@@ -1,0 +1,5 @@
+﻿@each $name, $value in $vertical-alignments {
+    .ant-vertical-align-#{$name} {
+        vertical-align: $value !important;
+    }
+}

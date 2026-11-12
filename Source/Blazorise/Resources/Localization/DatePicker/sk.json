@@ -40,6 +40,26 @@
     "November": "November",
     "December": "December",
     "AM": "AM",
-    "PM": "PM"
+    "PM": "PM",
+    "RangeSeparator": " do ",
+    "Today": "Dnes",
+    "ThisMonth": "Tento mesiac",
+    "ThisWeek": "Tento týždeň",
+    "Clear": "Vymazať",
+    "Month": "Mesiac",
+    "Year": "Rok",
+    "Week": "Týž.",
+    "Time": "Čas",
+    "Hour": "Hodina",
+    "Minute": "Minúta",
+    "PreviousMonth": "Predchádzajúci mesiac",
+    "NextMonth": "Nasledujúci mesiac",
+    "PreviousYear": "Predchádzajúci rok",
+    "NextYear": "Nasledujúci rok",
+    "PreviousDecade": "Predchádzajúce desaťročie",
+    "NextDecade": "Nasledujúce desaťročie",
+    "PreviousCentury": "Predchádzajúce storočie",
+    "NextCentury": "Nasledujúce storočie",
+    "OrdinalDayOther": "{0}."
   }
 }

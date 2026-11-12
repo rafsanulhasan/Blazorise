@@ -1,65 +1,42 @@
-﻿#region Using directives
+#region Using directives
+using System;
 using System.Collections.Generic;
-using static Blazorise.RichTextEdit.DynamicReferenceType;
 #endregion
 
-namespace Blazorise.RichTextEdit
+namespace Blazorise.RichTextEdit;
+
+/// <summary>
+/// Blazorise RichTextEdit extension options
+/// </summary>
+public sealed class RichTextEditOptions
 {
     /// <summary>
-    /// Blazorise RichTextEdit extension options
+    /// Load the QuillJs snow theme related resources.
     /// </summary>
-    public sealed class RichTextEditOptions
-    {
-        private List<DynamicReference> dynamicReferences;
+    public bool UseSnowTheme { get; set; } = true;
 
-        /// <summary>
-        /// Load the QuillJs snow theme related resources
-        /// </summary>
-        public bool UseShowTheme { get; set; } = true;
+    /// <summary>
+    /// Load the QuillJs bubble theme related resources.
+    /// </summary>
+    public bool UseBubbleTheme { get; set; }
 
-        /// <summary>
-        /// Load the QuillJs bubble theme related resources
-        /// </summary>
-        public bool UseBubbleTheme { get; set; }
+    /// <summary>
+    /// If true enables the QuillJs table module. Please be aware that this module is not part of the core QuillJs library, and it is still experimental.
+    /// </summary>
+    public bool UseTables { get; set; }
 
-        /// <summary>
-        /// The QuillJs version to load
-        /// </summary>
-        public string QuillJsVersion { get; set; } = "1.3.7";
+    /// <summary>
+    /// If true enables sanitized paste support powered by the quill-paste-smart clipboard module.
+    /// </summary>
+    public bool UseSanitizedPaste { get; set; }
 
-        /// <summary>
-        /// Load the RichTextEdit scripts and stylesheets on demand.
-        /// </summary>
-        public bool DynamicallyLoadReferences { get; set; } = true;
+    /// <summary>
+    /// Options used to configure sanitized paste behavior.
+    /// </summary>
+    public RichTextEditSanitizedPasteOptions SanitizedPasteOptions { get; set; } = new();
 
-        /// <summary>
-        /// Dynamic references to be loaded when initializing the RichTextEdit component.
-        /// </summary>
-        public List<DynamicReference> DynamicReferences
-        {
-            get => dynamicReferences ?? GetDefaultReferences();
-            set => dynamicReferences = value;
-        }
-
-        private List<DynamicReference> GetDefaultReferences()
-        {
-            List<DynamicReference> references = new()
-            {
-                new( $@"https://cdn.quilljs.com/{QuillJsVersion}/quill.js", Script ),
-                new( @"_content/Blazorise.RichTextEdit/blazorise.richtextedit.bundle.scp.css", Stylesheet )
-            };
-
-            if ( UseBubbleTheme )
-            {
-                references.Add( new( $@"https://cdn.quilljs.com/{QuillJsVersion}/quill.bubble.css", Stylesheet ) );
-            }
-
-            if ( UseShowTheme )
-            {
-                references.Add( new( $@"https://cdn.quilljs.com/{QuillJsVersion}/quill.snow.css", Stylesheet ) );
-            }
-
-            return references;
-        }
-    }
+    /// <summary>
+    /// If true enables the QuillJs image resize module. Please be aware that this module is not part of the core QuillJs library, and it is still experimental.
+    /// </summary>
+    public bool UseResize { get; set; }
 }

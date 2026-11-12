@@ -1,40 +1,88 @@
-﻿@page "/docs/components/tooltip"
+@page "/docs/components/tooltip"
 
-<Seo Canonical="/docs/components/tooltip" Title="Blazorise Tooltip Component" Description="The Tooltip component is useful for conveying information when a user hovers over an element." />
+<Seo Canonical="/docs/components/tooltip" Title="Blazorise Tooltip Component" Description="Learn to use and work with the Blazorise Tooltip component, which is useful for conveying information when a user hovers, focuses, or taps on an element." />
 
-<DocsPageTitle>
-    Tooltip component
+<DocsPageTitle Path="Components/Tooltip">
+    Blazorise Tooltip component
 </DocsPageTitle>
 
-<DocsPageParagraph>
-    The <Code Tag>Tooltip</Code> component is useful for conveying information when a user hovers over an element. When activated,
-    tooltips display a text label identifying an element, such as a description of its function.
-</DocsPageParagraph>
+<DocsPageLead>
+    Display short, contextual hints on hover, focus, or tap.
+</DocsPageLead>
 
 <DocsPageParagraph>
-    <Alert Color="Color.Info" Visible>
-        <AlertDescription>
-            Starting with <Strong>v0.9.4</Strong>, Tooltip component is powered by <Blazorise.Link To="https://atomiks.github.io/tippyjs/" Target="Target.Blank">Tippy.js.</Blazorise.Link>
-        </AlertDescription>
-    </Alert>
+    Use the <Code Tag>Tooltip</Code> component to provide extra context without taking up permanent space in the UI.
+    Tooltips are a good fit for icons, buttons, and truncated text that needs a full-value preview.
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Overview
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    <UnorderedList>
+        <UnorderedListItem>
+            <Paragraph><Code>Text</Code> sets the tooltip content.</Paragraph>
+        </UnorderedListItem>
+        <UnorderedListItem>
+            <Paragraph><Code>TooltipContent</Code> renders custom Blazor content and takes precedence over <Code>Text</Code>.</Paragraph>
+        </UnorderedListItem>
+        <UnorderedListItem>
+            <Paragraph><Code>Placement</Code> controls where the tooltip appears relative to its target.</Paragraph>
+        </UnorderedListItem>
+        <UnorderedListItem>
+            <Paragraph><Code>Trigger</Code> controls which events show the tooltip (hover/focus/click).</Paragraph>
+        </UnorderedListItem>
+        <UnorderedListItem>
+            <Paragraph><Code>Multiline</Code> allows long tooltip text to wrap.</Paragraph>
+        </UnorderedListItem>
+        <UnorderedListItem>
+            <Paragraph><Code>ShowDelay</Code> and <Code>HideDelay</Code> delay showing and hiding (in milliseconds).</Paragraph>
+        </UnorderedListItem>
+        <UnorderedListItem>
+            <Paragraph><Code>Animation</Code> selects a provider-aware show and hide effect.</Paragraph>
+        </UnorderedListItem>
+        <UnorderedListItem>
+            <Paragraph>When <Code>Inline</Code> is omitted, the CSS provider automatically selects inline-block layout for its supported targets. Set <Code>Inline="true"</Code> to force inline-block layout or <Code>Inline="false"</Code> to force block layout.</Paragraph>
+        </UnorderedListItem>
+        <UnorderedListItem>
+            <Paragraph><Code>TriggerTargetId</Code> applies trigger event listeners to a different element than the tooltip target.</Paragraph>
+        </UnorderedListItem>
+    </UnorderedList>
+</DocsPageParagraph>
+
+<Alert Color="Color.Warning" Visible>
+    <AlertDescription>
+        <Strong>Text truncation:</Strong> if you use <Code>TextOverflow.Truncate</Code> on the tooltip target and it renders as an inline element (e.g. <Code Tag>Text</Code>, <Code Tag>Span</Code>, or <Code Tag>span</Code>), set it to <Code>display: inline-block</Code> (or <Code>block</Code>) and apply a width (for example via <Code>max-width</Code>).
+    </AlertDescription>
+</Alert>
+
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic">
+        Wrap any element with a <Code Tag>Tooltip</Code> and set its <Code>Text</Code>.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicTooltipExample" Outlined FullWidth>
         <BasicTooltipExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicTooltipExample" />
 </DocsPageSection>
 
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Positions">
-        You can use one of the following modifiers to change positions of the tooltip:
+    <DocsPageSectionHeader Title="Text truncation">
+        Truncate the visible target text, and show the full value on hover via the tooltip.
+        <Code>TextOverflow.Truncate</Code> requires the target element to have a width, so make it <Code>Display.InlineBlock</Code> (or apply <Code>style="display: inline-block;"</Code>).
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="TooltipTextTruncateExample" Outlined FullWidth>
+        <TooltipTextTruncateExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Placement">
+        Use the <Code>Placement</Code> parameter to change where the tooltip appears:
         <UnorderedList>
             <UnorderedListItem>
                 Top
@@ -50,52 +98,76 @@
             </UnorderedListItem>
         </UnorderedList>
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="TooltipPositionsExample" Outlined FullWidth>
         <TooltipPositionsExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="TooltipPositionsExample" />
 </DocsPageSection>
 
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Different trigger target">
-        You may want the tooltip to appear at a different location from its trigger (event listeners) target.
+    <DocsPageSectionHeader Title="Trigger target">
+        Use <Code>TriggerTargetId</Code> when the tooltip should be positioned relative to one element, but triggered by another.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="TooltipTriggerTargetExample" Outlined FullWidth>
         <TooltipTriggerTargetExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="TooltipTriggerTargetExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="HTML content">
+        <Code>Text</Code> can contain HTML markup. Only use this with trusted strings (or sanitize user-provided content).
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="TooltipWithHtmlExample" Outlined FullWidth>
+        <TooltipWithHtmlExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
 
-<DocsAttributes>
-    <DocsAttributesItem Name="Text" Type="string" Default="null">
-        Content displayed in the tooltip.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Placement" Type="TooltipPlacement" Default="Top">
-        Position of the tooltip relative to it’s component.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Multiline" Type="bool" Default="false">
-        Force the multiline display.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="AlwaysActive" Type="bool" Default="false">
-        Always show tooltip, instead of just when hovering over the element.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Inline" Type="bool" Default="false">
-        Force inline block instead of trying to detect the element block.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Fade" Type="bool" Default="false">
-        Controls the fade effect.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="FadeDuration" Type="int" Default="300">
-        Duration in ms of the fade transition animation.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Trigger" Type="TooltipTrigger" Default="MouseEnterFocus">
-        Determines the events that cause the tooltip to show.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="TriggerTargetId" Type="string" Default="null">
-        Which element the trigger event listeners are applied to (instead of the reference element).
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Rich content">
+        Use <Code>TooltipContent</Code> to compose tooltip content with Blazorise typography components and utility parameters. The wrapped <Code>ChildContent</Code> remains the tooltip target.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="TooltipRichContentExample" Outlined FullWidth>
+        <TooltipRichContentExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Delay">
+        Control how quickly the tooltip shows and hides after the trigger event (in milliseconds).
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="TooltipDelayExample" Outlined FullWidth>
+        <TooltipDelayExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Animation">
+        Use <Code>Animation</Code> to choose a fade, scale, directional shift, or blur effect. Combine effects with the bitwise OR operator. <Code>TooltipAnimation.Auto</Code> follows the active provider's preferred tooltip motion and takes precedence over combined effects.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="TooltipAnimationExample" Outlined FullWidth>
+        <TooltipAnimationExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Essential Information
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    A tooltip should contain brief supplementary information rather than essential instructions or validation feedback. Write concise text that adds useful context instead of repeating the trigger's visible label.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Input Methods
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Keyboard focus should reveal the same tooltip as pointer hover, and users should not need to interact with controls inside it. Touch-only experiences cannot depend on hover, so provide a visible label or help control whenever the information is needed there.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/tooltip/api" Name="<Tooltip />" />
+</DocsPageApi>

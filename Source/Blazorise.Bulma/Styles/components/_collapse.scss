@@ -1,0 +1,91 @@
+﻿.collapse {
+    &:not(.is-block) {
+        display: none;
+    }
+}
+
+.collapse,
+.card > .is-clipped {
+    transition: height var(--bulma-duration, #{$duration}) var(--bulma-easing, #{$easing});
+
+    @media (prefers-reduced-motion: reduce) {
+        transition-duration: 0s;
+    }
+}
+
+.accordion {
+    > .card {
+        overflow: hidden;
+
+        &:not(:first-of-type) {
+            .card-header:first-child {
+                border-radius: 0;
+            }
+
+            &:not(:last-of-type) {
+                border-bottom: 0;
+                border-radius: 0;
+            }
+        }
+
+        &:first-of-type:not(:last-of-type) {
+            border-bottom: 0;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        &:last-of-type {
+            border-top-left-radius: 0;
+        }
+
+        .card-header {
+            margin-bottom: 1px;
+
+            .title {
+                width: 100%;
+            }
+
+            .accordion-toggle {
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 0.75rem;
+                position: relative;
+            }
+        }
+    }
+}
+
+.accordion[data-animation-duration] > .card {
+    &,
+    > .collapse,
+    > .is-clipped,
+    > .collapse > .card-content,
+    > .is-clipped > .card-content,
+    > .card-header,
+    > .card-header .accordion-toggle,
+    > .card-header .accordion-toggle::after {
+        transition-duration: var(--bulma-accordion-animation-duration);
+        transition-delay: 0s;
+
+        @media (prefers-reduced-motion: reduce) {
+            transition-duration: 0s;
+        }
+    }
+}
+
+.card[data-animation-duration] {
+    > .collapse,
+    > .is-clipped,
+    > .collapse > .card-content,
+    > .is-clipped > .card-content,
+    > .card-header {
+        transition-duration: var(--bulma-collapse-animation-duration);
+        transition-delay: 0s;
+
+        @media (prefers-reduced-motion: reduce) {
+            transition-duration: 0s;
+        }
+    }
+}

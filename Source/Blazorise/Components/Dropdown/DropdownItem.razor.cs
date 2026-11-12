@@ -1,113 +1,227 @@
-﻿#region Using directives
+#region Using directives
+using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Blazorise.Extensions;
 using Blazorise.Utilities;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 #endregion
 
-namespace Blazorise
+namespace Blazorise;
+
+/// <summary>
+/// A menu item for the <see cref="DropdownMenu"/> component.
+/// </summary>
+public partial class DropdownItem : BaseComponent
 {
+    #region Members
+
+    private bool active;
+
+    private bool disabled;
+
+    private string ariaLabelledBy;
+
     /// <summary>
-    /// A menu item for the <see cref="DropdownMenu"/> component.
+    /// Internal Checked Value
     /// </summary>
-    public partial class DropdownItem : BaseComponent
+    protected bool @checked;
+
+    /// <summary>
+    /// Internal Checked Expression
+    /// </summary>
+    protected Expression<Func<bool>> checkedExpression => () => @checked;
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
     {
-        #region Members
+        ariaLabelledBy = $"lbl_{IdGenerator.Generate}";
 
-        private bool active;
-
-        private bool disabled;
-
-        #endregion
-
-        #region Methods
-
-        /// <inheritdoc/>
-        protected override void BuildClasses( ClassBuilder builder )
-        {
-            builder.Append( ClassProvider.DropdownItem() );
-            builder.Append( ClassProvider.DropdownItemActive( Active ) );
-            builder.Append( ClassProvider.DropdownItemDisabled( Disabled ) );
-
-            base.BuildClasses( builder );
-        }
-
-        /// <summary>
-        /// Handles the onclick event, if not disabled.
-        /// </summary>
-        /// <returns></returns>
-        protected async Task ClickHandler()
-        {
-            if ( !Disabled )
-            {
-                if ( ParentDropdown is not null )
-                {
-                    if ( !ParentDropdown.WasJustToggled )
-                        await ParentDropdown.Hide( true );
-                }
-                await Clicked.InvokeAsync( Value );
-            }
-        }
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Holds the item value.
-        /// </summary>
-        [Parameter] public object Value { get; set; }
-
-        /// <summary>
-        /// Indicate the currently active item.
-        /// </summary>
-        [Parameter]
-        public bool Active
-        {
-            get => active;
-            set
-            {
-                if ( active == value )
-                    return;
-
-                active = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Indicate the currently disabled item.
-        /// </summary>
-        [Parameter]
-        public bool Disabled
-        {
-            get => disabled;
-            set
-            {
-                if ( disabled == value )
-                    return;
-
-                disabled = value;
-
-                DirtyClasses();
-            }
-        }
-
-        /// <summary>
-        /// Occurs when the item is clicked.
-        /// </summary>
-        [Parameter] public EventCallback<object> Clicked { get; set; }
-
-        /// <summary>
-        /// Specifies the content to be rendered inside this <see cref="DropdownItem"/>.
-        /// </summary>
-        [Parameter] public RenderFragment ChildContent { get; set; }
-
-        /// <summary>
-        /// Gets or sets the reference to the parent dropdown.
-        /// </summary>
-        [CascadingParameter] protected Dropdown ParentDropdown { get; set; }
-
-        #endregion
+        base.OnInitialized();
     }
+
+    /// <inheritdoc/>
+    public override Task SetParametersAsync( ParameterView parameters )
+    {
+        if ( parameters.TryGetValue<bool>( nameof( Checked ), out var paramChecked ) && !paramChecked.IsEqual( @checked ) )
+        {
+            @checked = paramChecked;
+        }
+
+        return base.SetParametersAsync( parameters );
+    }
+
+    /// <inheritdoc/>
+    protected override void BuildClasses( ClassBuilder builder )
+    {
+        builder.Append( ClassProvider.DropdownItem() );
+        builder.Append( ClassProvider.DropdownItemActive( Active ) );
+        builder.Append( ClassProvider.DropdownItemDisabled( Disabled ) );
+
+        base.BuildClasses( builder );
+    }
+
+    /// <summary>
+    /// Handles the onclick event, if not disabled.
+    /// </summary>
+    /// <returns></returns>
+    protected async Task ClickHandler()
+    {
+        if ( Disabled )
+            return;
+
+        if ( ParentDropdown is not null )
+        {
+            if ( !ParentDropdown.WasJustToggled && !ShowCheckbox )
+                await ParentDropdown.Hide( CloseParentDropdowns );
+        }
+
+        if ( ShowCheckbox )
+        {
+            await CheckedChangedHandler( !@checked );
+        }
+
+        await Clicked.InvokeAsync( Value );
+    }
+
+    /// <summary>
+    /// Handles keyboard activation for menu items.
+    /// </summary>
+    /// <param name="eventArgs">Information about the keyboard event.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    protected Task KeyDownHandler( KeyboardEventArgs eventArgs )
+    {
+        if ( eventArgs.Key == "Enter" || eventArgs.Key == "NumpadEnter" )
+            return ClickHandler();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Handles the oncheck event, if not disabled.
+    /// </summary>
+    /// <param name="isChecked"></param>
+    /// <returns></returns>
+    protected async Task CheckedChangedHandler( bool isChecked )
+    {
+        if ( !Disabled )
+        {
+            @checked = isChecked;
+            await CheckedChanged.InvokeAsync( isChecked );
+        }
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Gets the aria-disabled attribute value.
+    /// </summary>
+    protected string AriaDisabled => Disabled ? "true" : "false";
+
+    /// <summary>
+    /// Gets the aria-labelledby value that references the item text.
+    /// </summary>
+    protected string AriaLabelledBy => ariaLabelledBy;
+
+    /// <summary>
+    /// Gets the tabindex value for keyboard navigation.
+    /// </summary>
+    protected int ComputedTabIndex => Disabled ? -1 : TabIndex ?? 0;
+
+    /// <summary>
+    /// Holds the item value.
+    /// </summary>
+    [Parameter] public object Value { get; set; }
+
+    /// <summary>
+    /// Specifies the tabindex value for keyboard navigation. Defaults to <c>0</c>.
+    /// </summary>
+    /// <remarks>When omitted, uses 0 when enabled. Disabled items always use -1.</remarks>
+    [Parameter] public int? TabIndex { get; set; }
+
+    /// <summary>
+    /// Indicate the currently active item.
+    /// </summary>
+    [Parameter]
+    public bool Active
+    {
+        get => active;
+        set
+        {
+            if ( active == value )
+                return;
+
+            active = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Indicate the currently disabled item.
+    /// </summary>
+    [Parameter]
+    public bool Disabled
+    {
+        get => disabled;
+        set
+        {
+            if ( disabled == value )
+                return;
+
+            disabled = value;
+
+            DirtyClasses();
+        }
+    }
+
+    /// <summary>
+    /// Notifies when the item is clicked.
+    /// </summary>
+    [Parameter] public EventCallback<object> Clicked { get; set; }
+
+    /// <summary>
+    /// Specifies the content to be rendered inside this <see cref="DropdownItem"/>.
+    /// </summary>
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    /// <summary>
+    /// Provides the reference to the parent dropdown.
+    /// </summary>
+    [CascadingParameter] protected Dropdown ParentDropdown { get; set; }
+
+    /// <summary>
+    /// The dropdown renders a checkbox.
+    /// </summary>
+    [Parameter] public bool ShowCheckbox { get; set; }
+
+    /// <summary>
+    /// Tracks the Checked state whenever the DropdownItem is in checkbox mode.
+    /// </summary>
+    [Parameter] public bool Checked { get; set; }
+
+    /// <summary>
+    /// Displays a partial selection indicator when <see cref="ShowCheckbox"/> is enabled.
+    /// This does not change <see cref="Checked"/>; update it when the related selections change.
+    /// </summary>
+    [Parameter] public bool Indeterminate { get; set; }
+
+    /// <summary>
+    /// Occurs after the Checked state is changed, whenever the DropdownItem is in checkbox mode.
+    /// </summary>
+    [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+
+    /// <summary>
+    /// Specifies whether clicking this item should close the entire dropdown hierarchy or only the current dropdown.
+    /// </summary>
+    [Parameter] public bool CloseParentDropdowns { get; set; } = true;
+
+    #endregion
 }

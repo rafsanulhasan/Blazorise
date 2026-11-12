@@ -1,62 +1,116 @@
-﻿@page "/docs/components/accordion"
+@page "/docs/components/accordion"
 
-<Seo Canonical="/docs/components/accordion" Title="Blazorise Accordion component" Description="A content area which can be collapsed and expanded." />
+<Seo Canonical="/docs/components/accordion" Title="Blazorise Accordion component" Description="Organize related content into expandable sections with the Blazorise Accordion component. Explore its structure, examples, and expansion behavior." />
 
-<DocsPageTitle>
-    Accordion component
+<DocsPageTitle Path="Components/Accordion">
+    Blazorise Accordion component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Organize related content into expandable sections to keep pages easier to scan.
+</DocsPageLead>
+
+<DocsPageSectionTitle>
+    Overview
+</DocsPageSectionTitle>
+
 <DocsPageParagraph>
-    A content area which can be collapsed and expanded.
+    Use the <Code>Accordion</Code> component for FAQs, grouped settings, and supporting details that users can explore as needed.
+    Section headings stay visible, helping users find a topic before expanding its content.
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Structure
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageParagraph>
-    The <Code>Accordion</Code> and <Code>Collapse</Code> structure is very simple:
+    An <Code>Accordion</Code> groups expandable items. Each item has an always-visible header containing a toggle and a body for its collapsible content.
 </DocsPageParagraph>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>Accordion</Code> the main container
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>Collapse</Code> defines an collapsible element - controls the <Code>Visible</Code> state.
-                <UnorderedList>
-                    <UnorderedListItem>
-                        <Code Tag>CollapseHeader</Code> the header that will always be shown - this is where you would put a toggle element (such as a <Code>Button</Code>).
-                    </UnorderedListItem>
-                    <UnorderedListItem>
-                        <Code Tag>CollapseBody</Code> the main content that will be toggled.
-                    </UnorderedListItem>
-                </UnorderedList>
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsAnatomy Label="Accordion component anatomy">
+    <DocsAnatomyRegion Label="Accordion" Description="Groups the items.">
+        <DocsAnatomyRegion Label="AccordionItem" Description="One expandable section.">
+            <DocsAnatomyRegion Label="AccordionHeader" Description="Remains visible when the item is collapsed.">
+                <DocsAnatomyRegion Label="AccordionToggle" Description="Expands or collapses the item." />
+            </DocsAnatomyRegion>
+            <DocsAnatomyRegion Label="AccordionBody" Description="Contains the collapsible content." />
+        </DocsAnatomyRegion>
+    </DocsAnatomyRegion>
+</DocsAnatomy>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Basic">
-        Here is an example of how to use the Accordion with the Collapse components.
+    <DocsPageSectionHeader Title="Default accordion">
+        <Paragraph>
+            Use the <Code>@@bind-Visible</Code> parameter to properly keep previously opened accordion elements unchanged.
+        </Paragraph>
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicAccordionExample" Outlined FullWidth>
         <BasicAccordionExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicAccordionExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<Paragraph>
+    <Alert Color="Color.Warning" Visible>
+        <AlertMessage>
+            Please note the changes starting from version 2.0:
+        </AlertMessage>
+        <AlertDescription>
+            <UnorderedList>
+                <UnorderedListItem>
+                    <Strong>Support removed in version 2.0:</Strong> Placing a regular <Anchor To="docs/components/button">Button</Anchor> component inside of Accordion is no longer supported as of version 2.0. It should be replaced with the new <Code Tag>AccordionToggle</Code> component.
+                </UnorderedListItem>
+                <UnorderedListItem>
+                    <Strong>Support removed in version 2.0:</Strong> Placing a regular <Code Tag>Collapse</Code> component inside of Accordion is no longer supported as of version 2.0. It should be replaced with the new <Code Tag>AccordionHeader</Code>, <Code Tag>AccordionBody</Code>, and <Code Tag>AccordionItem</Code> components.
+                </UnorderedListItem>
+            </UnorderedList>
+        </AlertDescription>
+    </Alert>
+</Paragraph>
 
-<DocsAttributes Title="Collapse">
-    <DocsAttributesItem Name="Visible" Type="bool" Default="false">
-        Defines the collapse visibility.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Animation">
+        <Paragraph>
+            Set <Code>Animated="false"</Code> for immediate transitions, or use <Code>AnimationDuration</Code> to adjust their duration in milliseconds.
+            A duration of zero or less disables transitions. Leaving the duration unset preserves the selected CSS provider's timing.
+        </Paragraph>
+        <Paragraph>
+            These settings control panel and toggle transitions where supported. Bootstrap 4 and Bootstrap 5 animate panel expansion and collapse, using a default duration of 350 milliseconds.
+            The controls apply to this accordion; nested components keep their own settings.
+        </Paragraph>
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="AccordionAnimationExample" Outlined FullWidth>
+        <AccordionAnimationExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Write Clear Headers
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Use short, descriptive headers so users can predict what each section contains before opening it. Keep the number of sections manageable, and split long or unrelated content into separate pages when the accordion becomes difficult to scan.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Expansion Behavior
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Allow multiple items to stay open when users need to compare information. Single-item expansion works better when the sections form a focused sequence. Essential instructions and error messages should remain visible instead of being hidden inside a collapsed item.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/accordion/api" Name="<Accordion />" />
+    <DocsPageApiItem Url="docs/components/accordion/api" Name="<AccordionToggle />" />
+    <DocsPageApiItem Url="docs/components/accordion/api" Name="<AccordionItem />" />
+    <DocsPageApiItem Url="docs/components/accordion/api" Name="<AccordionHeader />" />
+    <DocsPageApiItem Url="docs/components/accordion/api" Name="<AccordionBody />" />
+</DocsPageApi>

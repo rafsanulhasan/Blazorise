@@ -1,0 +1,172 @@
+@mixin color-picker-size($name, $font-size, $height) {
+    &.ant-input-#{$name} {
+        height: $height;
+        min-height: $height;
+        font-size: $font-size;
+
+        .ant-color-picker-color-block {
+            width: calc(#{$height} - var(--ant-padding-xs));
+            height: calc(#{$height} - var(--ant-padding-xs));
+        }
+
+        .ant-color-picker-trigger-text {
+            font-size: $font-size;
+        }
+
+        &.ant-input-color-picker:is([data-show-value='false'], :not([data-color]), [data-color=''], [data-color='null']) {
+            width: $height;
+            min-width: $height;
+        }
+    }
+}
+
+.ant-color-input,
+.ant-input-color-picker.ant-color-picker-trigger {
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: auto;
+    min-height: var(--ant-control-height);
+    margin: 0;
+    padding: calc(var(--ant-padding-xxs) - var(--ant-line-width));
+    vertical-align: top;
+    background: var(--ant-color-bg-elevated);
+    border: var(--ant-line-width) solid var(--ant-color-border);
+    border-radius: var(--ant-border-radius);
+    cursor: pointer;
+    transition: all var(--ant-motion-duration-mid);
+
+    .ant-color-picker-color-block,
+    .ant-color-picker-color-block-inner {
+        display: block;
+        box-sizing: border-box;
+    }
+
+    .ant-color-picker-color-block {
+        width: var(--ant-control-height-sm);
+        height: var(--ant-control-height-sm);
+        border-radius: var(--ant-border-radius-sm);
+        box-shadow: inset 0 0 1px 0 var(--ant-color-text-quaternary);
+        flex: none;
+        background-image: conic-gradient(var(--ant-color-fill-secondary) 25%, transparent 25% 50%, var(--ant-color-fill-secondary) 50% 75%, transparent 75% 100%);
+        background-size: 50% 50%;
+    }
+
+    .ant-color-picker-color-block-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        box-shadow: inset 0 0 0 var(--ant-line-width) var(--ant-color-fill-secondary);
+    }
+
+    .ant-color-picker-trigger-text {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-inline-start: var(--ant-margin-xs);
+        margin-inline-end: calc(var(--ant-margin-xs) - (var(--ant-padding-xxs) - var(--ant-line-width)));
+        font-size: var(--ant-font-size);
+        line-height: var(--ant-line-height);
+        color: var(--ant-color-text);
+        align-self: center;
+        white-space: nowrap;
+    }
+
+    .ant-color-input-native {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: inherit;
+        border: 0;
+        padding: 0;
+        margin: 0;
+    }
+
+    &:hover {
+        border-color: var(--ant-color-primary-hover);
+    }
+
+    &:focus-within {
+        border-color: var(--ant-color-primary);
+        box-shadow: 0 0 0 var(--ant-control-outline-width) var(--ant-control-outline);
+        outline: 0;
+    }
+
+    .ant-input-color-picker-preview {
+        position: static;
+        z-index: auto;
+        width: auto;
+        max-width: 100%;
+        min-width: 0;
+        height: auto;
+        display: inline-flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    .ant-input-color-picker-preview::before {
+        display: none;
+        content: none;
+    }
+
+    .ant-input-color-picker-current-color {
+        display: block;
+        box-sizing: border-box;
+        flex: none;
+        background-image: conic-gradient(var(--ant-color-fill-secondary) 25%, transparent 25% 50%, var(--ant-color-fill-secondary) 50% 75%, transparent 75% 100%);
+        background-size: 50% 50%;
+        box-shadow: inset 0 0 0 var(--ant-line-width) var(--ant-color-fill-secondary), inset 0 0 1px 0 var(--ant-color-text-quaternary);
+    }
+
+    .ant-input-color-picker-current-value:empty {
+        display: none;
+    }
+
+    &.ant-input-color-picker[data-show-value='false'] {
+        .ant-input-color-picker-current-value {
+            display: none;
+        }
+    }
+
+    &.ant-input-color-picker[data-show-value='false'],
+    &.ant-input-color-picker:not([data-color]),
+    &.ant-input-color-picker[data-color=''],
+    &.ant-input-color-picker[data-color='null'] {
+        width: var(--ant-control-height);
+        min-width: var(--ant-control-height);
+    }
+
+    &.ant-color-picker-trigger-disabled {
+        background: var(--ant-color-bg-container-disabled);
+        border-color: var(--ant-color-border);
+        cursor: not-allowed;
+    }
+
+    &.ant-color-picker-trigger-disabled .ant-color-picker-trigger-text {
+        color: var(--ant-color-text-disabled);
+    }
+
+    &.ant-color-picker-trigger-disabled .ant-color-input-native {
+        cursor: not-allowed;
+    }
+
+    @each $name, $sizes in $color-picker-sizes {
+        @include color-picker-size($name, nth($sizes, 1), nth($sizes, 2));
+    }
+
+    &.ant-input-color-picker[data-custom-preview='true'] {
+        width: auto;
+        min-width: 0;
+        height: auto;
+        align-items: center;
+
+        > .ant-input-color-picker-preview {
+            align-items: center;
+        }
+    }
+}

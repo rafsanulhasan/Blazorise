@@ -1,56 +1,10 @@
-﻿$white: #fff !default;
-$gray-100: #f8f9fa !default;
-$gray-200: #e9ecef !default;
-$gray-300: #dee2e6 !default;
-$gray-400: #ced4da !default;
-$gray-500: #adb5bd !default;
-$gray-600: #6c757d !default;
-$gray-700: #495057 !default;
-$gray-800: #343a40 !default;
-$gray-900: #212529 !default;
-$black: #000 !default;
+:root {
+    --b-bar-horizontal-height: 60px;
+}
 
-$grays: () !default;
-$grays: map-merge( ( "100": $gray-100, "200": $gray-200, "300": $gray-300, "400": $gray-400, "500": $gray-500, "600": $gray-600, "700": $gray-700, "800": $gray-800, "900": $gray-900 ), $grays );
-
-$blue: #007bff !default;
-$indigo: #6610f2 !default;
-$purple: #6f42c1 !default;
-$pink: #e83e8c !default;
-$red: #dc3545 !default;
-$orange: #fd7e14 !default;
-$yellow: #ffc107 !default;
-$green: #28a745 !default;
-$teal: #20c997 !default;
-$cyan: #17a2b8 !default;
-
-$colors: () !default;
-$colors: map-merge( ( "blue": $blue, "indigo": $indigo, "purple": $purple, "pink": $pink, "red": $red, "orange": $orange, "yellow": $yellow, "green": $green, "teal": $teal, "cyan": $cyan, "white": $white, "gray": $gray-600, "gray-dark": $gray-800 ), $colors );
-
-
-$primary: #007bff !default;
-$secondary: #6c757d !default;
-$success: #28a745 !default;
-$info: #17a2b8 !default;
-$warning: #ffc107 !default;
-$danger: #dc3545 !default;
-$light: #f8f9fa !default;
-$dark: #343a40 !default;
 $link: #3273dc !default;
 
-$theme-colors: ( "primary": $primary, "secondary": $secondary, "success": $success, "info": $info, "warning": $warning, "danger": $danger, "light": $light, "dark": $dark, "link":$link);
-
-// Set a specific jump point for requesting color jumps
-$theme-color-interval: 8% !default;
-
-$text-light: #fff !default;
-$text-dark: #212529 !default;
-
-$yiq-text-light: $text-light !default;
-$yiq-text-dark: $text-dark !default;
-
-// The yiq lightness value that determines when the lightness of color changes from "dark" to "light". Acceptable values are between 0 and 255.
-$yiq-contrasted-threshold: 150 !default;
+$theme-colors: map-merge($theme-colors, ("link": $link));
 
 $figure-dimensions: 16 24 32 48 64 96 128 256 512 !default;
 
@@ -62,14 +16,7 @@ $spacers: map-merge( ( 0: 0, 1: ($spacer * .25), 2: ($spacer * .5), 3: $spacer, 
 // This variable affects the `.h-*` and `.w-*` classes.
 $sizes: () !default;
 // stylelint-disable-next-line scss/dollar-variable-default
-$sizes: map-merge( ( 25: 25%, 50: 50%, 75: 75%, 100: 100%, auto: auto ), $sizes );
-
-
-// Body
-//
-// Settings for the `<body>` element.
-$body-bg: $white !default;
-$body-color: $gray-900 !default;
+$sizes: map-merge( ( 25: 25%, 33: 33.333333%, 50: 50%, 66: 66.666667%, 75: 75%, 100: 100%, auto: auto ), $sizes );
 
 // Links
 //
@@ -103,7 +50,8 @@ $container-max-widths: ( sm: 540px, md: 720px, lg: 960px, xl: 1140px ) !default;
 //
 // Set the number of columns and specify the width of the gutters.
 $grid-columns: 12 !default;
-$grid-gutter-width: 30px !default;
+$grid-rows: 6 !default;
+$grid-gutter-width: 1.5rem !default;
 $grid-row-columns: 6 !default;
 
 // Components
@@ -319,9 +267,9 @@ $btn-block-spacing-y: .5rem !default;
 $btn-border-radius: $border-radius !default;
 $btn-border-radius-xs: $border-radius-xs !default;
 $btn-border-radius-sm: $border-radius-sm !default;
-$btn-border-radius-md: $border-radius-md !default;
+$btn-border-radius-md: $btn-border-radius !default;
 $btn-border-radius-lg: $border-radius-lg !default;
-$btn-border-radius-xl: $border-radius-xl !default;
+$btn-border-radius-xl: $btn-border-radius-lg !default;
 
 $btn-transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out !default;
 
@@ -372,9 +320,9 @@ $input-box-shadow: inset 0 1px 1px rgba($black, .075) !default;
 $input-border-radius: $border-radius !default;
 $input-border-radius-xs: $border-radius-xs !default;
 $input-border-radius-sm: $border-radius-sm !default;
-$input-border-radius-md: $border-radius-md !default;
+$input-border-radius-md: $input-border-radius !default;
 $input-border-radius-lg: $border-radius-lg !default;
-$input-border-radius-xl: $border-radius-xl !default;
+$input-border-radius-xl: $input-border-radius-lg !default;
 
 $input-focus-bg: $input-bg !default;
 $input-focus-border-color: lighten($component-active-bg, 25%) !default;
@@ -460,10 +408,6 @@ $custom-checkbox-indicator-indeterminate-border-color: $custom-checkbox-indicato
 
 $custom-radio-indicator-border-radius: 50% !default;
 $custom-radio-indicator-icon-checked: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='-4 -4 8 8'><circle r='3' fill='#{$custom-control-indicator-checked-color}'/></svg>") !default;
-
-$custom-switch-width: $custom-control-indicator-size * 1.75 !default;
-$custom-switch-indicator-border-radius: $custom-control-indicator-size / 2 !default;
-$custom-switch-indicator-size: subtract($custom-control-indicator-size, $custom-control-indicator-border-width * 4) !default;
 
 $custom-select-padding-y: $input-padding-y !default;
 $custom-select-padding-x: $input-padding-x !default;
@@ -913,18 +857,18 @@ $breadcrumb-border-radius: $border-radius !default;
 // Steps
 
 $step-gutter: 1rem !default;
-$step-container-width: 5rem !default;
+$step-container-width: 7rem !default;
 $step-container-padding-top: .5rem !default;
-$step-circle-size: 1.5rem !default;
+$step-circle-size: 2rem !default;
 $step-circle-border-width: 2px !default;
 
-$step-icon-color: $gray-500 !default;
-$step-icon-background: #fff !default;
+$step-icon-color: $gray-600 !default;
+$step-icon-background: $gray-100 !default;
 $step-icon-completed-color: $success !default;
 $step-icon-active-color: $primary !default;
 
-$step-text-color: $gray-500 !default;
-$step-text-completed-color: $primary !default;
+$step-text-color: $gray-600 !default;
+$step-text-completed-color: $step-icon-completed-color !default;
 $step-text-active-color: $primary !default;
 
 // Carousel
@@ -1003,9 +947,44 @@ $print-body-min-width: map-get($grid-breakpoints, "lg") !default;
 $zindex-dropdown: 1000 !default;
 $zindex-sticky: 1020 !default;
 $zindex-fixed: 1030 !default;
+$zindex-sidebar-backdrop: $zindex-fixed + 4 !default;
+$zindex-sidebar: $zindex-fixed + 5 !default;
 $zindex-offcanvas-backdrop: 1040 !default;
 $zindex-offcanvas: 1045 !default;
 $zindex-modal-backdrop: 1050 !default;
 $zindex-modal: 1055 !default;
 $zindex-popover: 1070 !default;
 $zindex-tooltip: 1080 !default;
+$zindex-toast: 1090 !default;
+
+// Semantic stacking layers used by the ZIndex utility.
+// Low levels reuse Bootstrap's native z-n1 and z-0 through z-3 utilities from $zindex-levels.
+$z-index-values: (
+    n3: -3,
+    n2: -2,
+    dropdown: var(--bs-dropdown-zindex, #{$zindex-dropdown}),
+    sticky: $zindex-sticky,
+    fixed: $zindex-fixed,
+    sidebar-backdrop: $zindex-sidebar-backdrop,
+    sidebar: $zindex-sidebar,
+    offcanvas-backdrop: var(--bs-backdrop-zindex, #{$zindex-offcanvas-backdrop}),
+    offcanvas: var(--bs-offcanvas-zindex, #{$zindex-offcanvas}),
+    modal-backdrop: var(--bs-backdrop-zindex, #{$zindex-modal-backdrop}),
+    modal: var(--bs-modal-zindex, #{$zindex-modal}),
+    popover: var(--bs-popover-zindex, #{$zindex-popover}),
+    tooltip: var(--bs-tooltip-zindex, #{$zindex-tooltip}),
+    toast: var(--bs-toast-zindex, #{$zindex-toast}),
+    snackbar: $zindex-popover,
+    on-screen-keyboard: $zindex-modal + 100,
+) !default;
+
+$button-ghost-colors: () !default;
+
+@each $name, $color in $theme-colors {
+    $button-ghost-colors: map-merge($button-ghost-colors, ($name: var(--bs-#{$name})));
+}
+
+$button-ghost-colors: map-merge($button-ghost-colors, (
+    link: var(--bs-link-color),
+    custom: var(--bs-btn-border-color),
+));

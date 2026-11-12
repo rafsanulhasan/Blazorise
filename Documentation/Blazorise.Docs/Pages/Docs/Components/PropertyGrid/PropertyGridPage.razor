@@ -1,0 +1,128 @@
+@page "/docs/components/property-grid"
+
+<Seo Canonical="/docs/components/property-grid" Title="Blazorise PropertyGrid component" Description="Learn to use the Blazorise PropertyGrid component with manually composed editors, schema-driven rendering, actions, sorting, grouping, and custom templates." />
+
+<DocsPageTitle Path="Components/PropertyGrid" AddedVersion="2.3" AddedDate="2026-07-30">
+    Blazorise PropertyGrid component
+</DocsPageTitle>
+
+<DocsPageLead>
+    Review and edit related values in a compact inspector.
+</DocsPageLead>
+
+<DocsPageSectionTitle>
+    Overview
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Use a property grid for object inspectors, settings panels, and designer surfaces where users need to adjust many related values without a large form.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Each property is displayed as a label and editor row, with related properties organized into collapsible groups.
+    Properties can be searched or arranged by category or name, while optional row actions and descriptions provide additional behavior and guidance without crowding the editor.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Compose a <Code>PropertyGrid</Code> from a toolbar, groups of property rows, and an optional help panel. Use <Code>PropertyGridView</Code> to generate these parts from a <Code>PropertyGridSchema</Code> instead.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="PropertyGrid component anatomy">
+    <DocsAnatomyRegion Label="PropertyGrid" Description="The container for a manually composed inspector.">
+        <DocsAnatomyRegion Label="PropertyGridToolbar" Description="Contains commands and search controls.">
+            <DocsAnatomyRegion Label="PropertyGridToolbarButton" Description="A toolbar command." />
+            <DocsAnatomyRegion Label="PropertyGridToolbarSearch" Description="Captures property filter text." />
+        </DocsAnatomyRegion>
+        <DocsAnatomyRegion Label="PropertyGridGroup" Description="An expandable group of related rows.">
+            <DocsAnatomyRegion Label="PropertyGridItem" Description="A row with a label, custom editor, and optional action." />
+            <DocsAnatomyRegion Label="PropertyGridTextItem" Description="A text editor row." />
+            <DocsAnatomyRegion Label="PropertyGridBooleanItem" Description="A Boolean editor row." />
+            <DocsAnatomyRegion Label="PropertyGridNumericItem" Description="A generic numeric editor row." />
+            <DocsAnatomyRegion Label="PropertyGridSelectItem" Description="A generic selection editor row." />
+            <DocsAnatomyRegion Label="PropertyGridStringSelectItem" Description="A string selection editor row." />
+            <DocsAnatomyRegion Label="PropertyGridColorItem" Description="A color editor row." />
+        </DocsAnatomyRegion>
+        <DocsAnatomyRegion Label="PropertyGridHelp" Description="Displays the selected property's name and description." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
+    Choosing an approach
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    Use <Code Tag>PropertyGrid</Code> for a fixed set of properties known in Razor markup.
+    Compose its toolbar, groups, editors, and help panel directly, and bind each editor to the corresponding value.
+    This approach gives you full control over which components are rendered and how filtering is applied.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Use <Code Tag>PropertyGridView</Code> when properties are dynamic or supplied by application metadata.
+    A <Code>PropertyGridSchema</Code> describes the groups, editor types, values, descriptions, and actions, while the view builds the complete property grid.
+    Handle <Code>PropertyValueChanged</Code> using the stable property key, update the backing model, and provide a new schema when displayed values change.
+</DocsPageParagraph>
+
+<DocsPageParagraph>
+    Give either component a constrained <Code>Height</Code> to keep large property sets inside an independently scrolling viewport.
+    The toolbar remains visible while properties scroll, and selecting a property shows its <Code>Description</Code> in the help panel.
+    Property groups and rows include the grid, selection, and expansion semantics needed by assistive technologies.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Basic">
+        Use manual composition when the available properties are known in advance. This example binds editor components directly, supplies a complete reset button through <Code>ActionContent</Code>, adds search in the toolbar, and filters the rendered rows in Razor.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="PropertyGridBasicExample" Outlined FullWidth>
+        <PropertyGridBasicExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Schema">
+        Use a schema for property sets created at runtime. <Code Tag>PropertyGridView</Code> renders the appropriate editors and reports changes by property key so the backing model can be updated.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="PropertyGridSchemaExample" Outlined FullWidth>
+        <PropertyGridSchemaExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Templates">
+        Keep the schema-driven behavior while replacing selected parts of the UI. Templates can customize the toolbar, groups, rows, labels, editors, and actions, and their contexts provide the current definition and update callbacks.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="PropertyGridTemplatesExample" Outlined FullWidth>
+        <PropertyGridTemplatesExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Exposed Schema
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Define an explicit schema for user-facing editors so only intended properties, labels, order, and editor types are exposed. Group related properties and use domain language instead of showing implementation-oriented member names. Secrets, internal identifiers, and security-sensitive settings should never be included through automatic discovery.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Validate Edits
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Validate a change before applying it to the source object and show feedback next to the property that needs attention. When several values are interdependent, validate the complete edited object as well as each individual field.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/property-grid/api" Name="<PropertyGrid />" />
+</DocsPageApi>

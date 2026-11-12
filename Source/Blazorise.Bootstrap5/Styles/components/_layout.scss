@@ -1,0 +1,22 @@
+.b-layout {
+    &-header {
+        &-fixed {
+            z-index: $zindex-fixed;
+        }
+    }
+
+    &-footer {
+        &-fixed {
+            z-index: $zindex-fixed;
+        }
+    }
+
+    &-sider-content {
+        z-index: $zindex-fixed + 1;
+    }
+
+    &-header:not(.b-layout-header-fixed) > .navbar[data-mode=horizontal] .dropdown-menu[data-visible=true],
+    &-header-fixed:has(> .navbar[data-mode=horizontal] .dropdown-menu[data-visible=true]) {
+        z-index: $zindex-fixed + 2;
+    }
+}

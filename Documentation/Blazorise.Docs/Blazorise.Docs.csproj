@@ -1,86 +1,112 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <Import Project="..\..\Build\Blazorise.Docs.props" />
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Shared\Blazorise.Shared\Blazorise.Shared.csproj" />
+    <ProjectReference Include="..\..\Source\Helpers\Blazorise.Analyzers\Blazorise.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Source\Shared\Blazorise.Shared\Blazorise.Shared.csproj" />
     <ProjectReference Include="..\..\Source\Blazorise\Blazorise.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Animate\Blazorise.Animate.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Barcode\Blazorise.Barcode.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Captcha.ReCaptcha\Blazorise.Captcha.ReCaptcha.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Captcha\Blazorise.Captcha.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Charts.Streaming\Blazorise.Charts.Streaming.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Charts.Trendline\Blazorise.Charts.Trendline.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Charts.DataLabels\Blazorise.Charts.DataLabels.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Charts.Annotation\Blazorise.Charts.Annotation.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Charts.Zoom\Blazorise.Charts.Zoom.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Charts.Svg\Blazorise.Charts.Svg.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Charts\Blazorise.Charts.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.CodeEditor\Blazorise.CodeEditor.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Components\Blazorise.Components.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.DataGrid\Blazorise.DataGrid.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Icons.FontAwesome\Blazorise.Icons.FontAwesome.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Markdown\Blazorise.Markdown.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.QRCode\Blazorise.QRCode.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.RichTextEdit\Blazorise.RichTextEdit.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Ribbon\Blazorise.Ribbon.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Sidebar\Blazorise.Sidebar.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Snackbar\Blazorise.Snackbar.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.SpinKit\Blazorise.SpinKit.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.LoadingIndicator\Blazorise.LoadingIndicator.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.TreeView\Blazorise.TreeView.csproj" />
     <ProjectReference Include="..\..\Source\Extensions\Blazorise.Video\Blazorise.Video.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.FluentValidation\Blazorise.FluentValidation.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.LottieAnimation\Blazorise.LottieAnimation.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Cropper\Blazorise.Cropper.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.SignaturePad\Blazorise.SignaturePad.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Splitter\Blazorise.Splitter.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Pdf\Blazorise.Pdf.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.PdfViewer\Blazorise.PdfViewer.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Scheduler\Blazorise.Scheduler.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Gantt\Blazorise.Gantt.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Maps\Blazorise.Maps.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.PivotGrid\Blazorise.PivotGrid.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Reporting\Blazorise.Reporting.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Reporting.DataSources.Csv\Blazorise.Reporting.DataSources.Csv.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Reporting.DataSources.Sql\Blazorise.Reporting.DataSources.Sql.csproj" />
+    <ProjectReference Include="..\..\Source\Extensions\Blazorise.Reporting.DataSources.WebApi\Blazorise.Reporting.DataSources.WebApi.csproj" />
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="MimeKit" />
+    <PackageReference Include="Blazored.LocalStorage" />
+    <PackageReference Include="ColorCode.HTML" />
   </ItemGroup>
 
-  <!--Binary path for the code generator-->
-  <PropertyGroup>
-    <BinDocsCompiler>..\..\Documentation/Blazorise.Docs.Compiler/bin/Debug/net6.0/Blazorise.Docs.Compiler.dll</BinDocsCompiler>
-  </PropertyGroup>
+  <Import Project="../../Build/Blazorise.Docs.Generation.targets" />
 
-  <!--Project path for code generator-->
-  <PropertyGroup>
-    <ProjectDocsCompiler>dotnet run --configuration release --project "..\..\Documentation/Blazorise.Docs.Compiler/Blazorise.Docs.Compiler.csproj"</ProjectDocsCompiler>
-  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="ApiDocs/**/*.cs;Models/Snippets.generated.cs" />
+    <!-- Blog markup is maintained separately. Compiler-generated examples are embedded from obj. -->
+    <EmbeddedResource Include="Pages/**/*.html" Exclude="Pages/Docs/**/*Code.html" />
+  </ItemGroup>
 
-  <!--Execute the code generator-->
-  <Target Name="CompileDocs" BeforeTargets="BeforeBuild">
-    <!--Command-line for the code generator-->
-    <Message Text="Generating Docs and Tests" Importance="high" />
-    <Exec Command="dotnet &quot;$(BinDocsCompiler)&quot;" Condition="Exists('$(BinDocsCompiler)')" />
-    <Exec Command="$(ProjectDocsCompiler)" Condition="!Exists('$(BinDocsCompiler)')" />
-  </Target>
+  <!-- Read the complete current manifest rather than globbing stale output from deleted examples. -->
+  <Target Name="IncludeGeneratedDocs" BeforeTargets="AssignTargetPaths"
+          DependsOnTargets="InitializeDocsGeneration;CompileDocs">
+    <Error Condition="'$(DesignTimeBuild)' != 'true' and (!Exists('$(DocsGeneratedOutputPath)/ExampleCodeFiles.txt') or !Exists('$(DocsGeneratedOutputPath)/Models/Snippets.generated.cs') or !Exists('$(DocsGeneratedOutputPath)/Models/DocsPageChanges.generated.cs'))"
+           Text="Generated documentation is missing. Build with GenerateDocs=true first." />
 
-  <!--This file contains any ExampleCode that is new and needs including in the build -->
-  <Target Name="ReadFromFile" DependsOnTargets="CompileDocs">
-    <ItemGroup>
-      <NewFiles Include="NewFilesToBuild.txt" />
-    </ItemGroup>
-    <ReadLinesFromFile File="@(NewFiles)">
-      <Output TaskParameter="Lines" ItemName="NewExampleCodeToBuild" />
+    <ReadLinesFromFile File="$(DocsGeneratedOutputPath)/ExampleCodeFiles.txt"
+                       Condition="Exists('$(DocsGeneratedOutputPath)/ExampleCodeFiles.txt')">
+      <Output TaskParameter="Lines" ItemName="_GeneratedExampleCode" />
     </ReadLinesFromFile>
-  </Target>
 
-  <!--Update ExampleCode-->
-  <ItemGroup>
-    <EmbeddedResource Include="Pages\**\*.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Remove="compilerconfig.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="compilerconfig.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Markdig" Version="0.25.0" />
-  </ItemGroup>
-
-  <!--Is this a rebuild - Dont clean generated files as this breaks rebuild behaviour-->
-  <Target Name="ShouldCleanGeneratedFiles" BeforeTargets="BeforeRebuild">
-    <PropertyGroup>
-      <CleanGeneratedFiles>false</CleanGeneratedFiles>
-    </PropertyGroup>
-  </Target>
-
-  <Target Name="CleanGeneratedFiles" BeforeTargets="Clean" Condition="'$(CleanGeneratedFiles)' != 'false'">
     <ItemGroup>
-      <FilesToClean Include="./Pages/**/*ExampleCode.*" />
-      <FilesToClean Include="./NewFilesToBuild.txt" />
+      <EmbeddedResource Remove="@(_GeneratedExampleCode)" />
+      <EmbeddedResource Include="@(_GeneratedExampleCode->'$(DocsGeneratedOutputPath)/%(Identity)')">
+        <Link>%(_GeneratedExampleCode.Identity)</Link>
+        <LogicalName>$(RootNamespace).$([System.String]::Copy('%(_GeneratedExampleCode.Identity)').Replace('/', '.'))</LogicalName>
+      </EmbeddedResource>
+      <Compile Include="$(DocsGeneratedOutputPath)/Models/Snippets.generated.cs"
+               Condition="Exists('$(DocsGeneratedOutputPath)/Models/Snippets.generated.cs')" />
+      <Compile Include="$(DocsGeneratedOutputPath)/Models/DocsPageChanges.generated.cs"
+               Condition="Exists('$(DocsGeneratedOutputPath)/Models/DocsPageChanges.generated.cs')" />
+      <Compile Include="$(ApiDocsIntermediatePath)/**/*.ApiDocs.cs" />
+      <FileWrites Include="$(DocsGeneratedOutputPath)/**/*;$(ApiDocsIntermediatePath)/**/*.ApiDocs.cs" />
     </ItemGroup>
-    <Delete Files="@(FilesToClean)" />
   </Target>
+
+  <ItemGroup>
+    <Content Remove="Pages\Docs\Extensions\Reporting\Examples\StatusBadgeReportElementPropertiesExample.razor" />
+    <Content Remove="Pages\Docs\Extensions\Reporting\Examples\StatusBadgeReportElementRendererExample.razor" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Markdig" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Pages\Docs\Extensions\Reporting\Examples\StatusBadgeReportElementPropertiesExample.razor" />
+    <None Include="Pages\Docs\Extensions\Reporting\Examples\StatusBadgeReportElementRendererExample.razor" />
+  </ItemGroup>
 
 </Project>

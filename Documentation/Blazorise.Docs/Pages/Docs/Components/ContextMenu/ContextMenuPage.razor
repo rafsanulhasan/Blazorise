@@ -1,0 +1,151 @@
+@page "/docs/components/context-menu"
+
+<Seo Canonical="/docs/components/context-menu" Title="Blazorise ContextMenu component" Description="Learn to use the Blazorise ContextMenu component to show right-click menus with actions, checked items, and submenus." />
+
+<DocsPageTitle Path="Components/ContextMenu" AddedVersion="2.3" AddedDate="2026-07-26">
+    Blazorise ContextMenu component
+</DocsPageTitle>
+
+<DocsPageLead>
+    Show contextual actions when a user right-clicks a target element or when application code opens the menu.
+</DocsPageLead>
+
+<DocsPageParagraph>
+    Use the <Code>ContextMenu</Code> component for actions that apply to a selected object, row, or workspace area. The menu can open from a target element or from application code.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A <Code>ContextMenu</Code> combines an optional toggle target with a <Code>ContextMenuBody</Code>. The body can contain commands, groups, separators, and submenus.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="ContextMenu component anatomy">
+    <DocsAnatomyRegion Label="ContextMenu" Description="Controls the target, position, and visibility.">
+        <DocsAnatomyRegion Label="ContextMenuToggle" Description="An optional target declared inside the menu." />
+        <DocsAnatomyRegion Label="ContextMenuBody" Description="Contains the menu surface.">
+            <DocsAnatomyRegion Label="ContextMenuHeader" Description="Labels a group of commands." />
+            <DocsAnatomyRegion Label="ContextMenuItem" Description="A command or selectable option." />
+            <DocsAnatomyRegion Label="ContextMenuDivider" Description="Separates groups of commands." />
+            <DocsAnatomyRegion Label="ContextMenuGroup" Description="Groups related selection options.">
+                <DocsAnatomyRegion Label="ContextMenuItem" Description="An option within the group." />
+            </DocsAnatomyRegion>
+            <DocsAnatomyRegion Label="ContextMenuToolbar" Description="Arranges compact commands in a row.">
+                <DocsAnatomyRegion Label="ContextMenuToolbarItem" Description="A toolbar command." />
+            </DocsAnatomyRegion>
+            <DocsAnatomyRegion Label="ContextMenuSubmenu" Description="Contains a nested menu.">
+                <DocsAnatomyRegion Label="ContextMenuItem" Description="A command in the submenu." />
+            </DocsAnatomyRegion>
+        </DocsAnatomyRegion>
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Basic usage">
+        Attach a menu to any element id and provide menu items for the available actions.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ContextMenuBasicExample" Outlined FullWidth>
+        <ContextMenuBasicExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Toggle content">
+        Use <Code Tag>ContextMenuToggle</Code> when the menu target is declared inside the <Code Tag>ContextMenu</Code>, without assigning an element id.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ContextMenuToggleExample" Outlined FullWidth>
+        <ContextMenuToggleExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Checked items">
+        Use <Code>ShowCheckbox</Code> for toggle items, or <Code Tag>ContextMenuGroup</Code> with radio mode for mutually exclusive choices.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ContextMenuCheckedExample" Outlined FullWidth>
+        <ContextMenuCheckedExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Toolbar">
+        Use <Code Tag>ContextMenuToolbar</Code> for compact icon commands that should be grouped on a single row.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ContextMenuToolbarExample" Outlined FullWidth>
+        <ContextMenuToolbarExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Submenus">
+        Use <Code Tag>ContextMenuSubmenu</Code> to group related commands inside a nested menu.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="ContextMenuSubmenuExample" Outlined FullWidth>
+        <ContextMenuSubmenuExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Functions
+</DocsPageSectionTitle>
+
+<Table>
+    <TableHeader ThemeContrast="ThemeContrast.Light">
+        <TableRow>
+            <TableHeaderCell>Name</TableHeaderCell>
+            <TableHeaderCell>Description</TableHeaderCell>
+        </TableRow>
+    </TableHeader>
+    <TableBody>
+        <TableRow>
+            <TableRowCell><Code>Show()</Code></TableRowCell>
+            <TableRowCell>Shows the context menu relative to its configured target. Calling it while visible has no effect.</TableRowCell>
+        </TableRow>
+        <TableRow>
+            <TableRowCell><Code>Show( double clientX, double clientY )</Code></TableRowCell>
+            <TableRowCell>Shows the context menu at the supplied client coordinates. Calling it while visible has no effect.</TableRowCell>
+        </TableRow>
+        <TableRow>
+            <TableRowCell><Code>Reposition()</Code></TableRowCell>
+            <TableRowCell>Repositions a visible context menu relative to its configured target without invoking <Code>Opening</Code>, <Code>Opened</Code>, or <Code>VisibleChanged</Code>.</TableRowCell>
+        </TableRow>
+        <TableRow>
+            <TableRowCell><Code>Reposition( double clientX, double clientY )</Code></TableRowCell>
+            <TableRowCell>Repositions a visible context menu at the supplied client coordinates without invoking <Code>Opening</Code>, <Code>Opened</Code>, or <Code>VisibleChanged</Code>.</TableRowCell>
+        </TableRow>
+        <TableRow>
+            <TableRowCell><Code>Hide()</Code></TableRowCell>
+            <TableRowCell>Hides the context menu.</TableRowCell>
+        </TableRow>
+    </TableBody>
+</Table>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Visible Actions
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    A context menu is suited to actions that apply to the clicked or focused object. Because the menu is hidden until invoked, important or frequently used actions should also remain available through a visible control.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Menu Structure
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Use concise, verb-first labels and organize related actions with headers or dividers. Separate destructive actions from common ones and state their effect clearly. Keep submenus shallow, and verify that every item can be reached, opened, and selected with both a keyboard and a pointer.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/context-menu/api" Name="<ContextMenu />" />
+</DocsPageApi>

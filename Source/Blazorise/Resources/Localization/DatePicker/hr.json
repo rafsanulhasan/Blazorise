@@ -40,6 +40,26 @@
     "November": "Studeni",
     "December": "Prosinac",
     "AM": "AM",
-    "PM": "PM"
+    "PM": "PM",
+    "RangeSeparator": " do ",
+    "Today": "Danas",
+    "ThisMonth": "Ovaj mjesec",
+    "ThisWeek": "Ovaj tjedan",
+    "Clear": "Obriši",
+    "Month": "Mjesec",
+    "Year": "Godina",
+    "Week": "Tjedan",
+    "Time": "Vrijeme",
+    "Hour": "Sat",
+    "Minute": "Minuta",
+    "PreviousMonth": "Prethodni mjesec",
+    "NextMonth": "Sljedeći mjesec",
+    "PreviousYear": "Prethodna godina",
+    "NextYear": "Sljedeća godina",
+    "PreviousDecade": "Prethodno desetljeće",
+    "NextDecade": "Sljedeće desetljeće",
+    "PreviousCentury": "Prethodno stoljeće",
+    "NextCentury": "Sljedeće stoljeće",
+    "OrdinalDayOther": "{0}."
   }
 }

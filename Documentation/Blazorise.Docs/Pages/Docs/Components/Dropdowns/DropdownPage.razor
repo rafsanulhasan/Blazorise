@@ -1,67 +1,108 @@
-﻿@page "/docs/components/dropdown"
+@page "/docs/components/dropdown"
 
-<Seo Canonical="/docs/components/dropdown" Title="Blazorise Dropdown component" Description="Dropdowns are toggleable, contextual overlays for displaying lists of links and actions in a dropdown menu format." />
+<Seo Canonical="/docs/components/dropdown" Title="Blazorise Dropdown component" Description="Learn to use and work with the Blazorise Dropdown components which are toggleable, contextual overlays for displaying lists of links and actions in a dropdown menu format." />
 
-<DocsPageTitle>
-    Dropdown
+<DocsPageTitle Path="Components/Dropdown">
+    Blazorise Dropdown component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Keep related links and actions together in a menu that opens on demand.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    Dropdowns are toggleable, contextual overlays for displaying lists of links and actions in a dropdown menu format.
+    Use the <Code>Dropdown</Code> component for action menus, navigation choices, or controls with additional options.
 </DocsPageParagraph>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code>Dropdown</Code> the main container
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>DropdownToggle</Code> toggle button
-            </UnorderedListItem>
-            <UnorderedListItem>
-                <Code Tag>DropdownMenu</Code> the toggable menu, hidden by default
-                <UnorderedList>
-                    <UnorderedListItem>
-                        <Code Tag>DropdownItem</Code> each single item of the dropdown menu
-                    </UnorderedListItem>
-                    <UnorderedListItem>
-                        <Code Tag>DropdownDivider</Code> a horizontal line to separate dropdown items
-                    </UnorderedListItem>
-                    <UnorderedListItem>
-                        <Code Tag>DropdownHeader</Code> a label for a section of items
-                    </UnorderedListItem>
-                </UnorderedList>
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageParagraph>
+    Dropdowns are designed to work well with menus to provide a list of options the user can select from. However, dropdowns can also be used in lower-level applications (e.g. color picker and select). The API gives you complete control over showing, hiding, and positioning the menu.
+</DocsPageParagraph>
+
+<DocsPageSectionTitle>
+    Structure
+</DocsPageSectionTitle>
+
+<DocsPageParagraph>
+    A <Code>Dropdown</Code> combines a toggle with a menu. The menu can contain clickable items, dividers, and headings.
+</DocsPageParagraph>
+
+<DocsAnatomy Label="Dropdown component anatomy">
+    <DocsAnatomyRegion Label="Dropdown" Description="Coordinates the toggle and menu.">
+        <DocsAnatomyRegion Label="DropdownToggle" Description="Opens or closes the menu." />
+        <DocsAnatomyRegion Label="DropdownMenu" Description="Contains the menu content; hidden until opened.">
+            <DocsAnatomyRegion Label="DropdownItem" Description="A clickable link or action." />
+            <DocsAnatomyRegion Label="DropdownDivider" Description="Separates groups of items." />
+            <DocsAnatomyRegion Label="DropdownHeader" Description="A heading for a group of items." />
+        </DocsAnatomyRegion>
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
+    Examples
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Dropdown">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="DropdownExample" Outlined>
         <DropdownExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="DropdownExample" />
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Ghost toggle" AddedVersion="2.4" AddedDate="2026-10-06">
+        Use <Code>Ghost</Code> for a transparent, borderless dropdown toggle with visible hover, keyboard focus, and expanded menu states. Choose a theme variant, such as <Code>Color.Primary</Code> or <Code>Color.Danger</Code>. <Code>Ghost</Code> takes precedence over <Code>Outline</Code>.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="GhostDropdownExample" Outlined>
+        <GhostDropdownExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Toggle icon visibility">
+        Use the <Code>ShowToggleIcon</Code> parameter to control whether the dropdown toggle displays its indicator icon.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DropdownToggleIconExample" Outlined>
+        <DropdownToggleIconExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom colors" AddedVersion="2.3" AddedDate="2026-09-24">
+        Use custom CSS colors for dropdown toggles and matching split buttons.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CustomColorsDropdownExample" Outlined>
+        <CustomColorsDropdownExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Dropdown checkboxes">
+        Set <Code>ShowCheckbox</Code> to true to render a checkbox by each dropdown item.
+        Use <Code>Indeterminate</Code> to show a partial selection, such as when some but not all options are selected.
+        Calculate this state from your selections and update it through <Code>CheckedChanged</Code>; it does not change <Code>Checked</Code> automatically.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DropdownCheckboxExample" Outlined>
+        <DropdownCheckboxExample />
+    </DocsPageSectionContent>
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Split Dropdown">
         Just add another Button to have a split dropdown.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="SplitDropdownExample" Outlined>
         <SplitDropdownExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="SplitDropdownExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Show Menu">
         By default a dropdown toggle will show and hide a dropdown menu without the need to do it manually. In case you need to control the menu programmatically you have to use the Dropdown reference.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="ShowMenuExample" Outlined>
         <ShowMenuExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="ShowMenuExample" />
 </DocsPageSection>
 
 <DocsPageSection>
@@ -69,35 +110,56 @@
         By default the menu will show all items. If you want to add the scrolling to the menu you just need to define the
         menu <Code>MaxMenuHeight</Code> parameter.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="DropdownScrollMenuExample" Outlined>
         <DropdownScrollMenuExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="DropdownScrollMenuExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Nested submenus">
         By adding a few more Dropdowns you can add extra levels of submenu to your dropdown. You can apply this to the dropdown in a simple button or within the navbar.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="NestedDropdownExample" Outlined>
         <NestedDropdownExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="NestedDropdownExample" />
 </DocsPageSection>
 
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Nested submenus with direction">
+    <DocsPageSectionHeader Title="Submenu Direction">
         Nested dropdowns with the manual <Code>Direction</Code> is also supported.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined>
+    <DocsPageSectionContent Code="NestedDropdownDirectionExample" Outlined>
         <NestedDropdownDirectionExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="NestedDropdownDirectionExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Animation" AddedVersion="2.4" AddedDate="2026-09-18">
+        Set <Code>Animated="false"</Code> for immediate changes, or use <Code>AnimationDuration</Code> to adjust the duration in milliseconds.
+        A null duration preserves the provider's default; zero or a negative value disables animations.
+        These settings control the provider's existing animations, so providers that show this component immediately keep that behavior.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="DropdownAnimationExample" Outlined>
+        <DropdownAnimationExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
+
+<DocsPageUnorderedList>
+    <DocsPageUnorderedListItem>
+        Dropdown should not be used for navigation. Use tabs for switching between content, or anchor elements for regular navigation.
+    </DocsPageUnorderedListItem>
+    <DocsPageUnorderedListItem>
+        Dropdown is not an input field. Use <Anchor To="docs/components/select">Select</Anchor>, or <Anchor To="docs/components/radio">Radio Button</Anchor> instead.
+    </DocsPageUnorderedListItem>
+</DocsPageUnorderedList>
+
+<DocsPageSectionTitle>
     Functions
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <Table>
     <TableHeader ThemeContrast="ThemeContrast.Light">
@@ -122,63 +184,9 @@
     </TableBody>
 </Table>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
-
-<DocsAttributes Title="Dropdown">
-    <DocsAttributesItem Name="Visible" Type="bool" Default="false">
-        Handles the visibility of dropdown menu.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="RightAligned" Type="bool" Default="false">
-        Right aligned dropdown menu.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Disabled" Type="bool" Default="false">
-        Disables the button or toggle button that are placed inside of dropdown.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Direction" Type="Direction" Default="Default">
-        Direction of an dropdown menu.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="VisibleChanged" Type="EventCallback">
-        Occurs after the dropdown menu visibility has changed.
-    </DocsAttributesItem>
-</DocsAttributes>
-
-<DocsAttributes Title="DropdownMenu">
-    <DocsAttributesItem Name="MaxMenuHeight" Type="string">
-        Sets the maximum height of the dropdown menu.
-    </DocsAttributesItem>
-</DocsAttributes>
-
-<DocsAttributes Title="DropdownItem">
-    <DocsAttributesItem Name="Value" Type="object" Default="null">
-        Holds the item value.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Clicked" Type="EventCallback">
-        Occurs when the item is clicked.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Active" Type="bool" Default="false">
-        Marks the item with an state.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Disabled" Type="bool" Default="false">
-        Marks the item with disabled state and doesn’t allow the click event.
-    </DocsAttributesItem>
-</DocsAttributes>
-
-<DocsAttributes Title="DropdownToggle">
-    <DocsAttributesItem Name="Color" Type="Colors" Default="Default">
-        Component visual or contextual style variants.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Size" Type="Size" Default="Default">
-        Button size variations.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Split" Type="bool" Default="false">
-        Handles the visibility of split button.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Outline" Type="bool" Default="false">
-        Outlined button
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Disabled" Type="bool" Default="false">
-        Makes toggle look inactive.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/dropdown/api" Name="<Dropdown />" />
+    <DocsPageApiItem Url="docs/components/dropdown/api" Name="<DropdownMenu />" />
+    <DocsPageApiItem Url="docs/components/dropdown/api" Name="<DropdownItem />" />
+    <DocsPageApiItem Url="docs/components/dropdown/api" Name="<DropdownToggle />" />
+</DocsPageApi>

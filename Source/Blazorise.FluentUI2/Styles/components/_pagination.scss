@@ -1,0 +1,131 @@
+﻿.fui-Pagination {
+    display: flex;
+    padding-inline-start: 0;
+    list-style: none;
+    border-radius: var(--borderRadiusMedium);
+
+    &-sm {
+        .fui-PaginationItem {
+            .fui-PaginationLink {
+                min-width: 24px;
+                min-height: 24px;
+                padding: 3px var(--spacingHorizontalS);
+            }
+
+            font-weight: var(--fontWeightRegular);
+            font-size: var(--fontSizeBase200);
+            border-radius: var(--borderRadiusMedium);
+            line-height: var(--lineHeightBase200);
+        }
+    }
+
+    &-lg {
+        .fui-PaginationItem {
+            .fui-PaginationLink {
+                min-width: 40px;
+                min-height: 40px;
+                padding: 8px var(--spacingHorizontalL);
+            }
+
+            font-weight: var(--fontWeightSemibold);
+            font-size: var(--fontSizeBase400);
+            border-radius: var(--borderRadiusMedium);
+            line-height: var(--lineHeightBase400);
+        }
+    }
+}
+
+.fui-PaginationItem {
+    align-items: center;
+    box-sizing: border-box;
+    display: inline-flex;
+    justify-content: center;
+    text-decoration-line: none;
+    vertical-align: middle;
+    margin: 0px;
+    padding: 0px;
+    overflow: visible;
+    background-color: var(--colorNeutralBackground1);
+    color: var(--colorNeutralForeground1);
+    font-family: var(--fontFamilyBase);
+    outline-style: none;
+    font-size: var(--fontSizeBase300);
+    font-weight: var(--fontWeightSemibold);
+    line-height: var(--lineHeightBase300);
+    transition-duration: var(--durationFaster);
+    transition-property: background-color, border-color, color, box-shadow;
+    transition-timing-function: var(--curveEasyEase);
+    cursor: pointer;
+
+    .fui-PaginationLink {
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        min-height: 32px;
+        font-size: inherit;
+        user-select: text;
+        text-overflow: inherit;
+        text-decoration-thickness: var(--strokeWidthThin);
+        text-decoration-line: none;
+        overflow-y: inherit;
+        overflow-x: inherit;
+        padding: 5px var(--spacingHorizontalM);
+        margin: 0px;
+        color: var(--colorBrandForegroundLink);
+        box-sizing: border-box;
+        background-color: transparent;
+        cursor: pointer;
+        display: inline-flex;
+        font-weight: var(--fontWeightSemibold);
+        font-family: var(--fontFamilyBase);
+        text-align: start;
+        border: var(--strokeWidthThin) solid var(--colorNeutralStroke1);
+        border-radius: var(--borderRadiusMedium);
+    }
+
+    &:not(:has(.fui-PaginationLink)) {
+        font-weight: var(--fontWeightRegular);
+        background-color: transparent;
+        cursor: default;
+    }
+
+    + .fui-PaginationItem {
+        margin-inline-start: var(--spacingHorizontalXXS);
+    }
+
+    &:not(.fui-PaginationItem-disabled) {
+        .fui-PaginationLink {
+            &:hover {
+                color: var(--colorBrandForegroundLinkHover);
+                background-color: var(--colorNeutralBackground1Hover);
+            }
+
+            &:active {
+                color: var(--colorBrandForegroundLinkPressed);
+                background-color: var(--colorNeutralBackground1Pressed);
+            }
+        }
+    }
+
+    &.fui-PaginationItem-active {
+        .fui-PaginationLink.fui-PaginationLink-active {
+            z-index: 3;
+            color: var(--colorNeutralForegroundOnBrand);
+            background-color: var(--colorBrandBackground);
+            border-color: var(--colorBrandBackground);
+        }
+    }
+
+    &.fui-PaginationItem-disabled:not(.fui-PaginationItem-active) {
+        .fui-PaginationLink.fui-PaginationLink-disabled {
+            z-index: 3;
+            color: var(--colorNeutralForegroundDisabled);
+            border-bottom-color: var(--colorNeutralStrokeDisabled);
+            border-left-color: var(--colorNeutralStrokeDisabled);
+            border-right-color: var(--colorNeutralStrokeDisabled);
+            border-top-color: var(--colorNeutralStrokeDisabled);
+            background-color: var(--colorNeutralBackgroundDisabled);
+            cursor: not-allowed;
+        }
+    }
+}

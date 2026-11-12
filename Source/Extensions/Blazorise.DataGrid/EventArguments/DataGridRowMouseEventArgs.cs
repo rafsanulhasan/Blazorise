@@ -1,29 +1,32 @@
 ﻿#region Using directives
 using System;
+using Microsoft.AspNetCore.Components.Web;
 #endregion
 
-namespace Blazorise.DataGrid
+namespace Blazorise.DataGrid;
+
+/// <summary>
+/// Provides all the information about the clicked event on datagrid row.
+/// </summary>
+/// <typeparam name="TItem"></typeparam>
+public class DataGridRowMouseEventArgs<TItem> : EventArgs
 {
     /// <summary>
-    /// Provides all the information about the clicked event on datagrid row.
+    /// Creates a data grid row mouse event args instance.
     /// </summary>
-    /// <typeparam name="TItem"></typeparam>
-    public class DataGridRowMouseEventArgs<TItem> : EventArgs
+    public DataGridRowMouseEventArgs( TItem item, MouseEventArgs mouseEventArgs )
     {
-        public DataGridRowMouseEventArgs( TItem item, BLMouseEventArgs mouseEventArgs )
-        {
-            Item = item;
-            MouseEventArgs = mouseEventArgs;
-        }
-
-        /// <summary>
-        /// Gets the model.
-        /// </summary>
-        public TItem Item { get; }
-
-        /// <summary>
-        /// Gets the mouse event details.
-        /// </summary>
-        public BLMouseEventArgs MouseEventArgs { get; }
+        Item = item;
+        MouseEventArgs = mouseEventArgs;
     }
+
+    /// <summary>
+    /// Gets the model.
+    /// </summary>
+    public TItem Item { get; }
+
+    /// <summary>
+    /// Gets the mouse event details.
+    /// </summary>
+    public MouseEventArgs MouseEventArgs { get; }
 }

@@ -1,0 +1,226 @@
+.ant-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: var(--ant-drawer-z-index-popup);
+    pointer-events: none;
+    visibility: hidden;
+
+    &.ant-drawer-open,
+    &.ant-offcanvas-opening,
+    &.ant-offcanvas-closing {
+        visibility: visible;
+    }
+
+    &-mask {
+        position: absolute;
+        inset: 0;
+        background: var(--ant-color-bg-mask);
+        opacity: 0;
+        pointer-events: auto;
+        transition: opacity var(--offcanvas-backdrop-animation-duration, var(--offcanvas-animation-duration, 300ms)) var(--ant-motion-ease-in-out);
+    }
+
+    &-content-wrapper {
+        position: absolute;
+        pointer-events: auto;
+        transition: transform var(--offcanvas-animation-duration, 300ms) var(--ant-motion-ease-in-out);
+        will-change: transform;
+
+        &-hidden {
+            display: none;
+        }
+    }
+
+    &-content {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background: var(--ant-color-bg-elevated);
+        pointer-events: auto;
+    }
+
+    &-wrapper-body {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+    }
+
+    &-header {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        padding: var(--ant-padding) var(--ant-padding-content-horizontal-lg);
+        color: var(--ant-color-text);
+        font-size: var(--ant-font-size-lg);
+        line-height: var(--ant-line-height-lg);
+        border-bottom: var(--ant-line-width) var(--ant-line-type) var(--ant-color-split);
+
+        &-title {
+            display: flex;
+            flex: 1 1 auto;
+            align-items: center;
+            gap: var(--ant-margin-xs);
+            min-width: 0;
+        }
+    }
+
+    &-body {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        padding: var(--ant-padding-content-vertical-lg) var(--ant-padding-content-horizontal-lg);
+        overflow: auto;
+    }
+
+    &-footer {
+        flex: 0 0 auto;
+        padding: var(--ant-drawer-footer-padding-block) var(--ant-drawer-footer-padding-inline);
+        border-top: var(--ant-line-width) var(--ant-line-type) var(--ant-color-split);
+    }
+}
+
+@keyframes ant-offcanvas-mask-in {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes ant-offcanvas-left-in {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@keyframes ant-offcanvas-right-in {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@keyframes ant-offcanvas-top-in {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes ant-offcanvas-bottom-in {
+    0% {
+        transform: translateY(100%);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.ant-drawer {
+    &-left > .ant-drawer-content-wrapper {
+        top: 0;
+        bottom: 0;
+        left: 0;
+        box-shadow: var(--ant-box-shadow-drawer-left);
+        transform: translateX(-100%);
+    }
+
+    &-right > .ant-drawer-content-wrapper {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        box-shadow: var(--ant-box-shadow-drawer-right);
+        transform: translateX(100%);
+    }
+
+    &-top > .ant-drawer-content-wrapper {
+        top: 0;
+        right: 0;
+        left: 0;
+        box-shadow: var(--ant-box-shadow-drawer-up);
+        transform: translateY(-100%);
+    }
+
+    &-bottom > .ant-drawer-content-wrapper {
+        right: 0;
+        bottom: 0;
+        left: 0;
+        box-shadow: var(--ant-box-shadow-drawer-down);
+        transform: translateY(100%);
+    }
+
+    &.ant-drawer-open,
+    &.ant-offcanvas-opening {
+        > .ant-drawer-mask {
+            opacity: 1;
+        }
+
+        > .ant-drawer-content-wrapper {
+            transform: none;
+        }
+    }
+
+    &.ant-offcanvas-opening {
+        > .ant-drawer-mask {
+            animation: ant-offcanvas-mask-in var(--offcanvas-backdrop-animation-duration, var(--offcanvas-animation-duration, 300ms)) var(--ant-motion-ease-in-out) both;
+        }
+    }
+
+    @each $placement in $drawer-placements {
+        &-#{$placement}.ant-offcanvas-opening > .ant-drawer-content-wrapper {
+            animation: ant-offcanvas-#{$placement}-in var(--offcanvas-animation-duration, 300ms) var(--ant-motion-ease-in-out) both;
+        }
+    }
+
+    .ant-drawer-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        margin: 0 0 0 auto;
+        padding: 0;
+        color: var(--ant-color-icon);
+        font-size: var(--ant-font-size-lg);
+        line-height: 1;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        transition: color var(--ant-motion-duration-mid), background-color var(--ant-motion-duration-mid);
+
+        &:hover {
+            color: var(--ant-color-icon-hover);
+        }
+    }
+
+    @each $name, $size in $drawer-sizes {
+        &.ant-drawer-#{$name} {
+            --b-ant-drawer-size: #{$size};
+        }
+    }
+
+    &.ant-drawer-fullscreen {
+        &.ant-drawer-left,
+        &.ant-drawer-right {
+            --b-ant-drawer-size: 100vw;
+        }
+
+        &.ant-drawer-top,
+        &.ant-drawer-bottom {
+            --b-ant-drawer-size: 100vh;
+        }
+    }
+}

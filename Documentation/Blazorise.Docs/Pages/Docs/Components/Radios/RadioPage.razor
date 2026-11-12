@@ -1,135 +1,136 @@
-﻿@page "/docs/components/radio"
+@page "/docs/components/radio"
 
-<Seo Canonical="/docs/components/radio" Title="Blazorise Radio system" Description="Radio buttons allow the user to select one option from a set." />
+<Seo Canonical="/docs/components/radio" Title="Blazorise Radio system" Description="Learn to use and work with the Blazorise Radio component, or buttons that allow the user to select one option from a set." />
 
-<DocsPageTitle>
-    Radio component
+<DocsPageTitle Path="Components/Radio">
+    Blazorise Radio component
 </DocsPageTitle>
 
+<DocsPageLead>
+    Let users choose one option from a visible set of related choices.
+</DocsPageLead>
+
 <DocsPageParagraph>
-    <Code Tag>Radio</Code> buttons allow the user to select one option from a set.
-    <br />
-    <br />
-    Use <Code>Radio</Code> buttons when the user needs to see all available options.
+    Use radio buttons when users should compare a small set of mutually exclusive options before choosing one.
 </DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsPageSectionTitle>
     Structure
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
-<UnorderedList>
-    <UnorderedListItem>
-        <Code Tag>RadioGroup</Code>
-        <UnorderedList>
-            <UnorderedListItem>
-                <Code Tag>Radio</Code>
-            </UnorderedListItem>
-        </UnorderedList>
-    </UnorderedListItem>
-</UnorderedList>
+<DocsPageParagraph>
+    A <Code>RadioGroup</Code> groups <Code>Radio</Code> components that share a single selected value.
+</DocsPageParagraph>
 
-<DocsPageSubtitle>
+<DocsAnatomy Label="Radio component anatomy">
+    <DocsAnatomyRegion Label="RadioGroup" Description="Coordinates selection across the options.">
+        <DocsAnatomyRegion Label="Radio" Description="One selectable option." />
+    </DocsAnatomyRegion>
+</DocsAnatomy>
+
+<DocsPageSectionTitle>
     Examples
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Basic RadioGroup">
         <Code>RadioGroup</Code> is a helpful wrapper used to group <Code>Radio</Code> components that provides an easier API,
         and proper keyboard accessibility to the group.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="BasicRadioGroupExample" Outlined FullWidth>
         <BasicRadioGroupExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="BasicRadioGroupExample" />
 </DocsPageSection>
 
+<Paragraph>
+    <Alert Color="Color.Warning" Visible>
+        <AlertMessage>
+            Important Note:
+        </AlertMessage>
+        <AlertDescription>
+            For the <Code>RadioGroup</Code> and <Code>Radio</Code> components to work correctly, the <Code>TValue</Code> type must match across both. This is especially important when using nullable types, as mismatched types can lead to unexpected behavior.
+        </AlertDescription>
+    </Alert>
+</Paragraph>
+
 <DocsPageSection>
-    <DocsPageSectionHeader Title="Standalone Radio">
-        <Code>Radio</Code> can also be used standalone, without the <Code>RadioGroup</Code> wrapper.
+    <DocsPageSectionHeader Title="Grouped radios">
+        When the radio group answers one named question, enable <Code>Group</Code> on <Code Tag>Field</Code> and keep using <Code Tag>FieldLabel</Code>.
+        In grouped mode, the label renders as a <Code Tag>legend</Code> and becomes the semantic group label for the radio group.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
-        <StandaloneRadioExample />
+    <DocsPageSectionContent Code="RadioGroupWithLegendExample" Outlined FullWidth>
+        <RadioGroupWithLegendExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="StandaloneRadioExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="RadioGroup Buttons">
         By setting the <Code>Buttons</Code> flag, radios will be grouped together and will appear as buttons.
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="RadioGroupButtonsExample" Outlined FullWidth>
         <RadioGroupButtonsExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="RadioGroupButtonsExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Button colors">
+        Changing the color of the radio buttons is as simple as setting the <Code>Color</Code> attribute on a <Code>Radio</Code> component.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="RadioGroupButtonColorsExample" Outlined FullWidth>
+        <RadioGroupButtonColorsExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSection>
+    <DocsPageSectionHeader Title="Custom colors" AddedVersion="2.3" AddedDate="2026-09-24">
+        Set a custom color on a radio button group or override individual buttons.
+    </DocsPageSectionHeader>
+    <DocsPageSectionContent Code="CustomColorsRadioExample" Outlined FullWidth>
+        <CustomColorsRadioExample />
+    </DocsPageSectionContent>
+</DocsPageSection>
+
+<DocsPageSectionTitle>
     Binding
-</DocsPageSubtitle>
+</DocsPageSectionTitle>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Two-way binding">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="RadioGroupWithBindExample" Outlined FullWidth>
         <RadioGroupWithBindExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="RadioGroupWithBindExample" />
 </DocsPageSection>
 
 <DocsPageSection>
     <DocsPageSectionHeader Title="Manual event binding">
     </DocsPageSectionHeader>
-    <DocsPageSectionContent Outlined FullWidth>
+    <DocsPageSectionContent Code="RadioGroupWithEventExample" Outlined FullWidth>
         <RadioGroupWithEventExample />
     </DocsPageSectionContent>
-    <DocsPageSectionSource Code="RadioGroupWithEventExample" />
 </DocsPageSection>
 
-<DocsPageSubtitle>
-    Attributes
-</DocsPageSubtitle>
+<DocsPageSectionTitle>
+    Best Practices
+</DocsPageSectionTitle>
 
-<DocsAttributes Title="RadioGroup">
-    <DocsAttributesItem Name="TValue" Type="generic">
-        <Code>CheckedValue</Code> data type.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="CheckedValue" Type="TValue" Default="default">
-        Gets or sets the checked value.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="CheckedValueChanged" Type="@("EventCallback<TValue>")">
-        Occurs when the checked value is changed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Name" Type="string" Default="null">
-        Defines the radio group name.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Orientation" Type="Orientation" Default="Horizontal">
-        Defines the orientation of the radio elements.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Buttons" Type="bool" Default="false">
-        Flag which indicates that radios will appear as button.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Color" Type="Color" Default="Secondary">
-        Defines the color or radio buttons(only when <Code>Buttons</Code> is true).
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Exclusive Choices
+</DocsPageSubsectionTitle>
 
-<DocsAttributes Title="Radio">
-    <DocsAttributesItem Name="TValue" Type="generic">
-        Data type of <Code>Checked</Code> value. Support types are <Code>bool</Code> and <Code>bool?</Code>.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Checked" Type="TValue" Default="default">
-        Gets or sets the checked value.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="CheckedChanged" Type="@("EventCallback<TValue>")">
-        Occurs when the checked value is changed.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Group" Type="string" Default="null">
-        Defines the radio group name.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Inline" Type="bool" Default="false">
-        Group radios on the same horizontal row.
-    </DocsAttributesItem>
-    <DocsAttributesItem Name="Cursor" Type="Cursor" Default="Default">
-        Defines the mouse cursor based on the behavior by the current CSS framework.
-    </DocsAttributesItem>
-</DocsAttributes>
+<DocsPageParagraph>
+    Radio buttons are appropriate for a small set of mutually exclusive choices that benefits from being visible at the same time. Select a default only when one option is safe and genuinely appropriate for most users.
+</DocsPageParagraph>
+
+<DocsPageSubsectionTitle IncludeInToc="false">
+    Provide Group Context
+</DocsPageSubsectionTitle>
+
+<DocsPageParagraph>
+    Place related options in a <Code Tag>RadioGroup</Code> with a clear group label, and give every radio a concise standalone label. Use a <Anchor To="docs/components/select">Select</Anchor> when the list is long or space is constrained, and <Anchor To="docs/components/check">Check</Anchor> components when multiple selections are allowed.
+</DocsPageParagraph>
+
+<DocsPageApi>
+    <DocsPageApiItem Url="docs/components/radio/api" Name="<RadioGroup />" />
+    <DocsPageApiItem Url="docs/components/radio/api" Name="<Radio />" />
+</DocsPageApi>

@@ -1,66 +1,685 @@
-﻿#region Using directives
-using BasicTestApp.Client;
-using Blazorise.Tests.Helpers;
+#region Using directives
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Blazorise;
+using Blazorise.Components;
+using Blazorise.Components.Autocomplete;
+using Blazorise.Shared.Models;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Xunit;
-using static System.Net.Mime.MediaTypeNames;
 #endregion
 
-namespace Blazorise.Tests.Components
+namespace Blazorise.Tests.Components;
+
+public class AutocompleteComponentTest : AutocompleteBaseComponentTest
 {
-    public class AutoCompleteComponentTest : TestContext
+    public AutocompleteComponentTest()
     {
-        public AutoCompleteComponentTest()
+        Services.AddBlazoriseTests().AddBootstrapProviders().AddEmptyIconProvider().AddTestData();
+        JSInterop
+            .AddBlazoriseTextInput()
+            .AddBlazoriseUtilities()
+            .AddBlazoriseClosable()
+            .AddBlazoriseDropdown();
+    }
+
+    [Fact]
+    public void AriaAttributes_AreAppliedToDropdown()
+    {
+        // setup
+        var comp = Render<Autocomplete<string, string>>( parameters => parameters
+            .Add( p => p.Data, new List<string> { "Alpha" } )
+            .Add( p => p.TextField, item => item )
+            .Add( p => p.ValueField, item => item )
+            .Add( p => p.AriaInvalid, "true" )
+            .Add( p => p.AriaRequired, true )
+            .Add( p => p.AriaDescribedBy, "help-id" ) );
+
+        // test
+        var dropdown = comp.Find( ".b-is-autocomplete" );
+        var input = comp.Find( ".b-is-autocomplete input" );
+
+        // validate
+        Assert.Equal( "true", dropdown.GetAttribute( "aria-invalid" ) );
+        Assert.Equal( "true", dropdown.GetAttribute( "aria-required" ) );
+        Assert.Equal( "help-id", dropdown.GetAttribute( "aria-describedby" ) );
+        Assert.Null( input.GetAttribute( "aria-invalid" ) );
+        Assert.Equal( "true", input.GetAttribute( "aria-required" ) );
+        Assert.Null( input.GetAttribute( "aria-describedby" ) );
+    }
+
+    [Fact]
+    public void AriaLabelledBy_IsAppliedToDropdown_WhenProvided()
+    {
+        var comp = Render<Autocomplete<string, string>>( parameters => parameters
+            .Add( p => p.Data, new List<string> { "Alpha" } )
+            .Add( p => p.TextField, item => item )
+            .Add( p => p.ValueField, item => item )
+            .Add( p => p.AriaLabelledBy, "label-id" ) );
+
+        var dropdown = comp.Find( ".b-is-autocomplete" );
+        var input = comp.Find( ".b-is-autocomplete input" );
+
+        Assert.Equal( "label-id", dropdown.GetAttribute( "aria-labelledby" ) );
+        Assert.Null( input.GetAttribute( "aria-labelledby" ) );
+    }
+
+    [Fact]
+    public async Task FreeTypingNotFoundTemplate_Should_DisplayDefinedContent_WhenFreeTypingIsTrue()
+    {
+        var comp = Render<AutocompleteComponent>(
+            p => p.Add( x => x.FreeTyping, true ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "My Very Own Country";
+
+        await Input( autoComplete, input, false );
+
+        comp.WaitForAssertion( () =>
         {
-            BlazoriseConfig.AddBootstrapProviders( Services );
-            BlazoriseConfig.JSInterop.AddTextEdit(this.JSInterop);
-            BlazoriseConfig.JSInterop.AddSelect( this.JSInterop );
-            BlazoriseConfig.JSInterop.AddUtilities( this.JSInterop );
-            BlazoriseConfig.JSInterop.AddClosable( this.JSInterop );
-            BlazoriseConfig.JSInterop.AddDropdown( this.JSInterop );
-        }
+            comp.Markup.Should().Contain( @"Add ""My Very Own Country""" );
+        } );
+    }
 
-        [Fact]
-        public void InitialSelectedValue_ShouldSet_SelectedText()
+    [Fact]
+    public async Task NotfoundContent_Should_DisplayDefinedContent_When_FreeTypingIsFalse()
+    {
+        var comp = Render<AutocompleteComponent>(
+            p => p.Add( x => x.FreeTyping, false ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "My Very Own Country";
+
+        await Input( autoComplete, input, false );
+
+        comp.WaitForAssertion( () =>
         {
-            // setup
-            var comp = RenderComponent<AutocompleteComponent>();
-            var selectedText = comp.Instance.selectedAutoCompleteText;
-            var expectedSelectedText = "China";
+            comp.Markup.Should().Contain( @" Sorry... My Very Own Country was not found! :(" );
+        } );
+    }
 
-            // test
-            var input = comp.Find( ".b-is-autocomplete input" );
-            var inputText = input.GetAttribute( "value" );
-            
-            // validate
-            // validate Dropdown initialize / textfield initialize
-            this.JSInterop.VerifyInvoke( "initialize", 2 );
-            Assert.Equal( expectedSelectedText, selectedText );
-            Assert.Equal( expectedSelectedText, inputText );
-        }
+    [Fact]
+    public async Task SearchTextChanged_ShouldTrigger_Once()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SearchTextChanged, ( x ) => changedCount++ ) );
 
-        [Theory]
-        [InlineData( "CN", "China" )]
-        [InlineData( "PT", "Portugal" )]
-        [InlineData( "GB", "United Kingdom" )]
-        public void ProgramaticallySetSelectedValue_ShouldSet_SelectedText( string selectedValue, string expectedSelectedText )
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        await autoComplete.InputAsync( "S" );
+
+        Assert.Equal( 1, changedCount );
+    }
+
+    [Fact]
+    public async Task SearchKeyDown_ShouldTrigger_Once()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SearchKeyDown, ( x ) => changedCount++ ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        await autoComplete.KeyDownAsync( Key.Get( 'S' ) );
+
+        Assert.Equal( 1, changedCount );
+    }
+
+    [Fact]
+    public async Task KeyboardNavigation_ShouldOnlyRenderRowsWhoseFocusChanged()
+    {
+        int itemContentRenderCount = 0;
+        RenderFragment<ItemContext<string, string>> itemContent = context => builder =>
         {
-            // setup
-            var comp = RenderComponent<AutocompleteComponent>(
-                 parameters =>
-                    parameters.Add( x => x.selectedSearchValue, selectedValue ) );
+            itemContentRenderCount++;
+            builder.AddContent( 0, context.Text );
+        };
+        IRenderedComponent<Autocomplete<string, string>> comp = Render<Autocomplete<string, string>>( parameters => parameters
+            .Add( x => x.Data, new List<string> { "Alpha", "Beta", "Gamma" } )
+            .Add( x => x.TextField, x => x )
+            .Add( x => x.ValueField, x => x )
+            .Add( x => x.MinSearchLength, 0 )
+            .Add( x => x.AutoPreSelect, false )
+            .Add( x => x.ItemContent, itemContent ) );
 
-            var selectedText = comp.Instance.selectedAutoCompleteText;
+        AngleSharp.Dom.IElement autoComplete = comp.Find( ".b-is-autocomplete input" );
+        await autoComplete.FocusAsync( new() );
+        int initialRenderCount = itemContentRenderCount;
+        Assert.Equal( 3, initialRenderCount );
 
-            // test
-            var input = comp.Find( ".b-is-autocomplete input" );
-            var inputText = input.GetAttribute( "value" );
+        await autoComplete.KeyDownAsync( Key.Down );
 
-            // validate
-            // validate Dropdown initialize / textfield initialize
-            this.JSInterop.VerifyInvoke( "initialize", 2 );
-            Assert.Equal( expectedSelectedText, selectedText );
-            Assert.Equal( expectedSelectedText, inputText );
-        }
+        Assert.Equal( initialRenderCount + 1, itemContentRenderCount );
+
+        await autoComplete.KeyDownAsync( Key.Down );
+
+        Assert.Equal( initialRenderCount + 3, itemContentRenderCount );
+    }
+
+    [Fact]
+    public async Task SearchBlur_ShouldTrigger_Once()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SearchBlur, ( x ) => changedCount++ ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        await autoComplete.FocusAsync( new() );
+        await autoComplete.BlurAsync( new() );
+
+        Assert.Equal( 1, changedCount );
+    }
+
+    [Fact]
+    public async Task SearchFocus_ShouldTrigger_Once()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SearchFocus, ( x ) => changedCount++ ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        await autoComplete.FocusAsync( new() );
+
+        Assert.Equal( 1, changedCount );
+    }
+
+
+    [Fact]
+    public async Task Opened_ShouldTrigger_Once()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.Opened, ( x ) => changedCount++ ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        Assert.Equal( 1, changedCount );
+    }
+
+    [Fact]
+    public async Task Closed_ShouldTrigger_OnAutocompleteClosed_Once()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.Closed, ( x ) => changedCount++ ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        Assert.Equal( 1, changedCount );
+    }
+
+    [Fact]
+    public async Task SelectedValueChanged_ShouldOnlyTrigger_WhenValueHasBeenFound()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SelectedValueChanged, ( x ) => changedCount++ ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        Assert.Equal( 1, changedCount );
+    }
+
+    [Fact]
+    public async Task SelectedValueChanged_OnBackspace_ShouldNotTrigger_IfSameValue_OnCommit()
+    {
+        var changedCount = 0;
+        var selectedValue = string.Empty;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SelectedValueChanged, ( x ) =>
+            {
+                selectedValue = x;
+                changedCount++;
+            } ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        await autoComplete.KeyDownAsync( Key.Backspace );
+        await autoComplete.InputAsync( "Portuga" );
+        await autoComplete.KeyDownAsync( Key.Backspace );
+        await autoComplete.InputAsync( "Portug" );
+
+        Assert.Equal( 1, changedCount );
+        Assert.Equal( "PT", selectedValue );
+
+        //Selects first item in dropdown, shouldn't retrigger ValueChanged
+        await autoComplete.KeyDownAsync( Key.Enter );
+        Assert.Equal( 1, changedCount );
+        Assert.Equal( "PT", selectedValue );
+    }
+
+    [Fact]
+    public async Task SelectedValueChanged_OnBackspace_ShouldTriggerNull_OnBlur()
+    {
+        var changedCount = 0;
+        var selectedValue = string.Empty;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SelectedValueChanged, ( x ) =>
+            {
+                selectedValue = x;
+                changedCount++;
+            } ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        await autoComplete.KeyDownAsync( Key.Backspace );
+        await autoComplete.InputAsync( "Portuga" );
+        await autoComplete.KeyDownAsync( Key.Backspace );
+        await autoComplete.InputAsync( "Portug" );
+
+        Assert.Equal( 1, changedCount );
+        Assert.Equal( "PT", selectedValue );
+
+        await autoComplete.BlurAsync( new() );
+        Assert.Equal( 2, changedCount );
+        Assert.Null( selectedValue );
+    }
+
+    [Theory]
+    [InlineData( true, true, "Portuga" )]
+    [InlineData( true, true, "Portugx" )]
+    [InlineData( true, false, "Portugx" )]
+    [InlineData( false, true, "Portuga" )]
+    [InlineData( false, true, "Portugx" )]
+    [InlineData( false, false, "Portugx" )]
+    public async Task EditedSelection_ShouldPreserveTextOnlyWhenFreeTyping( bool freeTyping, bool blur, string editedText )
+    {
+        List<string> selectedValues = new();
+        List<string> selectedTexts = new();
+        IRenderedComponent<AutocompleteComponent> comp = Render<AutocompleteComponent>( parameters => parameters
+            .Add( x => x.FreeTyping, freeTyping )
+            .Add( x => x.SelectedValueChanged, value => selectedValues.Add( value ) )
+            .Add( x => x.SelectedTextChanged, text => selectedTexts.Add( text ) ) );
+
+        AngleSharp.Dom.IElement autoComplete = comp.Find( ".b-is-autocomplete input" );
+        await autoComplete.FocusAsync( new() );
+        await autoComplete.InputAsync( "Portugal" );
+        await comp.Find( ".b-is-autocomplete-suggestion" ).ClickAsync( new() );
+        await autoComplete.BlurAsync( new() );
+        await autoComplete.FocusAsync( new() );
+        await autoComplete.KeyDownAsync( Key.Backspace );
+        await autoComplete.InputAsync( "Portuga" );
+
+        if ( editedText != "Portuga" )
+            await autoComplete.InputAsync( editedText );
+
+        Assert.Equal( "PT", comp.Instance.SelectedValue );
+        selectedTexts.Clear();
+
+        if ( blur )
+            await autoComplete.BlurAsync( new() );
+        else
+            await autoComplete.KeyDownAsync( Key.Enter );
+
+        comp.WaitForAssertion( () =>
+        {
+            Assert.Null( comp.Instance.SelectedValue );
+            Assert.Equal( freeTyping ? editedText : null, comp.Instance.SelectedText );
+            Assert.Equal( freeTyping ? editedText : string.Empty, comp.Find( ".b-is-autocomplete input" ).GetAttribute( "value" ) );
+            Assert.Equal( new string[] { "PT", null }, selectedValues );
+
+            if ( freeTyping )
+                Assert.Empty( selectedTexts );
+        } );
+    }
+
+    [Fact]
+    public async Task SelectedValueChanged_OnBackspace_ShouldTriggerNull_IfNoValue_OnCommit()
+    {
+        var changedCount = 0;
+        var selectedValue = string.Empty;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SelectedValueChanged, ( x ) =>
+            {
+                selectedValue = x;
+                changedCount++;
+            } ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        await autoComplete.KeyDownAsync( Key.Backspace );
+        await autoComplete.InputAsync( "Portuga" );
+        await autoComplete.KeyDownAsync( Key.Backspace );
+        await autoComplete.InputAsync( "Portug" );
+        await autoComplete.InputAsync( "Portugl" );
+
+        Assert.Equal( 1, changedCount );
+        Assert.Equal( "PT", selectedValue );
+
+        //Selects first item in dropdown, shouldn't retrigger ValueChanged
+        await autoComplete.KeyDownAsync( Key.Enter );
+        Assert.Equal( 2, changedCount );
+        Assert.Null( selectedValue );
+    }
+
+    [Fact]
+    public async Task SelectedValueChanged_OnBackspace_ShouldTriggerNull_IfNoValue_OnBlur()
+    {
+        var changedCount = 0;
+        var selectedValue = string.Empty;
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SelectedValueChanged, ( x ) =>
+            {
+                selectedValue = x;
+                changedCount++;
+            } ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        await autoComplete.KeyDownAsync( Key.Backspace );
+        await autoComplete.InputAsync( "Portuga" );
+        await autoComplete.KeyDownAsync( Key.Backspace );
+        await autoComplete.InputAsync( "Portug" );
+        await autoComplete.InputAsync( "Portugl" );
+
+        Assert.Equal( 1, changedCount );
+        Assert.Equal( "PT", selectedValue );
+
+        await autoComplete.BlurAsync( new() );
+        Assert.Equal( 2, changedCount );
+        Assert.Null( selectedValue );
+    }
+
+    [Fact]
+    public async Task SelectedValueChanged_OnAnyEntry_ShouldOnlyTrigger_OnCommit()
+    {
+        var changedCount = 0;
+        var selectedValue = string.Empty;
+
+        var comp = Render<AutocompleteComponent>( p =>
+            p.Add( x => x.SelectedValueChanged, ( x ) =>
+            {
+                selectedValue = x;
+                changedCount++;
+            } ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        Assert.Equal( 1, changedCount );
+        Assert.Equal( "PT", selectedValue );
+
+        await Input( autoComplete, "China", true );
+
+        Assert.Equal( 2, changedCount );
+        Assert.Equal( "CN", selectedValue );
+    }
+
+    [Fact]
+    public async Task SelectedValueChanged_ShouldOnlyTrigger_WhenValueHasBeenFoundAndCommitted()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+        {
+            p.Add( x => x.SelectedValueChanged, ( x ) => changedCount++ );
+            p.Add( x => x.Countries,
+                new List<Country>()
+                { new( "1", "test", "test" ), new( "10", "test", "test" ), new( "100", "test", "test" )} );
+        } );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "100";
+
+        await Input( autoComplete, input, true );
+
+        Assert.Equal( 1, changedCount );
+    }
+
+    [Fact]
+    public async Task SelectedValueChanged_ShouldOnlyTrigger_IfValueIsAlreadySet_But_ValueHasNotBeenFound()
+    {
+        var changedCount = 0;
+        var selectedValue = "PT";
+        var comp = Render<AutocompleteComponent>( p =>
+            {
+                p.Add( x => x.SelectedValue, selectedValue );
+                p.Add( x => x.SelectedValueChanged, ( x ) => { selectedValue = x; changedCount++; } );
+            }
+
+        );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "A Random Value!";
+
+        await Input( autoComplete, input, true );
+
+        Assert.Equal( 1, changedCount );
+        Assert.Equal( default, selectedValue );
+    }
+
+    [Fact]
+    public async Task SelectedTextChanged_ShouldOnlyTrigger_WhenValueHasBeenFound()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+        {
+            p.Add( x => x.SelectedTextChanged, ( x ) => changedCount++ );
+            p.Add( x => x.FreeTyping, false );
+        } );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        Assert.Equal( 1, changedCount );
+    }
+
+    [Fact]
+    public async Task SelectedTextChanged_FreeTyping_ShouldOnlyTrigger_OnEveryKeyStroke()
+    {
+        var changedCount = 0;
+        var comp = Render<AutocompleteComponent>( p =>
+        {
+            p.Add( x => x.SelectedTextChanged, ( x ) => changedCount++ );
+            p.Add( x => x.FreeTyping, true );
+        } );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "Portugal";
+
+        await Input( autoComplete, input, true );
+
+        Assert.Equal( 9, changedCount );
+    }
+
+    [Fact]
+    public async Task SelectedTextChanged_NoFreeTyping_ShouldOnlyTrigger_IfValueIsAlreadySet_But_TextHasNotBeenFound()
+    {
+        var changedCount = 0;
+        var selectedText = "Portugal";
+        var comp = Render<AutocompleteComponent>( p =>
+            {
+                p.Add( x => x.FreeTyping, false );
+                p.Add( x => x.SelectedText, selectedText );
+                p.Add( x => x.SelectedTextChanged, ( x ) => { selectedText = x; changedCount++; } );
+            }
+
+        );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+        var input = "A Random Value!";
+
+        await Input( autoComplete, input, true );
+
+        Assert.Equal( 1, changedCount );
+        Assert.Equal( default, selectedText );
+    }
+
+    [Fact]
+    public Task Focus_ShouldFocus()
+    {
+        return TestFocus<AutocompleteComponent>( ( comp ) => comp.Instance.AutoCompleteRef.Focus() );
+    }
+
+    [Fact]
+    public Task Clear_ShouldReset()
+    {
+        return TestClear<AutocompleteComponent>( ( comp ) => comp.Instance.AutoCompleteRef.Clear(), ( comp ) => comp.Instance.SelectedText );
+    }
+
+    [Fact]
+    public void InitialSelectedValue_ShouldSet_SelectedText()
+    {
+        TestInitialSelectedValue<AutocompleteComponent>( ( comp ) => comp.Instance.SelectedText );
+    }
+
+    [Fact]
+    public void InitialSelectedValueAndText_ShouldSet_SelectedValueAndText()
+    {
+        TestInitialSelectedValueAndText<AutocompleteComponent>( ( comp ) => comp.Instance.SelectedValue, ( comp ) => comp.Instance.SelectedText );
+    }
+
+    [Theory]
+    [InlineData( "Portugal" )]
+    [InlineData( "Antarctica" )]
+    [InlineData( "United Kingdom" )]
+    [InlineData( "China" )]
+    public Task SelectValue_ShouldSet( string expectedText )
+    {
+        return TestSelectValue<AutocompleteComponent>( expectedText, ( comp ) => comp.Instance.SelectedText );
+    }
+
+    [Theory]
+    [InlineData( "MyCustomValue" )]
+    public async Task FreeTypedValue_ShouldSet( string freeTyped )
+    {
+        await TestFreeTypedValue<AutocompleteComponent>( freeTyped, ( comp ) => comp.Instance.SelectedText );
+    }
+
+    [Theory]
+    [InlineData( true, "Portuga", "Portugal" )]
+    [InlineData( true, "Chin", "China" )]
+    [InlineData( true, "United King", "United Kingdom" )]
+    [InlineData( false, "Portuga", "Portuga" )]
+    [InlineData( false, "Chin", "Chin" )]
+    [InlineData( false, "United King", "United King" )]
+    public async Task FreeTypedValue_AutoPreSelect_ShouldSet( bool autoPreSelect, string freeTyped, string expectedText )
+    {
+        await TestFreeTypedValue_AutoPreSelect<AutocompleteComponent>( autoPreSelect, freeTyped, expectedText, ( comp ) => comp.Instance.SelectedText );
+    }
+
+    [Fact]
+    public Task AutoPreSelect_True_Should_AutoPreSelectFirstItem()
+    {
+        return TestHasPreselection<AutocompleteComponent>();
+    }
+
+    [Fact]
+    public Task AutoPreSelect_False_ShouldNot_AutoPreSelectFirstItem()
+    {
+        return TestHasNotPreselection<AutocompleteComponent>();
+    }
+
+    [Fact]
+    public Task MinSearchLength_0_ShouldShowOptions_OnFocus()
+    {
+        return TestMinSearchLength0ShowsOptions<AutocompleteComponent>();
+    }
+
+    [Fact]
+    public async Task Escape_WithMinSearchLength0AndSearchText_ShouldClearAndShowOptions()
+    {
+        var items = new List<string> { "1", "2" };
+
+        var comp = Render<Autocomplete<string, string>>( parameters => parameters
+            .Add( x => x.Data, items )
+            .Add( x => x.TextField, x => x )
+            .Add( x => x.ValueField, x => x )
+            .Add( x => x.FreeTyping, true )
+            .Add( x => x.MinSearchLength, 0 ) );
+
+        var autoComplete = comp.Find( ".b-is-autocomplete input" );
+
+        await autoComplete.FocusAsync( new() );
+        await autoComplete.InputAsync( "Test1" );
+        await autoComplete.BlurAsync( new() );
+        await autoComplete.FocusAsync( new() );
+        await autoComplete.KeyDownAsync( new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs
+        {
+            Key = "Escape"
+        } );
+
+        comp.WaitForAssertion( () =>
+        {
+            Assert.Empty( comp.Find( ".b-is-autocomplete input" ).GetAttribute( "value" ) );
+            Assert.Equal( 2, comp.FindAll( ".b-is-autocomplete-suggestion" ).Count );
+        }, TestExtensions.WaitTime );
+    }
+
+    [Fact]
+    public Task MinSearchLength_BiggerThen0_ShouldNotShowOptions_OnFocus()
+    {
+        return TestMinSearchLengthBiggerThen0DoesNotShowOptions<AutocompleteComponent>();
+    }
+
+    [Theory]
+    [InlineData( "CN", "China" )]
+    [InlineData( "PT", "Portugal" )]
+    [InlineData( "GB", "United Kingdom" )]
+    public Task ProgramaticallySetSelectedValue_ShouldSet_SelectedText( string selectedValue, string expectedSelectedText )
+    {
+        return TestProgramaticallySetSelectedValue<AutocompleteComponent>( ( comp ) => comp.Instance.SelectedText, selectedValue, expectedSelectedText );
+    }
+
+    [Theory]
+    [InlineData( true )]
+    [InlineData( false )]
+    public void ProgramaticallySetSelectedValue_Null_ShouldClear_SelectedTextAndSearch( bool freeTyping )
+    {
+        var countries = new List<Country>
+        {
+            new( "Portugal", "PT", "Lisbon" ),
+            new( "Croatia", "HR", "Zagreb" )
+        };
+        string selectedValue = "PT";
+        string selectedText = null;
+
+        var comp = Render<Autocomplete<Country, string>>( parameters => parameters
+            .Add( x => x.Data, countries )
+            .Add( x => x.FreeTyping, freeTyping )
+            .Add( x => x.TextField, x => x.Name )
+            .Add( x => x.ValueField, x => x.Iso )
+            .Add( x => x.SelectedValue, selectedValue )
+            .Add( x => x.SelectedValueChanged, value => selectedValue = value )
+            .Add( x => x.SelectedText, selectedText )
+            .Add( x => x.SelectedTextChanged, text => selectedText = text ) );
+
+        comp.WaitForAssertion( () => Assert.Equal( "Portugal", comp.Find( ".b-is-autocomplete input" ).GetAttribute( "value" ) ), TestExtensions.WaitTime );
+        Assert.Equal( "Portugal", selectedText );
+
+        selectedValue = null;
+        comp.Render( parameters => parameters
+            .Add( x => x.SelectedValue, selectedValue )
+            .Add( x => x.SelectedText, selectedText ) );
+
+        comp.WaitForAssertion( () =>
+        {
+            Assert.Null( selectedText );
+            Assert.Empty( comp.Find( ".b-is-autocomplete input" ).GetAttribute( "value" ) );
+        }, TestExtensions.WaitTime );
     }
 }
